@@ -231,7 +231,6 @@ Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 ## 🔗 Bağlantılar
 
-- **Original Go Version**: [Sourcegraph2API Go](https://github.com/hermesthecat/sourcegraph2api)
 - **Documentation**: [API Docs](https://github.com/hermesthecat/sourcegraph2api/docs)
 - **Issues**: [GitHub Issues](https://github.com/hermesthecat/sourcegraph2api/issues)
 
