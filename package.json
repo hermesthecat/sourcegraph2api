@@ -1,0 +1,54 @@
+{
+  "name": "sourcegraph2api-nodejs",
+  "version": "1.1.4",
+  "description": "Sourcegraph AI API to OpenAI API proxy server - Node.js version",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "start:dev": "npm run dev",
+    "start:prod": "npm run build && npm start",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "sourcegraph",
+    "openai",
+    "api",
+    "proxy",
+    "ai",
+    "claude",
+    "gemini",
+    "gpt"
+  ],
+  "author": "Dean",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hermesthecat/sourcegraph2api"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.4",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.29.0",
+    "jest": "^30.0.3",
+    "prettier": "^3.6.2",
+    "rimraf": "^5.0.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
