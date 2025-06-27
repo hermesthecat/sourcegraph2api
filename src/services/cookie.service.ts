@@ -112,4 +112,45 @@ export async function getRandomActiveCookie(): Promise<Cookie | null> {
     log.error('Rastgele aktif cookie alınırken hata oluştu:', error);
     return null; // Hata durumunda null dönerek sistemin çökmesini engelle
   }
+}
+
+/**
+ * Tek bir cookie'yi ID'sine göre getirir / Fetches a single cookie by its ID
+ * @param {number} id
+ * @returns {Promise<Cookie | null>}
+ */
+export async function getCookieById(id: number): Promise<Cookie | null> {
+    try {
+        const cookie = await Cookie.findByPk(id);
+        return cookie;
+    } catch (error) {
+        log.error(`Cookie getirilirken hata (ID: ${id}):`, error);
+        throw error;
+    }
+}
+
+/**
+ * Bir cookie'nin bilgilerini günceller / Updates a cookie's information
+ * @param {number} id - Güncellenecek cookie'nin ID'si
+ * @param {string} alias - Yeni takma ad
+ * @param {string} cookieValue - Yeni cookie değeri
+ * @returns {Promise<Cookie | null>}
+ */
+export async function updateCookie(id: number, alias: string, cookieValue: string): Promise<Cookie | null> {
+  try {
+    const cookie = await Cookie.findByPk(id);
+    if (cookie) {
+      cookie.alias = alias;
+      cookie.cookieValue = cookieValue;
+      await cookie.save();
+      log.info(`Cookie güncellendi: ${cookie.alias} (ID: ${id})`);
+      return cookie;
+    } else {
+      log.warn(`Güncellenecek cookie bulunamadı: (ID: ${id})`);
+      return null;
+    }
+  } catch (error) {
+    log.error(`Cookie güncellenirken hata (ID: ${id}):`, error);
+    throw error;
+  }
 } 

@@ -57,12 +57,13 @@
               </td>
               <td><%= new Date(cookie.createdAt).toLocaleString('tr-TR') %></td>
               <td class="actions">
-                <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST">
+                <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-primary" style="background-color:#f39c12;">Düzenle</a>
+                <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST" style="display:inline;">
                   <button type="submit" class="btn <%= cookie.isActive ? 'btn-secondary' : 'btn-success' %>">
                     <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
                   </button>
                 </form>
-                <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
+                <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
                   <button type="submit" class="btn btn-danger">Sil</button>
                 </form>
               </td>

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getAllCookies, addCookie, deleteCookie, toggleCookieStatus } from '../services/cookie.service';
+import { getAllCookies, addCookie, deleteCookie, toggleCookieStatus, getCookieById, updateCookie } from '../services/cookie.service';
 import { getAllApiKeys, addApiKey, deleteApiKey, toggleApiKeyStatus } from '../services/apikey.service';
 import { getUsageMetrics } from '../services/metric.service';
 import * as statsService from '../services/statistics.service'; // İstatistik servisini import et
@@ -76,6 +76,40 @@ router.get('/cookies', async (req: Request, res: Response) => {
       error: 'Sayfa yüklenirken bir hata oluştu.',
       title: 'Hata'
     });
+  }
+});
+
+// Düzenleme sayfasını göster
+router.get('/cookies/edit/:id', async (req: Request, res: Response) => {
+  try {
+    const cookie = await getCookieById(Number(req.params.id));
+    if (!cookie) {
+      return res.redirect('/admin/cookies?error=Düzenlenecek cookie bulunamadı.');
+    }
+    res.render('edit-cookie', {
+      title: 'Cookie Düzenle',
+      cookie,
+      error: req.query.error,
+    });
+  } catch (error) {
+    log.error('Cookie düzenleme sayfası yüklenirken hata:', error);
+    res.redirect('/admin/cookies?error=Sayfa yüklenirken bir hata oluştu.');
+  }
+});
+
+// Cookie'yi güncelle
+router.post('/cookies/edit/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { alias, cookieValue } = req.body;
+  if (!alias || !cookieValue) {
+    return res.redirect(`/admin/cookies/edit/${id}?error=Takma ad ve cookie değeri boş olamaz.`);
+  }
+  try {
+    await updateCookie(Number(id), alias, cookieValue);
+    res.redirect('/admin/cookies?message=Cookie başarıyla güncellendi.');
+  } catch (error) {
+    log.error(`Cookie güncellenirken hata (ID: ${id}):`, error);
+    res.redirect(`/admin/cookies/edit/${id}?error=Cookie güncellenirken bir hata oluştu.`);
   }
 });
 
