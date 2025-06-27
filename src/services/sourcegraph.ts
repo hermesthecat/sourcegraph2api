@@ -153,6 +153,7 @@ class SourcegraphClient {
             ipAddress: expressRequest.ip || 'unknown',
             apiKeyId: expressRequest.apiKeyId || null,
             cookieId: activeCookieId,
+            model: request.model,
             wasSuccess: true,
           });
           log.request(requestId, 'debug', 'Sourcegraph stream ended. / Sourcegraph akışı sona erdi.');
@@ -200,6 +201,7 @@ class SourcegraphClient {
           ipAddress: expressRequest.ip || 'unknown',
           apiKeyId: expressRequest.apiKeyId || null,
           cookieId: activeCookieId, // Hata olsa bile hangi cookie ile denendiğini kaydet
+          model: request.model,
           wasSuccess: false,
           errorMessage: `Status ${statusCode}: ${errorMessage}`
         });
@@ -222,6 +224,7 @@ class SourcegraphClient {
         ipAddress: expressRequest.ip || 'unknown',
         apiKeyId: expressRequest.apiKeyId || null,
         cookieId: null, // Cookie bulunamadığı için null
+        model: request.model, // Hata olsa bile modeli kaydetmeye çalış
         wasSuccess: false,
         errorMessage: error.message
       });

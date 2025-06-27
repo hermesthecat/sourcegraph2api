@@ -57,6 +57,7 @@
           <th>IP Adresi</th>
           <th>API Anahtarı</th>
           <th>Kullanılan Cookie</th>
+          <th>Model</th>
           <th>Durum</th>
           <th>Hata Mesajı</th>
         </tr>
@@ -69,6 +70,7 @@
               <td><%= metric.ipAddress %></td>
               <td><%= metric.apiKey ? metric.apiKey.alias : 'Bilinmiyor' %></td>
               <td><%= metric.cookie ? metric.cookie.alias : 'Bilinmiyor' %></td>
+              <td><code><%= metric.model || '-' %></code></td>
               <td>
                 <% if (metric.wasSuccess) { %>
                   <span class="status status-active">Başarılı</span>
@@ -81,7 +83,7 @@
           <% }) %>
         <% } else { %>
           <tr>
-            <td colspan="6" style="text-align: center;">Görüntülenecek metrik kaydı bulunamadı.</td>
+            <td colspan="7" style="text-align: center;">Görüntülenecek metrik kaydı bulunamadı.</td>
           </tr>
         <% } %>
       </tbody>

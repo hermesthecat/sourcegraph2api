@@ -12,6 +12,7 @@ interface RecordUsageData {
   ipAddress: string;
   apiKeyId: number | null;
   cookieId: number | null;
+  model: string | null;
   wasSuccess: boolean;
   errorMessage?: string | null;
 }
@@ -28,6 +29,7 @@ export async function recordUsage(data: RecordUsageData): Promise<void> {
       ipAddress: data.ipAddress,
       apiKeyId: data.apiKeyId,
       cookieId: data.cookieId,
+      model: data.model,
       wasSuccess: data.wasSuccess,
       errorMessage: data.errorMessage || null,
       requestTimestamp: new Date(),

@@ -13,6 +13,7 @@ interface UsageMetricAttributes {
   requestTimestamp: Date;
   wasSuccess: boolean;
   errorMessage: string | null;
+  model: string | null;
   cookieId: number | null;
   apiKeyId: number | null;
 }
@@ -25,6 +26,7 @@ class UsageMetric extends Model<UsageMetricAttributes, UsageMetricCreationAttrib
   public requestTimestamp!: Date;
   public wasSuccess!: boolean;
   public errorMessage!: string | null;
+  public model!: string | null;
   public cookieId!: number | null;
   public apiKeyId!: number | null;
 
@@ -59,6 +61,11 @@ UsageMetric.init(
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Başarısızsa hata mesajı / Error message if it failed',
+    },
+    model: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'İstekte kullanılan AI modeli / The AI model used in the request',
     },
     cookieId: {
       type: DataTypes.INTEGER,
