@@ -84,6 +84,10 @@
     </div>
 
     <script>
+        // Chart.js için genel okunurluk ayarları
+        Chart.defaults.color = '#ccc'; // Genel metin rengi
+        Chart.defaults.borderColor = '#444'; // Eksen çizgileri rengi
+
         document.addEventListener('DOMContentLoaded', () => {
             const loadingIndicator = document.getElementById('loading');
             const statsContainer = document.getElementById('stats-container');
@@ -144,7 +148,17 @@
                         backgroundColor: ['#dc3545', '#ffc107', '#007bff'],
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: true }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccc' // Legend metin rengi
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -160,7 +174,26 @@
                         backgroundColor: ['#28a745', '#dc3545', '#007bff'],
                     }]
                 },
-                options: { scales: { y: { beginAtZero: true } } }
+                options: { 
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { color: '#ccc' }, // Y ekseni etiket rengi
+                            grid: { color: '#444' }  // Y ekseni grid çizgileri
+                        },
+                        x: {
+                            ticks: { color: '#ccc' }, // X ekseni etiket rengi
+                            grid: { color: '#444' }  // X ekseni grid çizgileri
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ccc' // Legend metin rengi
+                            }
+                        }
+                    } 
+                }
             });
         }
 
