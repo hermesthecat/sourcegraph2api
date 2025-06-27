@@ -143,7 +143,7 @@ export async function getDailyUsageForChart() {
       group: [sequelize.fn('date', sequelize.col('requestTimestamp'))],
       order: [[sequelize.fn('date', sequelize.col('requestTimestamp')), 'ASC']],
     });
-    
+
     // Veriyi Chart.js'in beklediği formata dönüştür
     const labels = dailyCounts.map((item: any) => item.get('date'));
     const data = dailyCounts.map((item: any) => item.get('count'));

@@ -18,7 +18,7 @@ interface UsageMetricAttributes {
   apiKeyId: number | null;
 }
 
-interface UsageMetricCreationAttributes extends Optional<UsageMetricAttributes, 'id'> {}
+interface UsageMetricCreationAttributes extends Optional<UsageMetricAttributes, 'id'> { }
 
 class UsageMetric extends Model<UsageMetricAttributes, UsageMetricCreationAttributes> implements UsageMetricAttributes {
   public id!: number;

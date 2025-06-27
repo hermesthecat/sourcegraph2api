@@ -100,6 +100,9 @@ export interface AppConfig {
   logLevel?: string;
   logPath?: string;
   sessionSecret: string;
+  swaggerEnable?: boolean;
+  userAgent?: string;
+  rateLimitCookieLockDuration?: number;
 }
 
 // Cookie yönetimi tipleri / Cookie management types

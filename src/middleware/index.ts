@@ -143,7 +143,7 @@ export function ipBlacklistMiddleware() {
     const clientIp = req.ip || 'unknown';
     const requestId = req.requestId || 'unknown';
 
-    if (clientIp !== 'unknown' && config.ipBlackList.includes(clientIp)) {
+    if (clientIp !== 'unknown' && config.ipBlacklist.includes(clientIp)) {
       log.request(requestId, 'warn', `Blocked request from blacklisted IP: ${clientIp} / Kara listeye alınmış IP'den gelen istek engellendi: ${clientIp}`);
       res.status(403).json({
         error: {

@@ -66,7 +66,7 @@ class SourcegraphClient {
     }
 
     const cookieValue = activeCookie.cookieValue;
-    
+
     // Metrik kaydı için cookie ID'sini request'e ekle
     // @ts-ignore
     this.cookieId = activeCookie.id;

@@ -85,8 +85,22 @@
 
     <script>
         // Chart.js için genel okunurluk ayarları
-        Chart.defaults.color = '#ccc'; // Genel metin rengi
-        Chart.defaults.borderColor = '#444'; // Eksen çizgileri rengi
+        Chart.defaults.color = '#e0e0e0';
+        Chart.defaults.borderColor = '#555';
+
+        // Grafik arka planı için özel bir eklenti
+        const chartAreaBg = {
+            id: 'chartAreaBg',
+            beforeDraw(chart, args, options) {
+                const {ctx} = chart;
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-over';
+                ctx.fillStyle = options.color || '#3a3a3a'; // Arka plan rengi
+                ctx.fillRect(0, 0, chart.width, chart.height);
+                ctx.restore();
+            }
+        };
+        Chart.register(chartAreaBg);
 
         document.addEventListener('DOMContentLoaded', () => {
             const loadingIndicator = document.getElementById('loading');
@@ -146,15 +160,19 @@
                         label: 'Hafıza Kullanımı',
                         data: [toMB(memoryData.heapUsed), toMB(memoryData.heapTotal), toMB(memoryData.rss)],
                         backgroundColor: ['#dc3545', '#ffc107', '#007bff'],
+                        borderColor: '#333',
                     }]
                 },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: true,
                     plugins: {
+                        chartAreaBg: {
+                           color: '#2a2a2a'
+                        },
                         legend: {
                             labels: {
-                                color: '#ccc' // Legend metin rengi
+                                color: '#e0e0e0' // Legend metin rengi
                             }
                         }
                     }
@@ -178,18 +196,21 @@
                     scales: { 
                         y: { 
                             beginAtZero: true,
-                            ticks: { color: '#ccc' }, // Y ekseni etiket rengi
-                            grid: { color: '#444' }  // Y ekseni grid çizgileri
+                            ticks: { color: '#e0e0e0' }, // Y ekseni etiket rengi
+                            grid: { color: '#555' }  // Y ekseni grid çizgileri
                         },
                         x: {
-                            ticks: { color: '#ccc' }, // X ekseni etiket rengi
-                            grid: { color: '#444' }  // X ekseni grid çizgileri
+                            ticks: { color: '#e0e0e0' }, // X ekseni etiket rengi
+                            grid: { display: false }  // X ekseni grid çizgileri
                         }
                     },
                     plugins: {
+                        chartAreaBg: {
+                           color: '#2a2a2a'
+                        },
                         legend: {
                             labels: {
-                                color: '#ccc' // Legend metin rengi
+                                color: '#e0e0e0' // Legend metin rengi
                             }
                         }
                     } 

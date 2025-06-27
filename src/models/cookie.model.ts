@@ -16,7 +16,7 @@ interface CookieAttributes {
 
 // Cookie oluşturulurken bazı attributelar opsiyonel olabilir (id gibi)
 // Some attributes may be optional when creating a Cookie (like id)
-interface CookieCreationAttributes extends Optional<CookieAttributes, 'id'> {}
+interface CookieCreationAttributes extends Optional<CookieAttributes, 'id'> { }
 
 // Sequelize Model sınıfını genişlet / Extend the Sequelize Model class
 class Cookie extends Model<CookieAttributes, CookieCreationAttributes> implements CookieAttributes {

@@ -65,7 +65,7 @@ export async function getUsageMetrics(options: MetricQueryOptions = {}) {
   } else if (options.filter === 'failure') {
     where.wasSuccess = false;
   }
-  
+
   // Arama özelliği (IP adresi veya hata mesajında)
   if (options.search) {
     where[Op.or] = [

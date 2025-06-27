@@ -14,7 +14,7 @@ interface ApiKeyAttributes {
   isActive: boolean;
 }
 
-interface ApiKeyCreationAttributes extends Optional<ApiKeyAttributes, 'id'> {}
+interface ApiKeyCreationAttributes extends Optional<ApiKeyAttributes, 'id'> { }
 
 class ApiKey extends Model<ApiKeyAttributes, ApiKeyCreationAttributes> implements ApiKeyAttributes {
   public id!: number;

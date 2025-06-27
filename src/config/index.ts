@@ -47,6 +47,7 @@ function getEnvArray(key: string, defaultValue: string[] = []): string[] {
 export const config: AppConfig = {
   // Temel ayarlar / Core settings
   port: getEnvNumber('PORT', 7033),
+  host: getEnvString('HOST', '0.0.0.0'),
   debug: getEnvBoolean('DEBUG', false),
   nodeEnv: (getEnvString('NODE_ENV', 'production') as 'development' | 'production' | 'test'),
   logLevel: getEnvString('LOG_LEVEL', 'info'),
@@ -60,7 +61,7 @@ export const config: AppConfig = {
 
   // API güvenlik ayarları / API security settings
   apiSecret: getEnvString('API_SECRET'),
-  apiSecrets: getEnvArray('API_SECRET'),
+  apiKeys: getEnvArray('API_KEYS'),
 
   // Network ayarları / Network settings
   proxyUrl: getEnvString('PROXY_URL'),
@@ -78,7 +79,7 @@ export const config: AppConfig = {
   swaggerEnable: getEnvBoolean('SWAGGER_ENABLE', true),
 
   // Güvenlik / Security
-  ipBlackList: getEnvArray('IP_BLACK_LIST'),
+  ipBlacklist: getEnvArray('IP_BLACKLIST'),
 };
 
 /**
@@ -253,12 +254,19 @@ export function getModelList(): string[] {
  * Konfigürasyonu doğrula / Validate configuration
  */
 export function validateConfig(): void {
-  if (!config.sgCookie) {
-    throw new Error('SG_COOKIE environment variable is required / SG_COOKIE ortam değişkeni gereklidir');
-  }
+  // Check for SG_COOKIE environment variable
+  // Artık cookie'ler veritabanından yönetildiği için bu kontrol gereksiz.
+  // if (!config.sgCookie) {
+  //   throw new Error('SG_COOKIE environment variable is required / SG_COOKIE ortam değişkeni gereklidir');
+  // }
 
   if (config.port < 1 || config.port > 65535) {
     throw new Error('PORT must be between 1 and 65535 / PORT 1 ile 65535 arasında olmalıdır');
+  }
+
+  // Check for API secrets if provided
+  if (config.apiSecret && config.apiSecret.length < 10) {
+    throw new Error('API_SECRET must be at least 10 characters long / API_SECRET en az 10 karakter uzunluğunda olmalıdır');
   }
 }
 
@@ -269,6 +277,7 @@ export function logConfig(): void {
   if (config.debug) {
     console.log('📋 Configuration loaded: / Konfigürasyon yüklendi:');
     console.log(`   Port / Bağlantı Noktası: ${config.port}`);
+    console.log(`   Host / Konak: ${config.host}`);
     console.log(`   Debug / Hata Ayıklama: ${config.debug}`);
     console.log(`   Node Environment / Ortam: ${config.nodeEnv}`);
     console.log(`   Route Prefix / Rota Ön Eki: ${config.routePrefix || 'none / yok'}`);

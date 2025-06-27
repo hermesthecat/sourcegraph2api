@@ -106,7 +106,7 @@ export async function getRandomActiveCookie(): Promise<Cookie | null> {
     } else {
       log.warn('Havuzda aktif cookie bulunamadı! / No active cookies found in the pool!');
     }
-    
+
     return activeCookie;
   } catch (error) {
     log.error('Rastgele aktif cookie alınırken hata oluştu:', error);
@@ -120,13 +120,13 @@ export async function getRandomActiveCookie(): Promise<Cookie | null> {
  * @returns {Promise<Cookie | null>}
  */
 export async function getCookieById(id: number): Promise<Cookie | null> {
-    try {
-        const cookie = await Cookie.findByPk(id);
-        return cookie;
-    } catch (error) {
-        log.error(`Cookie getirilirken hata (ID: ${id}):`, error);
-        throw error;
-    }
+  try {
+    const cookie = await Cookie.findByPk(id);
+    return cookie;
+  } catch (error) {
+    log.error(`Cookie getirilirken hata (ID: ${id}):`, error);
+    throw error;
+  }
 }
 
 /**

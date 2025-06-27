@@ -78,14 +78,14 @@ router.get('/cookies', async (req: Request, res: Response) => {
   try {
     const cookies = await getAllCookies();
     // 'message' ve 'error' query parametrelerini view'e gönder
-    res.render('cookies', { 
+    res.render('cookies', {
       cookies: cookies,
-      title: 'Cookie Yönetimi' 
+      title: 'Cookie Yönetimi'
     });
   } catch (error) {
     log.error('Cookie yönetim sayfası yüklenirken hata:', error);
-    res.status(500).render('cookies', { 
-      cookies: [], 
+    res.status(500).render('cookies', {
+      cookies: [],
       error: 'Sayfa yüklenirken bir hata oluştu.',
       title: 'Hata'
     });
@@ -281,9 +281,9 @@ router.get('/metrics', async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = 20; // Sayfa başına gösterilecek kayıt sayısı
-    
+
     const { rows: metrics, count } = await getUsageMetrics({ page, limit });
-    
+
     res.render('metrics', {
       metrics,
       title: 'Kullanım Metrikleri',

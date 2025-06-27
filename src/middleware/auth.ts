@@ -113,7 +113,7 @@ export function apiAuth() {
 
     try {
       const secret = req.headers['proxy-secret'] as string;
-      
+
       const apiKey = await isValidActiveApiKey(secret);
 
       if (!apiKey) {

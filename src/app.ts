@@ -49,7 +49,7 @@ export function createApp(): Application {
     secret: config.sessionSecret || 'your-super-secret-key-change-it', // Güvenli bir anahtar ile değiştirin
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: config.env === 'production' } // Production'da sadece HTTPS üzerinden
+    cookie: { secure: config.nodeEnv === 'production' } // Production'da sadece HTTPS üzerinden
   }));
 
   // ======================
@@ -121,7 +121,7 @@ export async function startServer(): Promise<void> {
     const server = app.listen(port, host, () => {
       log.info(`🚀 Sourcegraph2API Server başlatıldı! / Sourcegraph2API Server started!`);
       log.info(`📍 Host: ${host}:${port}`);
-      log.info(`🌍 Environment / Ortam: ${config.env || config.nodeEnv}`);
+      log.info(`🌍 Environment / Ortam: ${config.nodeEnv}`);
       log.info(`🔧 Route Prefix / Rota Öneki: ${config.routePrefix || 'none / yok'}`);
       log.info(`📊 Swagger: ${config.swaggerEnable ? 'enabled / etkin' : 'disabled / devre dışı'}`);
       log.info(`🛡️  Rate Limit / Hız Limiti: ${config.requestRateLimit} requests/minute`);

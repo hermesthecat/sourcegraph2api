@@ -20,6 +20,8 @@ import { openaiAuth } from '../middleware';
 
 // Services - metrics
 import { getMetricsDashboard, getCacheStats, getServicesHealth } from '../services';
+import { getGeneralStats } from '../services/statistics.service';
+import { log } from '../utils/logger';
 
 // Admin router
 import { adminRouter } from './admin.routes';
@@ -106,16 +108,22 @@ export function createApiRouter(): Router {
   });
 
   // GET /metrics/dashboard - Detaylı dashboard / GET /metrics/dashboard - Detaylı pano
-  router.get('/metrics/dashboard', (req, res) => {
+  router.get('/metrics/dashboard', async (req, res) => {
     try {
-      const dashboard = getMetricsDashboard();
+      const generalStats = await getGeneralStats();
       const cacheStats = getCacheStats();
       const servicesHealth = getServicesHealth();
 
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        ...dashboard,
+        overview: {
+          total_requests: generalStats.totalRequests,
+          total_errors: generalStats.totalErrors,
+          success_rate: generalStats.errorRate,
+          active_cookies: generalStats.activeCookies,
+          active_api_keys: generalStats.activeApiKeys,
+        },
         cache: cacheStats,
         services: servicesHealth,
         system: {
@@ -126,6 +134,7 @@ export function createApiRouter(): Router {
         }
       });
     } catch (error: any) {
+      log.error('Metrics dashboard verisi alınırken hata:', error);
       res.status(500).json({ error: 'Failed to retrieve dashboard / Pano alınamadı' });
     }
   });
@@ -133,7 +142,7 @@ export function createApiRouter(): Router {
   // ======================
   // Route prefix uygula / Rota önekini uygula
   // ======================
-  const routePrefix = processRoutePrefix(config.routePrefix);
+  const routePrefix = processRoutePrefix(config.routePrefix || '');
   if (routePrefix) {
     router.use(`${routePrefix}/v1`, v1Router);
   } else {
