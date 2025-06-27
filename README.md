@@ -1,6 +1,8 @@
-# Sourcegraph2API - Node.js Version
+# Sourcegraph2API - Node.js Versiyonu
 
-🚀 **Sourcegraph AI API'sini OpenAI API formatında kullanmanızı sağlayan proxy server - Node.js/TypeScript implementasyonu**
+🚀 **Sourcegraph AI API'sini OpenAI API formatına dönüştüren, yüksek performanslı ve üretime hazır proxy sunucusu.**
+
+Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT serisi dahil 35'ten fazla model) standart OpenAI API formatı üzerinden kullanmanızı sağlar. Bu sayede mevcut OpenAI entegrasyonlarınızı ve kütüphanelerinizi hiçbir değişiklik yapmadan doğrudan Sourcegraph AI ile konuşturabilirsiniz.
 
 ## 📋 İçindekiler
 
@@ -12,293 +14,209 @@
 - [Geliştirme](#-geliştirme)
 - [Docker](#-docker)
 - [Desteklenen Modeller](#-desteklenen-modeller)
+- [Lisans](#-lisans)
 
 ## ⚡ Özellikler
 
-### 🎯 Ana Özellikler
-- **OpenAI API Uyumluluğu**: Mevcut OpenAI entegrasyonlarınızla çalışır
-- **34+ AI Model Desteği**: Claude, Gemini, GPT, DeepSeek, Mixtral serisi
-- **Streaming Support**: Real-time response streaming
-- **Production Ready**: Full TypeScript, comprehensive error handling
-- **Enterprise Security**: Rate limiting, IP blacklist, authentication
-
-### 🛡️ Güvenlik & Performance
-- **Rate Limiting**: Configurable request limiting (default: 60/min)
-- **Cookie Pool Management**: Automatic cookie rotation
-- **Request Analytics**: Built-in metrics and monitoring
-- **Error Resilience**: Retry logic with exponential backoff
-- **Memory Management**: Efficient caching and cleanup
-
-### 📊 Monitoring & Analytics
-- **Real-time Metrics**: Request counts, response times, error rates
-- **Model Usage Stats**: Per-model usage analytics
-- **Health Monitoring**: System health and service status
-- **Performance Dashboard**: `/metrics/dashboard` endpoint
+- **Tam OpenAI Uyumluluğu**: Mevcut OpenAI kütüphaneleri ve araçlarıyla (`gpt-4`, `claude-3-opus` vb. modelleri çağırarak) sorunsuz çalışır.
+- **Geniş Model Desteği**: Anthropic, Google, OpenAI, Mistral ve daha fazlasından 35'ten fazla en güncel yapay zeka modeline erişim.
+- **Akış Desteği (Streaming)**: Gerçek zamanlı ve kesintisiz yanıt akışı için tam `stream: true` desteği.
+- **Üretime Hazır**: Hata yönetimi, performans optimizasyonları ve stabilite için TypeScript ile geliştirilmiştir.
+- **Kurumsal Güvenlik**: İstek sınırlama (Rate Limiting), IP kara listesi ve API anahtarı ile kimlik doğrulama.
+- **Performans**: Düşük gecikme süresi ve verimli kaynak kullanımı için optimize edilmiştir.
 
 ## 🚀 Kurulum
 
 ### Gereksinimler
-- **Node.js**: ≥ 18.0.0
-- **npm**: ≥ 8.0.0 veya **yarn**
-- **TypeScript**: ≥ 5.0.0
+- **Node.js**: `v18.0.0` veya üstü
+- **npm**: `v8.0.0` veya üstü (veya `yarn`)
 
-### 1. Repository'yi Klonlayın
-```bash
-git clone https://github.com/hermesthecat/sourcegraph2api.git
-cd sourcegraph2api/nodejs
-```
+### Adımlar
 
-### 2. Dependencies'leri Kurun
-```bash
-npm install
-# veya
-yarn install
-```
+1.  **Repository'yi Klonlayın:**
+    ```bash
+    git clone https://github.com/hermesthecat/sourcegraph2api.git
+    cd sourcegraph2api
+    ```
 
-### 3. Environment Konfigürasyonu
-```bash
-cp env.example .env
-# .env dosyasını düzenleyin
-```
+2.  **Bağımlılıkları Yükleyin:**
+    ```bash
+    npm install
+    ```
 
-### 4. Server'ı Başlatın
-```bash
-# Development mode
-npm run dev
+3.  **Ortam Değişkenlerini Ayarlayın:**
+    `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri kendinize göre düzenleyin.
+    ```bash
+    cp env.example .env
+    ```
 
-# Production build
-npm run start:prod
-
-# Production mode (compiled)
-npm run build
-npm start
-```
+4.  **Sunucuyu Başlatın:**
+    - **Geliştirme Modu (Otomatik Yenileme ile):**
+      ```bash
+      npm run dev
+      ```
+    - **Üretim Modu:**
+      ```bash
+      npm run build
+      npm start
+      ```
 
 ## ⚙️ Konfigürasyon
 
-### Environment Variables
+Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
 
-| Variable | Açıklama | Default | Gerekli |
-|----------|----------|---------|---------|
-| `PORT` | Server port | `7033` | ❌ |
-| `NODE_ENV` | Environment | `production` | ❌ |
-| `SG_COOKIE` | Sourcegraph cookie | - | ✅ |
-| `API_SECRET` | API authentication secret | - | ✅ |
-| `PROXY_URL` | Proxy server URL | - | ❌ |
-| `REQUEST_RATE_LIMIT` | Requests per minute | `60` | ❌ |
-| `ROUTE_PREFIX` | API route prefix | - | ❌ |
-| `IP_BLACK_LIST` | Comma-separated blocked IPs | - | ❌ |
-| `DEBUG` | Debug logging | `false` | ❌ |
+| Değişken | Açıklama | Varsayılan | Gerekli |
+|--------------------|------------------------------------------------------------------------------------------------|--------------|---------|
+| `PORT` | Sunucunun çalışacağı port. | `7033` | ❌ |
+| `NODE_ENV` | Çalışma ortamı (`development` veya `production`). | `production` | ❌ |
+| `DEBUG` | Detaylı hata ayıklama loglarını aktif eder. | `false` | ❌ |
+| `SG_COOKIE` | **Sourcegraph API**'sine erişim için kullanılacak kimlik bilgisi (cookie). | - | ✅ |
+| `API_SECRET` | Bu **proxy sunucusuna** erişimi korumak için kullanılacak API anahtarı/anahtarları (virgülle ayrılabilir). | - | ✅ |
+| `REQUEST_RATE_LIMIT` | Dakika başına izin verilen maksimum istek sayısı. | `60` | ❌ |
+| `ROUTE_PREFIX` | Tüm API yollarının önüne eklenecek genel önek (örn: `/api`). | - | ❌ |
+| `PROXY_URL` | Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy adresi. | - | ❌ |
+| `IP_BLACK_LIST` | Sunucuya erişimi engellenecek IP adresleri (virgülle ayrılmış). | - | ❌ |
 
-### Örnek .env Dosyası
+
+### Örnek `.env` Dosyası
 ```env
-# Server Configuration
+# Sunucu Ayarları
 PORT=7033
 NODE_ENV=production
 DEBUG=false
 
-# Sourcegraph Integration
-SG_COOKIE=your_sourcegraph_cookie_here
+# ===== Gerekli Ayarlar =====
+# Sourcegraph hesabınızdan alacağınız cookie
+SG_COOKIE=sg_cookie_degeriniz_buraya
 
-# Security
-API_SECRET=your_secret_key
-IP_BLACK_LIST=192.168.1.100,10.0.0.50
+# Bu proxy'yi korumak için belirlediğiniz parola(lar)
+# Birden fazla parola için: API_SECRET=key1,key2,key3
+API_SECRET=super_guvenli_bir_parola
 
-# Performance
-REQUEST_RATE_LIMIT=60
-ROUTE_PREFIX=/api
+# ===== Opsiyonel Ayarlar =====
+# İstek Limiti (dakikada)
+REQUEST_RATE_LIMIT=100
 
-# Network (optional)
-PROXY_URL=http://proxy.example.com:8080
+# Rota Öneki
+ROUTE_PREFIX=/v1
+
+# Proxy
+# PROXY_URL=http://user:pass@host:port
+
+# Engelli IP'ler
+# IP_BLACK_LIST=1.1.1.1,2.2.2.2
 ```
 
 ## 🎯 Kullanım
 
-### OpenAI Client ile Kullanım
+Sunucuyu başlattıktan sonra, standart OpenAI kütüphanelerini kullanarak istek yapabilirsiniz.
+
+### OpenAI Kütüphanesi ile (Node.js/TypeScript)
 
 ```javascript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'http://localhost:7033/v1',
-  apiKey: 'your_api_secret'
+  baseURL: 'http://localhost:7033/v1', // ROUTE_PREFIX'i de ekleyin
+  apiKey: 'super_guvenli_bir_parola' // .env dosyasındaki API_SECRET değeriniz
 });
 
-const response = await client.chat.completions.create({
-  model: 'claude-3-5-sonnet-latest',
-  messages: [
-    { role: 'user', content: 'Merhaba! Nasılsın?' }
-  ],
-  stream: true
-});
+async function main() {
+  const stream = await client.chat.completions.create({
+    model: 'claude-3-opus', // Desteklenen herhangi bir model
+    messages: [
+      { role: 'user', content: 'TypeScript ile ilgili 5 tane mülakat sorusu yazar mısın?' }
+    ],
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    process.stdout.write(chunk.choices[0]?.delta?.content || '');
+  }
+}
+
+main();
 ```
 
 ### cURL ile Test
+
 ```bash
-curl -X POST "http://localhost:7033/v1/chat/completions" \
+curl http://localhost:7033/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your_api_secret" \
+  -H "Authorization: Bearer super_guvenli_bir_parola" \
   -d '{
-    "model": "claude-3-5-sonnet-latest",
-    "messages": [{"role": "user", "content": "Hello!"}],
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Merhaba!"}],
     "stream": false
   }'
 ```
 
 ## 📡 API Endpoints
 
-### OpenAI Uyumlu Endpoints
-- `POST /v1/chat/completions` - Chat completion (streaming/non-streaming)
-- `GET /v1/models` - Desteklenen modeller listesi
-- `GET /v1/models/{model}` - Spesifik model bilgisi
+Bu proxy, standart OpenAI API yollarını destekler:
 
-### System Endpoints
-- `GET /` - API bilgileri ve durum
-- `GET /health` - Basit sağlık kontrolü
-- `GET /health/detailed` - Detaylı sistem durumu
+- `POST /v1/chat/completions`: Chat tamamlama istekleri için ana endpoint. `stream: true` ve `stream: false` modlarını destekler.
+- `GET /v1/models`: Desteklenen tüm modellerin listesini döndürür.
 
-### Metrics & Monitoring
-- `GET /metrics` - Temel performans metrikleri
-- `GET /metrics/dashboard` - Detaylı analytics dashboard
-- `GET /metrics/health` - Service health summary
-
-## 🛠️ Geliştirme
-
-### Project Structure
-```
-nodejs/
-├── src/
-│   ├── config/          # Konfigürasyon ve model registry
-│   ├── controllers/     # HTTP request handlers
-│   ├── middleware/      # Express middleware stack
-│   ├── routes/          # API routing system
-│   ├── services/        # Business logic (Sourcegraph, cache, analytics)
-│   ├── types/           # TypeScript type definitions
-│   ├── utils/           # Helper utilities ve logger
-│   ├── app.ts           # Express app configuration
-│   └── index.ts         # Entry point
-├── dist/                # Compiled JavaScript (auto-generated)
-├── package.json
-├── tsconfig.json
-└── env.example
-```
-
-### Development Commands
-```bash
-# Development mode (auto-reload)
-npm run dev
-
-# Build project
-npm run build
-
-# Type checking
-npx tsc --noEmit
-
-# Linting
-npm run lint
-npm run lint:fix
-
-# Testing
-npm test
-
-# Code formatting
-npm run format
-```
-
-### TypeScript Configuration
-Proje strict TypeScript ayarlarıyla yapılandırılmıştır:
-- Strict null checks
-- No implicit any
-- Unused locals detection
-- Full type safety
+Ek olarak, sistem durumu için aşağıdaki endpoint mevcuttur:
+- `GET /health`: Sunucunun çalışıp çalışmadığını kontrol etmek için basit sağlık kontrolü.
 
 ## 🐳 Docker
 
-### Docker Build
-```bash
-# Dockerfile oluşturun (multi-stage build)
-docker build -t sourcegraph2api-nodejs .
+Projeyi Docker ile kolayca çalıştırabilirsiniz.
 
-# Container çalıştırın
-docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
-```
+1.  **Docker imajını oluşturun:**
+    ```bash
+    # Projenin ana dizininde (sourcegraph2api/) çalıştırın
+    docker build -t sourcegraph2api-nodejs -f nodejs/Dockerfile .
+    ```
 
-### Docker Compose (Önerilen)
-```yaml
-version: '3.8'
-services:
-  sourcegraph2api:
-    build: ./nodejs
-    ports:
-      - "7033:7033"
-    env_file:
-      - .env
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7033/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
+2.  **Container'ı çalıştırın:**
+    `nodejs` klasöründeki `.env` dosyanızı kullanarak container'ı başlatın.
+    ```bash
+    docker run -p 7033:7033 --env-file nodejs/.env sourcegraph2api-nodejs
+    ```
 
 ## 🤖 Desteklenen Modeller
 
-### Claude Serisi (Anthropic)
-- `claude-sonnet-4-latest` - En yeni Claude model
-- `claude-3-5-sonnet-latest` - Claude 3.5 Sonnet 
-- `claude-3-opus` - Claude 3 Opus
-- `claude-3-haiku` - Claude 3 Haiku
+Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI formatında sunar.
 
-### Gemini Serisi (Google)
-- `gemini-2.0-flash` - Gemini 2.0 Flash
-- `gemini-1.5-pro` - Gemini 1.5 Pro
-- `gemini-1.5-flash` - Gemini 1.5 Flash
+### Ana Modeller
 
-### GPT Serisi (OpenAI)
-- `gpt-4o` - GPT-4 Omni
-- `gpt-4o-mini` - GPT-4 Omni Mini
-- `o3-mini-medium` - O3 Mini Medium
+| Marka | Popüler Modeller |
+|-----------|------------------------------------------------------------------|
+| **Claude** (Anthropic) | `claude-3-opus`, `claude-3.5-sonnet-latest`, `claude-3-haiku` |
+| **Gemini** (Google) | `gemini-1.5-pro`, `gemini-2.0-flash` |
+| **GPT** (OpenAI) | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
+| **Diğer** | `mixtral-8x22b-instruct`, `deepseek-v3` |
 
-### Diğer Modeller
-- `deepseek-v3` - DeepSeek v3
-- `mixtral-8x7b-instruct` - Mixtral 8x7B
-- `mixtral-8x22b-instruct` - Mixtral 8x22B
+### Tam Model Listesi
+`claude-sonnet-4-latest`, `claude-sonnet-4-thinking-latest`, `claude-3-7-sonnet-latest`, `claude-3-7-sonnet-extended-thinking`, `claude-3-5-sonnet-latest`, `claude-3-opus`, `claude-3-5-haiku-latest`, `claude-3-haiku`, `claude-3.5-sonnet`, `claude-3-5-sonnet-20240620`, `claude-3-sonnet`, `claude-2.1`, `claude-2.0`, `deepseek-v3`, `gemini-1.5-pro`, `gemini-1.5-pro-002`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`, `gemini-2.5-pro-preview-03-25`, `gemini-1.5-flash`, `gemini-1.5-flash-002`, `mixtral-8x7b-instruct`, `mixtral-8x22b-instruct`, `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini-medium`, `o3`, `o4-mini`, `o1`, `gpt-4-turbo`, `gpt-3.5-turbo`
 
-**Toplam: 34+ model desteklenmektedir.**
+## 🛠️ Geliştirme
 
-## 📈 Performance & Monitoring
-
-### Metrics Dashboard
-Visit `http://localhost:7033/metrics/dashboard` for:
-- Request/response statistics
-- Model usage analytics
-- Error rates and types
-- System performance metrics
-- Cache statistics
-
-### Logging
-Comprehensive logging with:
-- Request/response tracking
-- Error logging with stack traces
-- Performance monitoring
-- Debug information (in debug mode)
-
-### Health Monitoring
-- `/health` - Quick health check
-- `/health/detailed` - Comprehensive system status
-- Built-in uptime monitoring
-
-## 🤝 Katkıda Bulunma
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+### Proje Yapısı
+```
+nodejs/
+├── src/
+│   ├── config/          # Konfigürasyon, ortam değişkenleri ve model listesi
+│   ├── controllers/     # Gelen HTTP isteklerini yöneten mantık
+│   ├── middleware/      # Kimlik doğrulama, loglama gibi ara katman yazılımları
+│   ├── routes/          # API yollarının (endpoints) tanımlandığı yer
+│   ├── services/        # Ana iş mantığı (Sourcegraph istemcisi, cache vb.)
+│   ├── types/           # TypeScript tip tanımlamaları
+│   ├── utils/           # Yardımcı fonksiyonlar ve logger
+│   ├── app.ts           # Express uygulamasının ana kurulumu
+│   └── index.ts         # Uygulamanın giriş noktası
+├── dist/                # Derlenmiş JavaScript dosyaları
+├── package.json
+├── tsconfig.json
+└── .env.example
+```
 
 ## 📄 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](../LICENSE) dosyasına bakın.
+Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
 
 ## 🔗 Bağlantılar
 
