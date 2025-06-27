@@ -15,6 +15,22 @@ import { v4 as uuidv4 } from 'uuid';
 const router = Router();
 
 // ============================
+// Flash Message Middleware
+// ============================
+// Bu middleware, her admin rotasından önce çalışarak session'daki mesajları EJS'e aktarır.
+router.use((req, res, next) => {
+  // @ts-ignore
+  res.locals.message = req.session.message;
+  // @ts-ignore
+  res.locals.error = req.session.error;
+  // @ts-ignore
+  delete req.session.message;
+  // @ts-ignore
+  delete req.session.error;
+  next();
+});
+
+// ============================
 // Dashboard Route
 // ============================
 router.get('/dashboard', async (req: Request, res: Response) => {
@@ -40,7 +56,6 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       apiKeyStats,
       chartData: JSON.stringify(chartData), // Grafikte kullanmak için JSON'a çevir
       modelUsageData: JSON.stringify(modelUsageData), // Pasta grafik için
-      error: null // Hata olmadığında bile 'error' değişkenini null olarak gönder
     });
 
   } catch (error) {
@@ -65,8 +80,6 @@ router.get('/cookies', async (req: Request, res: Response) => {
     // 'message' ve 'error' query parametrelerini view'e gönder
     res.render('cookies', { 
       cookies: cookies,
-      message: req.query.message,
-      error: req.query.error,
       title: 'Cookie Yönetimi' 
     });
   } catch (error) {
@@ -84,16 +97,19 @@ router.get('/cookies/edit/:id', async (req: Request, res: Response) => {
   try {
     const cookie = await getCookieById(Number(req.params.id));
     if (!cookie) {
-      return res.redirect('/admin/cookies?error=Düzenlenecek cookie bulunamadı.');
+      // @ts-ignore
+      req.session.error = 'Düzenlenecek cookie bulunamadı.';
+      return res.redirect('/admin/cookies');
     }
     res.render('edit-cookie', {
       title: 'Cookie Düzenle',
       cookie,
-      error: req.query.error,
     });
   } catch (error) {
     log.error('Cookie düzenleme sayfası yüklenirken hata:', error);
-    res.redirect('/admin/cookies?error=Sayfa yüklenirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'Sayfa yüklenirken bir hata oluştu.';
+    res.redirect('/admin/cookies');
   }
 });
 
@@ -102,14 +118,20 @@ router.post('/cookies/edit/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { alias, cookieValue } = req.body;
   if (!alias || !cookieValue) {
-    return res.redirect(`/admin/cookies/edit/${id}?error=Takma ad ve cookie değeri boş olamaz.`);
+    // @ts-ignore
+    req.session.error = 'Takma ad ve cookie değeri boş olamaz.';
+    return res.redirect(`/admin/cookies/edit/${id}`);
   }
   try {
     await updateCookie(Number(id), alias, cookieValue);
-    res.redirect('/admin/cookies?message=Cookie başarıyla güncellendi.');
+    // @ts-ignore
+    req.session.message = 'Cookie başarıyla güncellendi.';
+    res.redirect('/admin/cookies');
   } catch (error) {
     log.error(`Cookie güncellenirken hata (ID: ${id}):`, error);
-    res.redirect(`/admin/cookies/edit/${id}?error=Cookie güncellenirken bir hata oluştu.`);
+    // @ts-ignore
+    req.session.error = 'Cookie güncellenirken bir hata oluştu.';
+    res.redirect(`/admin/cookies/edit/${id}`);
   }
 });
 
@@ -118,14 +140,20 @@ router.post('/cookies/edit/:id', async (req: Request, res: Response) => {
 router.post('/cookies/add', async (req: Request, res: Response) => {
   const { alias, cookieValue } = req.body;
   if (!alias || !cookieValue) {
-    return res.redirect('/admin/cookies?error=Takma ad ve cookie değeri boş olamaz.');
+    // @ts-ignore
+    req.session.error = 'Takma ad ve cookie değeri boş olamaz.';
+    return res.redirect('/admin/cookies');
   }
   try {
     await addCookie(alias, cookieValue);
-    res.redirect('/admin/cookies?message=Cookie başarıyla eklendi.');
+    // @ts-ignore
+    req.session.message = 'Cookie başarıyla eklendi.';
+    res.redirect('/admin/cookies');
   } catch (error) {
     log.error('Cookie eklenirken hata:', error);
-    res.redirect('/admin/cookies?error=Cookie eklenirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'Cookie eklenirken bir hata oluştu.';
+    res.redirect('/admin/cookies');
   }
 });
 
@@ -135,10 +163,14 @@ router.post('/cookies/delete/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await deleteCookie(Number(id));
-    res.redirect('/admin/cookies?message=Cookie başarıyla silindi.');
+    // @ts-ignore
+    req.session.message = 'Cookie başarıyla silindi.';
+    res.redirect('/admin/cookies');
   } catch (error) {
     log.error(`Cookie silinirken hata (ID: ${id}):`, error);
-    res.redirect('/admin/cookies?error=Cookie silinirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'Cookie silinirken bir hata oluştu.';
+    res.redirect('/admin/cookies');
   }
 });
 
@@ -148,10 +180,14 @@ router.post('/cookies/toggle/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await toggleCookieStatus(Number(id));
-    res.redirect('/admin/cookies?message=Cookie durumu başarıyla güncellendi.');
+    // @ts-ignore
+    req.session.message = 'Cookie durumu başarıyla güncellendi.';
+    res.redirect('/admin/cookies');
   } catch (error) {
     log.error(`Cookie durumu güncellenirken hata (ID: ${id}):`, error);
-    res.redirect('/admin/cookies?error=Cookie durumu güncellenirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'Cookie durumu güncellenirken bir hata oluştu.';
+    res.redirect('/admin/cookies');
   }
 });
 
@@ -166,8 +202,6 @@ router.get('/apikeys', async (req: Request, res: Response) => {
     const apiKeys = await getAllApiKeys();
     res.render('apikeys', {
       apiKeys: apiKeys,
-      message: req.query.message,
-      error: req.query.error,
       title: 'API Anahtarı Yönetimi'
     });
   } catch (error) {
@@ -185,15 +219,21 @@ router.get('/apikeys', async (req: Request, res: Response) => {
 router.post('/apikeys/add', async (req: Request, res: Response) => {
   const { alias } = req.body;
   if (!alias) {
-    return res.redirect('/admin/apikeys?error=Takma ad boş olamaz.');
+    // @ts-ignore
+    req.session.error = 'Takma ad boş olamaz.';
+    return res.redirect('/admin/apikeys');
   }
   try {
     const newKey = `s2a-${uuidv4()}`; // Yeni, benzersiz bir anahtar oluştur
     await addApiKey(alias, newKey);
-    res.redirect('/admin/apikeys?message=API anahtarı başarıyla oluşturuldu ve eklendi.');
+    // @ts-ignore
+    req.session.message = 'API anahtarı başarıyla oluşturuldu ve eklendi.';
+    res.redirect('/admin/apikeys');
   } catch (error) {
     log.error('API anahtarı eklenirken hata:', error);
-    res.redirect('/admin/apikeys?error=API anahtarı eklenirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'API anahtarı eklenirken bir hata oluştu.';
+    res.redirect('/admin/apikeys');
   }
 });
 
@@ -203,10 +243,14 @@ router.post('/apikeys/delete/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await deleteApiKey(Number(id));
-    res.redirect('/admin/apikeys?message=API anahtarı başarıyla silindi.');
+    // @ts-ignore
+    req.session.message = 'API anahtarı başarıyla silindi.';
+    res.redirect('/admin/apikeys');
   } catch (error) {
     log.error(`API anahtarı silinirken hata (ID: ${id}):`, error);
-    res.redirect('/admin/apikeys?error=API anahtarı silinirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'API anahtarı silinirken bir hata oluştu.';
+    res.redirect('/admin/apikeys');
   }
 });
 
@@ -216,10 +260,14 @@ router.post('/apikeys/toggle/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     await toggleApiKeyStatus(Number(id));
-    res.redirect('/admin/apikeys?message=API anahtarı durumu başarıyla güncellendi.');
+    // @ts-ignore
+    req.session.message = 'API anahtarı durumu başarıyla güncellendi.';
+    res.redirect('/admin/apikeys');
   } catch (error) {
     log.error(`API anahtarı durumu güncellenirken hata (ID: ${id}):`, error);
-    res.redirect('/admin/apikeys?error=API anahtarı durumu güncellenirken bir hata oluştu.');
+    // @ts-ignore
+    req.session.error = 'API anahtarı durumu güncellenirken bir hata oluştu.';
+    res.redirect('/admin/apikeys');
   }
 });
 
@@ -241,8 +289,6 @@ router.get('/metrics', async (req: Request, res: Response) => {
       title: 'Kullanım Metrikleri',
       currentPage: page,
       totalPages: Math.ceil(count / limit),
-      message: req.query.message,
-      error: req.query.error,
     });
   } catch (error) {
     log.error('Metrik sayfası yüklenirken hata:', error);

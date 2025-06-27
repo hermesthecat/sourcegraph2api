@@ -49,6 +49,11 @@ export const config: AppConfig = {
   port: getEnvNumber('PORT', 7033),
   debug: getEnvBoolean('DEBUG', false),
   nodeEnv: (getEnvString('NODE_ENV', 'production') as 'development' | 'production' | 'test'),
+  logLevel: getEnvString('LOG_LEVEL', 'info'),
+  logPath: getEnvString('LOG_PATH', 'logs'),
+
+  // Session
+  sessionSecret: getEnvString('SESSION_SECRET'),
 
   // Sourcegraph ayarları / Sourcegraph settings
   sgCookie: getEnvString('SG_COOKIE'),

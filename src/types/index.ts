@@ -86,20 +86,20 @@ export interface SourcegraphRequest {
 // Konfigürasyon tipleri / Configuration types
 export interface AppConfig {
   port: number;
-  host?: string;
-  env?: string;
-  debug: boolean;
-  sgCookie: string;
+  host: string;
   apiSecret?: string;
-  apiSecrets: string[];
-  proxyUrl?: string;
-  userAgent: string;
+  apiKeys: string[];
+  sgCookie?: string;
+  sgEndpoint?: string;
+  routePrefix?: string;
   requestRateLimit: number;
-  rateLimitCookieLockDuration: number;
-  routePrefix: string;
-  swaggerEnable: boolean;
-  ipBlackList: string[];
+  ipBlacklist: string[];
+  proxyUrl?: string;
+  debug: boolean;
   nodeEnv: 'development' | 'production' | 'test';
+  logLevel?: string;
+  logPath?: string;
+  sessionSecret: string;
 }
 
 // Cookie yönetimi tipleri / Cookie management types

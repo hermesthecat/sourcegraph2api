@@ -8,6 +8,8 @@ import { config } from './config';
 import { log } from './utils/logger';
 import { setupRoutes } from './routes';
 import path from 'path'; // path modülünü import et
+import cookieParser from 'cookie-parser'; // cookie-parser'ı import et
+import session from 'express-session'; // express-session'ı import et
 
 // Middleware imports
 import {
@@ -38,6 +40,17 @@ export function createApp(): Application {
   // Static Files / Statik Dosyalar
   // ======================
   app.use(express.static(path.join(process.cwd(), 'public')));
+
+  // ======================
+  // Session & Cookie Parser
+  // ======================
+  app.use(cookieParser());
+  app.use(session({
+    secret: config.sessionSecret || 'your-super-secret-key-change-it', // Güvenli bir anahtar ile değiştirin
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: config.env === 'production' } // Production'da sadece HTTPS üzerinden
+  }));
 
   // ======================
   // Trust proxy (production için) / Proxy'e güven (üretim için)
