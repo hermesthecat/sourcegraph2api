@@ -1,4 +1,242 @@
-# Sourcegraph2API - Node.js Versiyonu
+<details>
+<summary><strong>English Version 🇬🇧</strong></summary>
+
+# Sourcegraph2API - Node.js
+
+🚀 **A high-performance, production-ready proxy server to use Sourcegraph's AI API in the OpenAI API format.**
+
+This project allows you to use Sourcegraph's powerful AI capabilities (including over 35 models like Claude, Gemini, and GPT series) through the standard OpenAI API format. This means you can connect your existing OpenAI integrations and libraries directly to Sourcegraph AI without any modifications.
+
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [API Endpoints](#-api-endpoints)
+- [Docker](#-docker)
+- [Supported Models](#-supported-models)
+- [Development](#-development)
+- [License](#-license)
+
+## ⚡ Features
+
+- **Full OpenAI Compatibility**: Works seamlessly with existing OpenAI libraries and tools by calling models like `gpt-4`, `claude-3-opus`, etc.
+- **Broad Model Support**: Access to over 35 of the latest AI models from Anthropic, Google, OpenAI, Mistral, and more.
+- **Streaming Support**: Full `stream: true` support for real-time, uninterrupted response streaming.
+- **Production-Ready**: Developed with TypeScript for robust error handling, performance optimization, and stability.
+- **Enterprise Security**: Rate limiting, IP blacklisting, and API key authentication.
+- **Performance**: Optimized for low latency and efficient resource usage.
+
+## 🚀 Installation
+
+### Prerequisites
+
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v8.0.0` or higher (or `yarn`)
+
+### Steps
+
+1.  **Clone the Repository:**
+
+    ```bash
+    git clone https://github.com/hermesthecat/sourcegraph2api.git
+    cd sourcegraph2api/nodejs
+    ```
+
+2.  **Install Dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3.  **Set Up Environment Variables:**
+    Create a new file named `.env` by copying `.env.example` and edit the values within it.
+
+    ```bash
+    cp env.example .env
+    ```
+
+4.  **Start the Server:**
+    - **Development Mode (with auto-reload):**
+      ```bash
+      npm run dev
+      ```
+    - **Production Mode:**
+      ```bash
+      npm run build
+      npm start
+      ```
+
+## ⚙️ Configuration
+
+The server is configured via environment variables in the `.env` file.
+
+| Variable             | Description                                                                              | Default      | Required |
+| -------------------- | ---------------------------------------------------------------------------------------- | ------------ | -------- |
+| `PORT`               | The port the server will run on.                                                         | `7033`       | ❌       |
+| `NODE_ENV`           | The operating environment (`development` or `production`).                               | `production` | ❌       |
+| `DEBUG`              | Enables detailed debug logging.                                                          | `false`      | ❌       |
+| `SG_COOKIE`          | The credential (cookie) used to access the **Sourcegraph API**.                          | -            | ✅       |
+| `API_SECRET`         | The API key(s) used to protect access to this **proxy server** (can be comma-separated). | -            | ✅       |
+| `REQUEST_RATE_LIMIT` | The maximum number of requests allowed per minute.                                       | `60`         | ❌       |
+| `ROUTE_PREFIX`       | A global prefix to be added to all API routes (e.g., `/api`).                            | -            | ❌       |
+| `PROXY_URL`          | An HTTP/HTTPS proxy address to be used for requests to Sourcegraph.                      | -            | ❌       |
+| `IP_BLACK_LIST`      | Comma-separated IP addresses to be blocked from accessing the server.                    | -            | ❌       |
+
+### Example `.env` File
+
+```env
+# Server Settings
+PORT=7033
+NODE_ENV=production
+DEBUG=false
+
+# ===== Required Settings =====
+# Your cookie from your Sourcegraph account
+SG_COOKIE=your_sourcegraph_cookie_here
+
+# Your password(s) to protect this proxy
+# For multiple passwords: API_SECRET=key1,key2,key3
+API_SECRET=a_super_secure_password
+
+# ===== Optional Settings =====
+# Request Limit (per minute)
+REQUEST_RATE_LIMIT=100
+
+# Route Prefix
+ROUTE_PREFIX=/v1
+
+# Proxy
+# PROXY_URL=http://user:pass@host:port
+
+# Blocked IPs
+# IP_BLACK_LIST=1.1.1.1,2.2.2.2
+```
+
+## 🎯 Usage
+
+Once the server is running, you can make requests using standard OpenAI libraries.
+
+### With OpenAI Library (Node.js/TypeScript)
+
+```javascript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "http://localhost:7033/v1", // Also include your ROUTE_PREFIX
+  apiKey: "a_super_secure_password", // Your API_SECRET value from .env
+});
+
+async function main() {
+  const stream = await client.chat.completions.create({
+    model: "claude-3-opus", // Any supported model
+    messages: [
+      {
+        role: "user",
+        content: "Can you write 5 interview questions about TypeScript?",
+      },
+    ],
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    process.stdout.write(chunk.choices[0]?.delta?.content || "");
+  }
+}
+
+main();
+```
+
+### Test with cURL
+
+```bash
+curl http://localhost:7033/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer a_super_secure_password" \
+  -d '{
+    "model": "gpt-4o",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": false
+  }'
+```
+
+## 📡 API Endpoints
+
+This proxy supports standard OpenAI API routes:
+
+- `POST /v1/chat/completions`: The main endpoint for chat completion requests. Supports both `stream: true` and `stream: false` modes.
+- `GET /v1/models`: Returns a list of all supported models.
+
+Additionally, the following endpoint is available for system status:
+
+- `GET /health`: A simple health check to see if the server is running.
+
+## 🐳 Docker
+
+You can easily run the project with Docker.
+
+1.  **Build the Docker image:**
+
+    ```bash
+    # Run from the project's root directory (sourcegraph2api/)
+    docker build -t sourcegraph2api-nodejs -f nodejs/Dockerfile .
+    ```
+
+2.  **Run the container:**
+    Start the container using your `.env` file from the `nodejs` folder.
+    ```bash
+    docker run -p 7033:7033 --env-file nodejs/.env sourcegraph2api-nodejs
+    ```
+
+## 🤖 Supported Models
+
+This proxy provides a wide variety of models supported by Sourcegraph in the OpenAI format.
+
+### Main Models
+
+| Brand                  | Popular Models                                                |
+| ---------------------- | ------------------------------------------------------------- |
+| **Claude** (Anthropic) | `claude-3-opus`, `claude-3.5-sonnet-latest`, `claude-3-haiku` |
+| **Gemini** (Google)    | `gemini-1.5-pro`, `gemini-2.0-flash`                          |
+| **GPT** (OpenAI)       | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                        |
+| **Other**              | `mixtral-8x22b-instruct`, `deepseek-v3`                       |
+
+### Full Model List
+
+`claude-sonnet-4-latest`, `claude-sonnet-4-thinking-latest`, `claude-3-7-sonnet-latest`, `claude-3-7-sonnet-extended-thinking`, `claude-3-5-sonnet-latest`, `claude-3-opus`, `claude-3-5-haiku-latest`, `claude-3-haiku`, `claude-3.5-sonnet`, `claude-3-5-sonnet-20240620`, `claude-3-sonnet`, `claude-2.1`, `claude-2.0`, `deepseek-v3`, `gemini-1.5-pro`, `gemini-1.5-pro-002`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`, `gemini-2.5-pro-preview-03-25`, `gemini-1.5-flash`, `gemini-1.5-flash-002`, `mixtral-8x7b-instruct`, `mixtral-8x22b-instruct`, `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini-medium`, `o3`, `o4-mini`, `o1`, `gpt-4-turbo`, `gpt-3.5-turbo`
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+nodejs/
+├── src/
+│   ├── config/          # Configuration, environment variables, and model list
+│   ├── controllers/     # Logic for handling incoming HTTP requests
+│   ├── middleware/      # Middleware for authentication, logging, etc.
+│   ├── routes/          # Where API routes (endpoints) are defined
+│   ├── services/        # Core business logic (Sourcegraph client, cache, etc.)
+│   ├── types/           # TypeScript type definitions
+│   ├── utils/           # Helper functions and logger
+│   ├── app.ts           # Main setup for the Express application
+│   └── index.ts         # The application's entry point
+├── dist/                # Compiled JavaScript files
+├── package.json
+├── tsconfig.json
+└── .env.example
+```
+
+## 📄 License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+</details>
+
+---
+
+# Sourcegraph2API - Node.js
 
 🚀 **Sourcegraph AI API'sini OpenAI API formatına dönüştüren, yüksek performanslı ve üretime hazır proxy sunucusu.**
 
@@ -38,7 +276,7 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
 
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
-    cd sourcegraph2api
+    cd sourcegraph2api/nodejs
     ```
 
 2.  **Bağımlılıkları Yükleyin:**
