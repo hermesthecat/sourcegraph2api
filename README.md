@@ -28,24 +28,28 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
 ## 🚀 Kurulum
 
 ### Gereksinimler
+
 - **Node.js**: `v18.0.0` veya üstü
 - **npm**: `v8.0.0` veya üstü (veya `yarn`)
 
 ### Adımlar
 
 1.  **Repository'yi Klonlayın:**
+
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
     cd sourcegraph2api
     ```
 
 2.  **Bağımlılıkları Yükleyin:**
+
     ```bash
     npm install
     ```
 
 3.  **Ortam Değişkenlerini Ayarlayın:**
     `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri kendinize göre düzenleyin.
+
     ```bash
     cp env.example .env
     ```
@@ -65,20 +69,20 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
 
 Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
 
-| Değişken | Açıklama | Varsayılan | Gerekli |
-|--------------------|------------------------------------------------------------------------------------------------|--------------|---------|
-| `PORT` | Sunucunun çalışacağı port. | `7033` | ❌ |
-| `NODE_ENV` | Çalışma ortamı (`development` veya `production`). | `production` | ❌ |
-| `DEBUG` | Detaylı hata ayıklama loglarını aktif eder. | `false` | ❌ |
-| `SG_COOKIE` | **Sourcegraph API**'sine erişim için kullanılacak kimlik bilgisi (cookie). | - | ✅ |
-| `API_SECRET` | Bu **proxy sunucusuna** erişimi korumak için kullanılacak API anahtarı/anahtarları (virgülle ayrılabilir). | - | ✅ |
-| `REQUEST_RATE_LIMIT` | Dakika başına izin verilen maksimum istek sayısı. | `60` | ❌ |
-| `ROUTE_PREFIX` | Tüm API yollarının önüne eklenecek genel önek (örn: `/api`). | - | ❌ |
-| `PROXY_URL` | Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy adresi. | - | ❌ |
-| `IP_BLACK_LIST` | Sunucuya erişimi engellenecek IP adresleri (virgülle ayrılmış). | - | ❌ |
-
+| Değişken             | Açıklama                                                                                                   | Varsayılan   | Gerekli |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- | ------------ | ------- |
+| `PORT`               | Sunucunun çalışacağı port.                                                                                 | `7033`       | ❌      |
+| `NODE_ENV`           | Çalışma ortamı (`development` veya `production`).                                                          | `production` | ❌      |
+| `DEBUG`              | Detaylı hata ayıklama loglarını aktif eder.                                                                | `false`      | ❌      |
+| `SG_COOKIE`          | **Sourcegraph API**'sine erişim için kullanılacak kimlik bilgisi (cookie).                                 | -            | ✅      |
+| `API_SECRET`         | Bu **proxy sunucusuna** erişimi korumak için kullanılacak API anahtarı/anahtarları (virgülle ayrılabilir). | -            | ✅      |
+| `REQUEST_RATE_LIMIT` | Dakika başına izin verilen maksimum istek sayısı.                                                          | `60`         | ❌      |
+| `ROUTE_PREFIX`       | Tüm API yollarının önüne eklenecek genel önek (örn: `/api`).                                               | -            | ❌      |
+| `PROXY_URL`          | Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy adresi.                                  | -            | ❌      |
+| `IP_BLACK_LIST`      | Sunucuya erişimi engellenecek IP adresleri (virgülle ayrılmış).                                            | -            | ❌      |
 
 ### Örnek `.env` Dosyası
+
 ```env
 # Sunucu Ayarları
 PORT=7033
@@ -114,24 +118,27 @@ Sunucuyu başlattıktan sonra, standart OpenAI kütüphanelerini kullanarak iste
 ### OpenAI Kütüphanesi ile (Node.js/TypeScript)
 
 ```javascript
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: 'http://localhost:7033/v1', // ROUTE_PREFIX'i de ekleyin
-  apiKey: 'super_guvenli_bir_parola' // .env dosyasındaki API_SECRET değeriniz
+  baseURL: "http://localhost:7033/v1", // ROUTE_PREFIX'i de ekleyin
+  apiKey: "super_guvenli_bir_parola", // .env dosyasındaki API_SECRET değeriniz
 });
 
 async function main() {
   const stream = await client.chat.completions.create({
-    model: 'claude-3-opus', // Desteklenen herhangi bir model
+    model: "claude-3-opus", // Desteklenen herhangi bir model
     messages: [
-      { role: 'user', content: 'TypeScript ile ilgili 5 tane mülakat sorusu yazar mısın?' }
+      {
+        role: "user",
+        content: "TypeScript ile ilgili 5 tane mülakat sorusu yazar mısın?",
+      },
     ],
     stream: true,
   });
 
   for await (const chunk of stream) {
-    process.stdout.write(chunk.choices[0]?.delta?.content || '');
+    process.stdout.write(chunk.choices[0]?.delta?.content || "");
   }
 }
 
@@ -159,6 +166,7 @@ Bu proxy, standart OpenAI API yollarını destekler:
 - `GET /v1/models`: Desteklenen tüm modellerin listesini döndürür.
 
 Ek olarak, sistem durumu için aşağıdaki endpoint mevcuttur:
+
 - `GET /health`: Sunucunun çalışıp çalışmadığını kontrol etmek için basit sağlık kontrolü.
 
 ## 🐳 Docker
@@ -166,6 +174,7 @@ Ek olarak, sistem durumu için aşağıdaki endpoint mevcuttur:
 Projeyi Docker ile kolayca çalıştırabilirsiniz.
 
 1.  **Docker imajını oluşturun:**
+
     ```bash
     # Projenin ana dizininde (sourcegraph2api/) çalıştırın
     docker build -t sourcegraph2api-nodejs -f nodejs/Dockerfile .
@@ -183,19 +192,21 @@ Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI fo
 
 ### Ana Modeller
 
-| Marka | Popüler Modeller |
-|-----------|------------------------------------------------------------------|
+| Marka                  | Popüler Modeller                                              |
+| ---------------------- | ------------------------------------------------------------- |
 | **Claude** (Anthropic) | `claude-3-opus`, `claude-3.5-sonnet-latest`, `claude-3-haiku` |
-| **Gemini** (Google) | `gemini-1.5-pro`, `gemini-2.0-flash` |
-| **GPT** (OpenAI) | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
-| **Diğer** | `mixtral-8x22b-instruct`, `deepseek-v3` |
+| **Gemini** (Google)    | `gemini-1.5-pro`, `gemini-2.0-flash`                          |
+| **GPT** (OpenAI)       | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                        |
+| **Diğer**              | `mixtral-8x22b-instruct`, `deepseek-v3`                       |
 
 ### Tam Model Listesi
+
 `claude-sonnet-4-latest`, `claude-sonnet-4-thinking-latest`, `claude-3-7-sonnet-latest`, `claude-3-7-sonnet-extended-thinking`, `claude-3-5-sonnet-latest`, `claude-3-opus`, `claude-3-5-haiku-latest`, `claude-3-haiku`, `claude-3.5-sonnet`, `claude-3-5-sonnet-20240620`, `claude-3-sonnet`, `claude-2.1`, `claude-2.0`, `deepseek-v3`, `gemini-1.5-pro`, `gemini-1.5-pro-002`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`, `gemini-2.5-pro-preview-03-25`, `gemini-1.5-flash`, `gemini-1.5-flash-002`, `mixtral-8x7b-instruct`, `mixtral-8x22b-instruct`, `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini-medium`, `o3`, `o4-mini`, `o1`, `gpt-4-turbo`, `gpt-3.5-turbo`
 
 ## 🛠️ Geliştirme
 
 ### Proje Yapısı
+
 ```
 nodejs/
 ├── src/
@@ -226,4 +237,4 @@ Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 ---
 
-**Made with ❤️ by [hermesthecat](https://github.com/hermesthecat)** 
+**Made with ❤️ by [hermesthecat](https://github.com/hermesthecat)**
