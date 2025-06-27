@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import { config } from '../config';
 import { OpenAIErrorResponse } from '../types';
 import { log } from '../utils/logger';
-import { isValidActiveApiKey } from '../services/apikey.service';
+import { isValidActiveApiKey } from '@/services/apikey.service';
 
 /**
  * Request'e custom property eklemek için interface genişletme

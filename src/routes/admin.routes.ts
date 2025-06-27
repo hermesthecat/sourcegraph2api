@@ -8,10 +8,46 @@ import { Router, Request, Response } from 'express';
 import { getAllCookies, addCookie, deleteCookie, toggleCookieStatus } from '../services/cookie.service';
 import { getAllApiKeys, addApiKey, deleteApiKey, toggleApiKeyStatus } from '../services/apikey.service';
 import { getUsageMetrics } from '../services/metric.service';
+import * as statsService from '../services/statistics.service'; // İstatistik servisini import et
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
+
+// ============================
+// Dashboard Route
+// ============================
+router.get('/dashboard', async (req: Request, res: Response) => {
+  try {
+    const [
+      generalStats,
+      cookieStats,
+      apiKeyStats,
+      chartData,
+    ] = await Promise.all([
+      statsService.getGeneralStats(),
+      statsService.getCookieUsageStats(),
+      statsService.getApiKeyUsageStats(),
+      statsService.getDailyUsageForChart(),
+    ]);
+
+    res.render('dashboard', {
+      title: 'Gösterge Paneli',
+      generalStats,
+      cookieStats,
+      apiKeyStats,
+      chartData: JSON.stringify(chartData), // Grafikte kullanmak için JSON'a çevir
+    });
+
+  } catch (error) {
+    log.error('Dashboard sayfası yüklenirken hata:', error);
+    res.status(500).render('dashboard', {
+      title: 'Hata',
+      error: 'Dashboard verileri yüklenirken bir hata oluştu.',
+      generalStats: {}, cookieStats: [], apiKeyStats: [], chartData: '{}',
+    });
+  }
+});
 
 // ============================
 // Cookie Management Routes

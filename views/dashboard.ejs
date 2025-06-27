@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background-color: #ecf0f1;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-card h3 {
+      margin-top: 0;
+      color: #34495e;
+      font-size: 18px;
+    }
+    .stat-card p {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 10px 0 0 0;
+      color: #e74c3c;
+    }
+    .grid-col-span-2 {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <%- include('partials/nav') %>
+    <h1>Gösterge Paneli</h1>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } else { %>
+      <!-- Genel İstatistikler -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Toplam İstek</h3>
+          <p><%= generalStats.totalRequests %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Toplam Hata</h3>
+          <p><%= generalStats.totalErrors %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Hata Oranı</h3>
+          <p><%= generalStats.errorRate %>%</p>
+        </div>
+        <div class="stat-card">
+          <h3>Aktif Cookie</h3>
+          <p><%= generalStats.activeCookies %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Aktif API Anahtarı</h3>
+          <p><%= generalStats.activeApiKeys %></p>
+        </div>
+      </div>
+
+      <!-- Grafik -->
+      <div class="chart-container" style="margin-bottom: 30px;">
+        <h2>Son 30 Günlük Kullanım</h2>
+        <canvas id="dailyUsageChart"></canvas>
+      </div>
+
+      <div class="stats-grid">
+        <!-- Cookie İstatistikleri Tablosu -->
+        <div class="grid-col-span-2">
+          <h2>Cookie Performansı</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Cookie (Alias)</th>
+                <th>Toplam İstek</th>
+                <th>Başarısız İstek</th>
+                <th>Hata Oranı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% cookieStats.forEach(stat => { %>
+                <tr>
+                  <td><%= stat.cookie.alias %></td>
+                  <td><%= stat.get('totalRequests') %></td>
+                  <td><%= stat.get('failedRequests') %></td>
+                  <td><%= (stat.get('totalRequests') > 0 ? (stat.get('failedRequests') / stat.get('totalRequests') * 100).toFixed(2) : 0) %>%</td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- API Anahtarı İstatistikleri Tablosu -->
+        <div>
+          <h2>En Aktif API Anahtarları</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>API Anahtarı (Alias)</th>
+                <th>Toplam İstek</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% apiKeyStats.forEach(stat => { %>
+                <tr>
+                  <td><%= stat.apiKey.alias %></td>
+                  <td><%= stat.get('totalRequests') %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    const chartData = JSON.parse('<%- chartData %>');
+    const ctx = document.getElementById('dailyUsageChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Günlük İstek Sayısı',
+          data: chartData.data,
+          borderColor: '#3498db',
+          backgroundColor: 'rgba(52, 152, 219, 0.1)',
+          fill: true,
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html> 
