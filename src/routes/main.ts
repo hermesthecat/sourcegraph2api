@@ -1,15 +1,15 @@
 /**
- * Main Routes
- * Ana routing sistemini organize eder ve API endpoint'lerini yönetir
+ * Main Routes / Ana Rotalar
+ * Ana routing sistemini organize eder ve API endpoint'lerini yönetir / Organizes the main routing system and manages API endpoints
  */
 
 import { Router, Application } from 'express';
 import { config } from '../config';
 
 // Controllers
-import { 
+import {
   chatCompletion,
-  getModels, 
+  getModels,
   getModel,
   healthCheck,
   detailedHealthCheck
@@ -22,39 +22,39 @@ import { openaiAuth } from '../middleware';
 import { getMetricsDashboard, getCacheStats, getServicesHealth } from '../services';
 
 /**
- * API Router'ını oluştur ve yapılandır
+ * API Router'ını oluştur ve yapılandır / Create and configure the API Router
  */
 export function createApiRouter(): Router {
   const router = Router();
 
   // ======================
-  // Root endpoint
+  // Root endpoint / Kök uç noktası
   // ======================
   router.get('/', (req, res) => {
     res.json({
       name: 'Sourcegraph2API - Node.js',
       version: '1.1.4',
-      description: 'Sourcegraph AI API to OpenAI API proxy server',
-      status: 'running',
+      description: 'Sourcegraph AI API to OpenAI API proxy server / Sourcegraph AI API\'den OpenAI API\'ye proxy sunucusu',
+      status: 'running / çalışıyor',
       timestamp: new Date().toISOString(),
-      
+
       endpoints: {
-        'POST /v1/chat/completions': 'OpenAI uyumlu chat completion',
-        'GET /v1/models': 'Desteklenen modeller listesi',
-        'GET /v1/models/{model}': 'Spesifik model bilgisi',
-        'GET /health': 'Basit sağlık kontrolü',
-        'GET /health/detailed': 'Detaylı sağlık kontrolü',
-        'GET /metrics': 'Performans metrikleri',
-        'GET /metrics/dashboard': 'Metrics dashboard'
+        'POST /v1/chat/completions': 'OpenAI uyumlu chat completion / OpenAI compatible chat completion',
+        'GET /v1/models': 'Desteklenen modeller listesi / List of supported models',
+        'GET /v1/models/{model}': 'Spesifik model bilgisi / Specific model information',
+        'GET /health': 'Basit sağlık kontrolü / Simple health check',
+        'GET /health/detailed': 'Detaylı sağlık kontrolü / Detailed health check',
+        'GET /metrics': 'Performans metrikleri / Performance metrics',
+        'GET /metrics/dashboard': 'Metrics dashboard / Metrikler panosu'
       },
-      
-      documentation: config.swaggerEnable ? '/swagger' : 'disabled',
+
+      documentation: config.swaggerEnable ? '/swagger' : 'disabled / devre dışı',
       repository: 'https://github.com/hermesthecat/sourcegraph2api'
     });
   });
 
   // ======================
-  // Health endpoints (rate limit yok)
+  // Health endpoints (rate limit yok) / Sağlık kontrolü uç noktaları (hız limiti yok)
   // ======================
   // @ts-ignore - Express middleware type conflict
   router.get('/health', healthCheck);
@@ -62,25 +62,25 @@ export function createApiRouter(): Router {
   router.get('/health/detailed', detailedHealthCheck);
 
   // ======================
-  // V1 API Routes
+  // V1 API Routes / V1 API Rotaları
   // ======================
   const v1Router = Router();
-  
-  // OpenAI Chat Completion
+
+  // OpenAI Chat Completion / OpenAI Sohbet Tamamlama
   // @ts-ignore - Express middleware type conflict
   v1Router.post('/chat/completions', openaiAuth(), chatCompletion);
-  
-  // OpenAI Models  
+
+  // OpenAI Models / OpenAI Modelleri
   // @ts-ignore - Express middleware type conflict
   v1Router.get('/models', openaiAuth(), getModels);
   // @ts-ignore - Express middleware type conflict
   v1Router.get('/models/:model', openaiAuth(), getModel);
 
   // ======================
-  // Metrics endpoints (admin)
+  // Metrics endpoints (admin) / Metrik uç noktaları (yönetici)
   // ======================
-  
-  // GET /metrics - Temel metrics
+
+  // GET /metrics - Temel metrics / GET /metrics - Temel metrikler
   router.get('/metrics', (req, res) => {
     try {
       const dashboard = getMetricsDashboard();
@@ -93,11 +93,11 @@ export function createApiRouter(): Router {
         version: '1.1.4'
       });
     } catch (error: any) {
-      res.status(500).json({ error: 'Failed to retrieve metrics' });
+      res.status(500).json({ error: 'Failed to retrieve metrics / Metrikler alınamadı' });
     }
   });
 
-  // GET /metrics/dashboard - Detaylı dashboard
+  // GET /metrics/dashboard - Detaylı dashboard / GET /metrics/dashboard - Detaylı pano
   router.get('/metrics/dashboard', (req, res) => {
     try {
       const dashboard = getMetricsDashboard();
@@ -118,12 +118,12 @@ export function createApiRouter(): Router {
         }
       });
     } catch (error: any) {
-      res.status(500).json({ error: 'Failed to retrieve dashboard' });
+      res.status(500).json({ error: 'Failed to retrieve dashboard / Pano alınamadı' });
     }
   });
 
   // ======================
-  // Route prefix uygula
+  // Route prefix uygula / Rota önekini uygula
   // ======================
   const routePrefix = processRoutePrefix(config.routePrefix);
   if (routePrefix) {
@@ -136,7 +136,7 @@ export function createApiRouter(): Router {
 }
 
 /**
- * Express app'e router'ları ekle
+ * Express app'e router'ları ekle / Add routers to the Express app
  */
 export function setupRoutes(app: Application): void {
   const apiRouter = createApiRouter();
@@ -144,20 +144,20 @@ export function setupRoutes(app: Application): void {
 }
 
 /**
- * Route prefix'i işle ve düzenle
+ * Route prefix'i işle ve düzenle / Process and clean the route prefix
  */
 function processRoutePrefix(prefix: string): string {
   if (!prefix) return '';
-  
-  // Başlangıçta / yoksa ekle
+
+  // Başlangıçta / yoksa ekle / Add / at the beginning if it doesn't exist
   if (!prefix.startsWith('/')) {
     prefix = '/' + prefix;
   }
-  
-  // Sonunda / varsa kaldır
+
+  // Sonunda / varsa kaldır / Remove / at the end if it exists
   if (prefix.endsWith('/')) {
     prefix = prefix.slice(0, -1);
   }
-  
+
   return prefix;
 } 

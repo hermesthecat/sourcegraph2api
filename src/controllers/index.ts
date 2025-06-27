@@ -1,6 +1,6 @@
 /**
  * Controllers Index
- * Tüm controller'ları export eder
+ * Tüm controller'ları export eder / Exports all controllers
  */
 
 export { chatCompletion } from './chat';

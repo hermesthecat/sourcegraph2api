@@ -1,53 +1,53 @@
 /**
- * Services Index
- * Tüm service'leri export eder
+ * Services Index / Servis Dizini
+ * Tüm service'leri export eder / Exports all services
  */
 
-// Sourcegraph API Service
-export { 
-  sourcegraphClient, 
-  CookieManager, 
-  SourcegraphClient 
+// Sourcegraph API Service / Sourcegraph API Servisi
+export {
+  sourcegraphClient
 } from './sourcegraph';
 
-// Analytics Service  
-export { 
-  metricsStore, 
-  createAnalyticsMiddleware, 
-  getMetricsDashboard 
+// Analytics Service / Analitik Servisi
+export {
+  metricsStore,
+  createAnalyticsMiddleware,
+  getMetricsDashboard
 } from './analytics';
 
-// Cache Service
-export { 
-  responseCache, 
-  modelCache, 
+// Cache Service / Önbellek Servisi
+export {
+  responseCache,
+  modelCache,
   configCache,
-  safeResponseCache, 
-  safeModelCache, 
+  safeResponseCache,
+  safeModelCache,
   safeConfigCache,
   SafeCache,
   ResponseCacheUtils,
-  getCacheStats 
+  getCacheStats
 } from './cache';
 
-// Import for health check
+// Import for health check / Sağlık kontrolü için içe aktarma
+import { config } from '../config';
 import { sourcegraphClient } from './sourcegraph';
 import { metricsStore } from './analytics';
 import { getCacheStats } from './cache';
 
-// Service health check
+// Service health check / Servis sağlık kontrolü
 export function getServicesHealth(): any {
+  const hasCookie = !!config.sgCookie;
   return {
     sourcegraph: {
-      status: 'ok',
-      availableCookies: sourcegraphClient.getAvailableCookieCount()
+      status: hasCookie ? 'ok' : 'warning',
+      availableCookies: hasCookie ? 1 : 0
     },
-    
+
     analytics: {
       status: 'ok',
       metrics: metricsStore.getMetrics()
     },
-    
+
     cache: {
       status: 'ok',
       stats: getCacheStats()

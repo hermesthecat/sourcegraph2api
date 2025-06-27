@@ -1,12 +1,12 @@
 /**
- * Analytics Service
- * Request/response metrics ve analytics
+ * Analytics Service / Analitik Servisi
+ * Request/response metrics ve analytics / Request/response metrics and analytics
  */
 
 import { log } from '../utils/logger';
 import { formatDuration, getCurrentTimestamp, extractStatusCode } from '../utils/helpers';
 
-// Metrics interface'leri
+// Metrics interface'leri / Metrics interfaces
 interface RequestMetrics {
   totalRequests: number;
   successfulRequests: number;
@@ -25,7 +25,7 @@ interface ApiUsageStats {
   statusCodes: Record<string, number>;
 }
 
-// Global metrics store
+// Global metrics store / Global metrik deposu
 class MetricsStore {
   private metrics: RequestMetrics = {
     totalRequests: 0,
@@ -39,7 +39,7 @@ class MetricsStore {
   };
 
   private responseTimes: number[] = [];
-  private maxResponseTimes: number = 1000; // Son 1000 isteği sakla
+  private maxResponseTimes: number = 1000; // Son 1000 isteği sakla / Store the last 1000 requests
 
   private usage: ApiUsageStats = {
     hourly: {},
@@ -49,51 +49,51 @@ class MetricsStore {
   };
 
   /**
-   * Yeni request kaydet
+   * Yeni request kaydet / Record a new request
    */
   recordRequest(model?: string): void {
     this.metrics.totalRequests++;
-    
+
     if (model) {
       this.metrics.modelUsage[model] = (this.metrics.modelUsage[model] || 0) + 1;
       this.usage.models[model] = (this.usage.models[model] || 0) + 1;
     }
 
-    // Saatlik/günlük kullanım
+    // Saatlik/günlük kullanım / Hourly/daily usage
     const now = new Date();
     const hourKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
     const dayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-    
+
     this.usage.hourly[hourKey] = (this.usage.hourly[hourKey] || 0) + 1;
     this.usage.daily[dayKey] = (this.usage.daily[dayKey] || 0) + 1;
   }
 
   /**
-   * Başarılı response kaydet
+   * Başarılı response kaydet / Record a successful response
    */
   recordSuccess(responseTime: number, tokens?: number): void {
     this.metrics.successfulRequests++;
-    
+
     if (tokens) {
       this.metrics.totalTokensProcessed += tokens;
     }
 
-    // Response time kaydet
+    // Response time kaydet / Record response time
     this.responseTimes.push(responseTime);
     if (this.responseTimes.length > this.maxResponseTimes) {
       this.responseTimes.shift();
     }
 
-    // Ortalama hesapla
-    this.metrics.averageResponseTime = 
+    // Ortalama hesapla / Calculate average
+    this.metrics.averageResponseTime =
       this.responseTimes.reduce((sum, time) => sum + time, 0) / this.responseTimes.length;
 
-    // Status code kaydet
+    // Status code kaydet / Record status code
     this.usage.statusCodes['200'] = (this.usage.statusCodes['200'] || 0) + 1;
   }
 
   /**
-   * Hata kaydet
+   * Hata kaydet / Record an error
    */
   recordError(errorType: string, statusCode?: number): void {
     this.metrics.failedRequests++;
@@ -105,11 +105,11 @@ class MetricsStore {
   }
 
   /**
-   * Metrics al
+   * Metrics al / Get metrics
    */
   getMetrics(): RequestMetrics & { uptime: number; errorRate: number } {
-    const errorRate = this.metrics.totalRequests > 0 
-      ? (this.metrics.failedRequests / this.metrics.totalRequests) * 100 
+    const errorRate = this.metrics.totalRequests > 0
+      ? (this.metrics.failedRequests / this.metrics.totalRequests) * 100
       : 0;
 
     return {
@@ -120,14 +120,14 @@ class MetricsStore {
   }
 
   /**
-   * Usage stats al
+   * Usage stats al / Get usage stats
    */
   getUsageStats(): ApiUsageStats {
     return { ...this.usage };
   }
 
   /**
-   * Metrics'i sıfırla
+   * Metrics'i sıfırla / Reset metrics
    */
   reset(): void {
     this.metrics = {
@@ -149,11 +149,11 @@ class MetricsStore {
       statusCodes: {}
     };
 
-    log.info('Metrics reset');
+    log.info('Metrics reset / Metrikler sıfırlandı');
   }
 
   /**
-   * Top models al
+   * Top models al / Get top models
    */
   getTopModels(limit: number = 5): Array<{ model: string; usage: number }> {
     return Object.entries(this.metrics.modelUsage)
@@ -163,7 +163,7 @@ class MetricsStore {
   }
 
   /**
-   * En yaygın hatalar
+   * En yaygın hatalar / Most common errors
    */
   getTopErrors(limit: number = 5): Array<{ error: string; count: number }> {
     return Object.entries(this.metrics.errorTypes)
@@ -173,7 +173,7 @@ class MetricsStore {
   }
 
   /**
-   * Performance özeti
+   * Performance özeti / Performance summary
    */
   getPerformanceSummary(): {
     avgResponseTime: string;
@@ -183,7 +183,7 @@ class MetricsStore {
   } {
     const uptime = getCurrentTimestamp() - this.metrics.lastReset;
     const requestsPerMinute = uptime > 0 ? Math.round((this.metrics.totalRequests / uptime) * 60) : 0;
-    const successRate = this.metrics.totalRequests > 0 
+    const successRate = this.metrics.totalRequests > 0
       ? ((this.metrics.successfulRequests / this.metrics.totalRequests) * 100).toFixed(1) + '%'
       : '0%';
 
@@ -196,16 +196,16 @@ class MetricsStore {
   }
 }
 
-// Singleton instance
+// Singleton instance / Tekil örnek
 export const metricsStore = new MetricsStore();
 
 /**
- * Analytics middleware factory
+ * Analytics middleware factory / Analitik ara yazılımı fabrikası
  */
 export function createAnalyticsMiddleware() {
   return {
     /**
-     * Request başlangıcını kaydet
+     * Request başlangıcını kaydet / Record request start
      */
     recordRequestStart: (model?: string) => {
       metricsStore.recordRequest(model);
@@ -213,7 +213,7 @@ export function createAnalyticsMiddleware() {
     },
 
     /**
-     * Başarılı request'i kaydet
+     * Başarılı request'i kaydet / Record successful request
      */
     recordRequestSuccess: (startTime: number, tokens?: number) => {
       const responseTime = Date.now() - startTime;
@@ -221,21 +221,21 @@ export function createAnalyticsMiddleware() {
     },
 
     /**
-     * Hata'yı kaydet
+     * Hata'yı kaydet / Record error
      */
     recordRequestError: (error: any, model?: string) => {
       const statusCode = extractStatusCode(error);
       const errorType = error.name || error.constructor.name || 'UnknownError';
-      
+
       metricsStore.recordError(errorType, statusCode);
-      
-      log.warn(`Request failed: ${errorType} (${statusCode}) for model: ${model || 'unknown'}`);
+
+      log.warn(`Request failed: ${errorType} (${statusCode}) for model: ${model || 'unknown'} / İstek başarısız: ${errorType} (${statusCode}) model için: ${model || 'bilinmiyor'}`);
     }
   };
 }
 
 /**
- * Metrics dashboard data
+ * Metrics dashboard data / Metrik panosu verileri
  */
 export function getMetricsDashboard() {
   const metrics = metricsStore.getMetrics();
@@ -254,22 +254,22 @@ export function getMetricsDashboard() {
       uptime: formatDuration(metrics.uptime * 1000),
       errorRate: `${metrics.errorRate}%`
     },
-    
+
     models: {
       topUsed: topModels,
       totalModels: Object.keys(metrics.modelUsage).length
     },
-    
+
     errors: {
       topErrors,
       totalErrors: metrics.failedRequests
     },
-    
+
     usage: {
       last24Hours: Object.entries(usage.hourly)
         .slice(-24)
         .map(([hour, count]) => ({ hour, requests: count })),
-      
+
       statusCodes: usage.statusCodes
     },
 
@@ -280,7 +280,7 @@ export function getMetricsDashboard() {
   };
 }
 
-// Periyodik temizlik (eski data'yı sil)
+// Periyodik temizlik (eski data'yı sil) / Periodic cleanup (delete old data)
 // setInterval(() => {
 //   const now = new Date();
 //   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -288,7 +288,7 @@ export function getMetricsDashboard() {
 
 //   const usage = metricsStore.getUsageStats();
 
-//   // 24 saatten eski hourly data'yı sil
+//   // 24 saatten eski hourly data'yı sil / Delete hourly data older than 24 hours
 //   Object.keys(usage.hourly).forEach(key => {
 //     const [year, month, day, hour] = key.split('-').map(Number);
 //     const keyDate = new Date(year, month, day, hour);
@@ -297,7 +297,7 @@ export function getMetricsDashboard() {
 //     }
 //   });
 
-//   // 7 günden eski daily data'yı sil
+//   // 7 günden eski daily data'yı sil / Delete daily data older than 7 days
 //   Object.keys(usage.daily).forEach(key => {
 //     const [year, month, day] = key.split('-').map(Number);
 //     const keyDate = new Date(year, month, day);
@@ -306,4 +306,4 @@ export function getMetricsDashboard() {
 //     }
 //   });
 
-// }, 60 * 60 * 1000); // Her saat çalıştır 
+// }, 60 * 60 * 1000); // Her saat çalıştır / Run every hour 

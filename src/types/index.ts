@@ -1,9 +1,9 @@
 /**
  * Sourcegraph2API - Node.js Version
- * TypeScript Type Definitions
+ * TypeScript Type Definitions / TypeScript Tür Tanımları
  */
 
-// OpenAI API uyumlu request/response tipleri
+// OpenAI API uyumlu request/response tipleri / OpenAI API compatible request/response types
 export interface OpenAIChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string | ChatContentPart[];
@@ -68,7 +68,7 @@ export interface OpenAIErrorResponse {
   };
 }
 
-// Sourcegraph API specific tipleri
+// Sourcegraph API specific tipleri / Sourcegraph API specific types
 export interface SGModelInfo {
   model: string;
   modelRef: string;
@@ -83,7 +83,7 @@ export interface SourcegraphRequest {
   stream?: boolean;
 }
 
-// Konfigürasyon tipleri
+// Konfigürasyon tipleri / Configuration types
 export interface AppConfig {
   port: number;
   host?: string;
@@ -102,7 +102,7 @@ export interface AppConfig {
   nodeEnv: 'development' | 'production' | 'test';
 }
 
-// Cookie yönetimi tipleri
+// Cookie yönetimi tipleri / Cookie management types
 export interface CookieManager {
   cookies: string[];
   currentIndex: number;
@@ -116,7 +116,7 @@ export interface RateLimitCookie {
   expirationTime: Date;
 }
 
-// HTTP istek tipleri
+// HTTP istek tipleri / HTTP request types
 export interface RequestContext {
   id: string;
   ip: string;
@@ -124,7 +124,7 @@ export interface RequestContext {
   timestamp: Date;
 }
 
-// Logger tipleri
+// Logger tipleri / Logger types
 export interface LoggerOptions {
   level: 'error' | 'warn' | 'info' | 'debug';
   timestamp: boolean;
@@ -132,7 +132,7 @@ export interface LoggerOptions {
   colorize: boolean;
 }
 
-// Model listesi tipi
+// Model listesi tipi / Model list type
 export interface ModelListResponse {
   object: 'list';
   data: ModelInfo[];
@@ -145,7 +145,7 @@ export interface ModelInfo {
   owned_by?: string;
 }
 
-// Error handling
+// Error handling / Hata yönetimi
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;

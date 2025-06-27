@@ -1,12 +1,12 @@
 /**
- * Logger Utility
- * Winston tabanlı loglama sistemi
+ * Logger Utility / Günlük Kayıt Aracı
+ * Winston tabanlı loglama sistemi / Winston-based logging system
  */
 
 import winston from 'winston';
 import { config } from '../config';
 
-// Log formatı
+// Log formatı / Log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -16,17 +16,17 @@ const logFormat = winston.format.combine(
   })
 );
 
-// Logger oluştur
+// Logger oluştur / Create logger
 export const logger = winston.createLogger({
   level: config.debug ? 'debug' : 'info',
   format: logFormat,
   transports: [
-    // Console output
+    // Console output / Konsol çıktısı
     new winston.transports.Console({
       format: logFormat
     }),
-    
-    // Error dosyası
+
+    // Error dosyası / Error file
     new winston.transports.File({
       filename: 'logs/error.log',
       level: 'error',
@@ -35,8 +35,8 @@ export const logger = winston.createLogger({
         winston.format.json()
       )
     }),
-    
-    // Combined dosyası
+
+    // Combined dosyası / Combined file
     new winston.transports.File({
       filename: 'logs/combined.log',
       format: winston.format.combine(
@@ -45,19 +45,19 @@ export const logger = winston.createLogger({
       )
     })
   ],
-  
-  // Handled exceptions
+
+  // Handled exceptions / İşlenen istisnalar
   exceptionHandlers: [
     new winston.transports.File({ filename: 'logs/exceptions.log' })
   ],
-  
-  // Unhandled rejections
+
+  // Unhandled rejections / İşlenmeyen reddetmeler
   rejectionHandlers: [
     new winston.transports.File({ filename: 'logs/rejections.log' })
   ]
 });
 
-// Development mode'da console'a da yaz
+// Development mode'da console'a da yaz / Also log to console in development mode
 if (config.nodeEnv !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.simple()
@@ -65,15 +65,15 @@ if (config.nodeEnv !== 'production') {
 }
 
 /**
- * Logger fonksiyonları
+ * Logger fonksiyonları / Logger functions
  */
 export const log = {
   error: (message: string, meta?: any) => logger.error(message, meta),
   warn: (message: string, meta?: any) => logger.warn(message, meta),
   info: (message: string, meta?: any) => logger.info(message, meta),
   debug: (message: string, meta?: any) => logger.debug(message, meta),
-  
-  // Request ID ile loglama
+
+  // Request ID ile loglama / Logging with Request ID
   request: (requestId: string, level: string, message: string, meta?: any) => {
     logger.log(level, `[${requestId}] ${message}`, meta);
   }

@@ -1,4 +1,4 @@
-# Multi-stage build for Sourcegraph2API Node.js
+# Multi-stage build for Sourcegraph2API
 FROM node:18-alpine AS builder
 
 # Set working directory

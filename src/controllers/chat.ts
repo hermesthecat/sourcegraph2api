@@ -1,5 +1,6 @@
 /**
  * Chat Controller - OpenAI uyumlu chat completion API
+ * Chat Controller - OpenAI compatible chat completion API
  */
 
 import { Request, Response } from 'express';
@@ -9,7 +10,7 @@ import { sourcegraphClient } from '../services/sourcegraph';
 import { log } from '../utils/logger';
 
 /**
- * Response ID oluştur
+ * Response ID oluştur / Generate Response ID
  */
 function generateResponseId(): string {
   const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '').split('.')[0];
@@ -17,7 +18,7 @@ function generateResponseId(): string {
 }
 
 /**
- * Token sayısı hesapla
+ * Token sayısı hesapla / Calculate token count
  */
 function countTokens(text: string): number {
   return Math.ceil(text.length / 4);
@@ -28,35 +29,35 @@ function countTokens(text: string): number {
  */
 export async function chatCompletion(req: Request, res: Response): Promise<void> {
   const requestId = req.requestId || 'unknown';
-  
+
   try {
     const request: OpenAIChatCompletionRequest = req.body;
-    
-    // Validasyon
+
+    // Validasyon / Validation
     if (!request.model) {
       res.status(400).json({
-        error: { message: 'Model is required', type: 'invalid_request_error', code: 'missing_model' }
+        error: { message: 'Model is required / Model gereklidir', type: 'invalid_request_error', code: 'missing_model' }
       } as OpenAIErrorResponse);
       return;
     }
 
     if (!request.messages?.length) {
       res.status(400).json({
-        error: { message: 'Messages are required', type: 'invalid_request_error', code: 'missing_messages' }
+        error: { message: 'Messages are required / Mesajlar gereklidir', type: 'invalid_request_error', code: 'missing_messages' }
       } as OpenAIErrorResponse);
       return;
     }
 
-    // Model kontrolü
+    // Model kontrolü / Model check
     const modelInfo = getModelInfo(request.model);
     if (!modelInfo) {
       res.status(400).json({
-        error: { message: `Model ${request.model} not supported`, type: 'invalid_request_error', code: 'invalid_model' }
+        error: { message: `Model ${request.model} not supported / ${request.model} modeli desteklenmiyor`, type: 'invalid_request_error', code: 'invalid_model' }
       } as OpenAIErrorResponse);
       return;
     }
 
-    log.request(requestId, 'info', `Chat request: ${request.model}, stream: ${request.stream}`);
+    log.request(requestId, 'info', `Chat request / Chat isteği: ${request.model}, stream / akış: ${request.stream}`);
 
     if (request.stream) {
       await handleStreaming(request, requestId, res);
@@ -65,17 +66,17 @@ export async function chatCompletion(req: Request, res: Response): Promise<void>
     }
 
   } catch (error: any) {
-    log.request(requestId, 'error', `Chat error: ${error.message}`);
+    log.request(requestId, 'error', `Chat error / Chat hatası: ${error.message}`);
     if (!res.headersSent) {
       res.status(500).json({
-        error: { message: 'Internal server error', type: 'internal_error', code: 'server_error' }
+        error: { message: 'Internal server error / Dahili sunucu hatası', type: 'internal_error', code: 'server_error' }
       } as OpenAIErrorResponse);
     }
   }
 }
 
 /**
- * Streaming response
+ * Streaming response / Akış yanıtı
  */
 async function handleStreaming(
   request: OpenAIChatCompletionRequest,
@@ -83,14 +84,14 @@ async function handleStreaming(
   res: Response
 ): Promise<void> {
   const responseId = generateResponseId();
-  
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  
+
   try {
     const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
-    
+
     for await (const chunk of streamIterator) {
       const content = processChunk(chunk);
       if (content) {
@@ -104,14 +105,14 @@ async function handleStreaming(
         res.write(`data: ${JSON.stringify(response)}\n\n`);
       }
     }
-    
+
     res.write(`data: [DONE]\n\n`);
     res.end();
-    
+
   } catch (error: any) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown streaming error occurred';
-    log.request(requestId, 'error', `Streaming error: ${errorMessage}`);
-    
+    const errorMessage = error instanceof Error ? error.message : 'An unknown streaming error occurred / Bilinmeyen bir akış hatası oluştu';
+    log.request(requestId, 'error', `Streaming error / Akış hatası: ${errorMessage}`);
+
     const errorResponse = {
       error: {
         message: errorMessage,
@@ -119,14 +120,16 @@ async function handleStreaming(
         code: error.code || 'streaming_error'
       }
     };
-    
+
     // Header'lar gönderilmediyse, normal bir JSON hatası gönder
+    // If headers are not sent, send a normal JSON error
     if (!res.headersSent) {
-        res.status(500).json(errorResponse);
-        return;
+      res.status(500).json(errorResponse);
+      return;
     }
 
     // Header'lar gönderildiyse, SSE formatında hata gönder
+    // If headers have been sent, send error in SSE format
     res.write(`data: ${JSON.stringify(errorResponse)}\n\n`);
     res.write(`data: [DONE]\n\n`);
     res.end();
@@ -134,7 +137,7 @@ async function handleStreaming(
 }
 
 /**
- * Non-streaming response
+ * Non-streaming response / Akış olmayan yanıt
  */
 async function handleNonStreaming(
   request: OpenAIChatCompletionRequest,
@@ -142,9 +145,10 @@ async function handleNonStreaming(
   res: Response
 ): Promise<void> {
   const responseId = generateResponseId();
-  
+
   try {
     // Geçici olarak makeStreamRequest'i kullanıp sonucu birleştirelim
+    // Temporarily use makeStreamRequest and combine the result
     const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
     let content = '';
     for await (const chunk of streamIterator) {
@@ -176,14 +180,14 @@ async function handleNonStreaming(
     };
 
     res.json(response);
-    
+
   } catch (error) {
     throw error;
   }
 }
 
 /**
- * Chunk'ı işle
+ * Chunk'ı işle / Process chunk
  */
 function processChunk(chunk: string): string | null {
   try {
@@ -192,6 +196,8 @@ function processChunk(chunk: string): string | null {
   } catch (e) {
     // JSON parse hatası olursa, chunk'ın kendisi bir string olabilir
     // Bu genellikle istenmeyen bir durumdur ama güvenlik için kontrol edelim.
+    // If a JSON parse error occurs, the chunk itself might be a string.
+    // This is generally an undesirable situation, but we check for safety.
     return null;
   }
 } 
