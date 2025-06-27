@@ -69,9 +69,15 @@
       </div>
 
       <!-- Grafik -->
-      <div class="chart-container" style="margin-bottom: 30px;">
-        <h2>Son 30 Günlük Kullanım</h2>
-        <canvas id="dailyUsageChart"></canvas>
+      <div class="stats-grid">
+        <div class="chart-container grid-col-span-2" style="margin-bottom: 30px;">
+          <h2>Son 30 Günlük Kullanım</h2>
+          <canvas id="dailyUsageChart"></canvas>
+        </div>
+        <div class="chart-container" style="margin-bottom: 30px;">
+          <h2>Model Kullanım Dağılımı</h2>
+          <canvas id="modelUsageChart"></canvas>
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -125,15 +131,16 @@
   </div>
 
   <script>
-    const chartData = JSON.parse('<%- chartData %>');
-    const ctx = document.getElementById('dailyUsageChart').getContext('2d');
-    new Chart(ctx, {
+    // Günlük Kullanım Grafiği (Çizgi)
+    const dailyChartData = JSON.parse('<%- chartData %>');
+    const dailyCtx = document.getElementById('dailyUsageChart').getContext('2d');
+    new Chart(dailyCtx, {
       type: 'line',
       data: {
-        labels: chartData.labels,
+        labels: dailyChartData.labels,
         datasets: [{
           label: 'Günlük İstek Sayısı',
-          data: chartData.data,
+          data: dailyChartData.data,
           borderColor: '#3498db',
           backgroundColor: 'rgba(52, 152, 219, 0.1)',
           fill: true,
@@ -146,6 +153,25 @@
             beginAtZero: true
           }
         }
+      }
+    });
+
+    // Model Kullanım Grafiği (Pasta)
+    const modelChartData = JSON.parse('<%- modelUsageData %>');
+    const modelCtx = document.getElementById('modelUsageChart').getContext('2d');
+    new Chart(modelCtx, {
+      type: 'pie',
+      data: {
+        labels: modelChartData.labels,
+        datasets: [{
+          label: 'Kullanım Sayısı',
+          data: modelChartData.data,
+          backgroundColor: [
+            '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71',
+            '#34495e', '#1abc9c', '#e67e22', '#7f8c8d', '#d35400'
+          ],
+          hoverOffset: 4
+        }]
       }
     });
   </script>

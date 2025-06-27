@@ -92,6 +92,36 @@ export async function getApiKeyUsageStats() {
 }
 
 /**
+ * Model bazında kullanım istatistiklerini hesaplar (Pasta grafik için)
+ * Calculates usage statistics by model (for Pie chart)
+ */
+export async function getModelUsageStats() {
+  try {
+    const stats = await UsageMetric.findAll({
+      attributes: [
+        'model',
+        [sequelize.fn('COUNT', sequelize.col('model')), 'count'],
+      ],
+      where: {
+        model: {
+          [Op.ne]: null, // Modeli null olmayanları say
+        },
+      },
+      group: ['model'],
+      order: [[sequelize.fn('COUNT', sequelize.col('model')), 'DESC']],
+    });
+
+    const labels = stats.map((item: any) => item.model);
+    const data = stats.map((item: any) => item.get('count'));
+
+    return { labels, data };
+  } catch (error) {
+    log.error('Model kullanım istatistikleri alınırken hata:', error);
+    throw error;
+  }
+}
+
+/**
  * Son 30 günün günlük kullanım verisini grafik için hazırlar
  * Prepares daily usage data for the last 30 days for a chart
  */

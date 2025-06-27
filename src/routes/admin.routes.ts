@@ -24,11 +24,13 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       cookieStats,
       apiKeyStats,
       chartData,
+      modelUsageData,
     ] = await Promise.all([
       statsService.getGeneralStats(),
       statsService.getCookieUsageStats(),
       statsService.getApiKeyUsageStats(),
       statsService.getDailyUsageForChart(),
+      statsService.getModelUsageStats(),
     ]);
 
     res.render('dashboard', {
@@ -37,6 +39,7 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       cookieStats,
       apiKeyStats,
       chartData: JSON.stringify(chartData), // Grafikte kullanmak için JSON'a çevir
+      modelUsageData: JSON.stringify(modelUsageData), // Pasta grafik için
       error: null // Hata olmadığında bile 'error' değişkenini null olarak gönder
     });
 
@@ -45,7 +48,7 @@ router.get('/dashboard', async (req: Request, res: Response) => {
     res.status(500).render('dashboard', {
       title: 'Hata',
       error: 'Dashboard verileri yüklenirken bir hata oluştu.',
-      generalStats: {}, cookieStats: [], apiKeyStats: [], chartData: '{}',
+      generalStats: {}, cookieStats: [], apiKeyStats: [], chartData: '{}', modelUsageData: '{}',
     });
   }
 });
