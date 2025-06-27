@@ -37,6 +37,7 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       cookieStats,
       apiKeyStats,
       chartData: JSON.stringify(chartData), // Grafikte kullanmak için JSON'a çevir
+      error: null // Hata olmadığında bile 'error' değişkenini null olarak gönder
     });
 
   } catch (error) {
