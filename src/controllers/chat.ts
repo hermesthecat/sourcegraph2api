@@ -99,7 +99,7 @@ async function handleStreaming(
           object: 'chat.completion.chunk',
           created: Math.floor(Date.now() / 1000),
           model: request.model,
-          choices: [{ index: 0, delta: { content }, finish_reason: null }]
+          choices: [{ index: 0, delta: { content: content }, finish_reason: null }]
         };
         res.write(`data: ${JSON.stringify(response)}\n\n`);
       }
@@ -188,13 +188,10 @@ async function handleNonStreaming(
 function processChunk(chunk: string): string | null {
   try {
     const parsed = JSON.parse(chunk);
-    if (parsed.error) {
-      log.warn(`Received error event from Sourcegraph: ${parsed.error.message}`);
-      return null;
-    }
-    return parsed.completion || null;
+    return parsed.completion || parsed.deltaText || null;
   } catch (e) {
     // JSON parse hatası olursa, chunk'ın kendisi bir string olabilir
-    return chunk;
+    // Bu genellikle istenmeyen bir durumdur ama güvenlik için kontrol edelim.
+    return null;
   }
 } 
