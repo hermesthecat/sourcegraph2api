@@ -60,9 +60,9 @@ export async function chatCompletion(req: Request, res: Response): Promise<void>
     log.request(requestId, 'info', `Chat request / Chat isteği: ${request.model}, stream / akış: ${request.stream}`);
 
     if (request.stream) {
-      await handleStreaming(request, requestId, res);
+      await handleStreaming(request, requestId, res, req);
     } else {
-      await handleNonStreaming(request, requestId, res);
+      await handleNonStreaming(request, requestId, res, req);
     }
 
   } catch (error: any) {
@@ -81,7 +81,8 @@ export async function chatCompletion(req: Request, res: Response): Promise<void>
 async function handleStreaming(
   request: OpenAIChatCompletionRequest,
   requestId: string,
-  res: Response
+  res: Response,
+  req: Request
 ): Promise<void> {
   const responseId = generateResponseId();
 
@@ -90,7 +91,7 @@ async function handleStreaming(
   res.setHeader('Connection', 'keep-alive');
 
   try {
-    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
+    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId, req);
 
     for await (const chunk of streamIterator) {
       const content = processChunk(chunk);
@@ -142,14 +143,15 @@ async function handleStreaming(
 async function handleNonStreaming(
   request: OpenAIChatCompletionRequest,
   requestId: string,
-  res: Response
+  res: Response,
+  req: Request
 ): Promise<void> {
   const responseId = generateResponseId();
 
   try {
     // Geçici olarak makeStreamRequest'i kullanıp sonucu birleştirelim
     // Temporarily use makeStreamRequest and combine the result
-    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
+    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId, req);
     let content = '';
     for await (const chunk of streamIterator) {
       const processed = processChunk(chunk);

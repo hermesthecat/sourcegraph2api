@@ -1,14 +1,21 @@
 /**
  * Admin Routes / Yönetim Rotaları
- * Cookie yönetim arayüzü için rotaları tanımlar
- * Defines routes for the cookie management interface
+ * Cookie ve API Anahtarı yönetim arayüzü için rotaları tanımlar
+ * Defines routes for the cookie and API key management interface
  */
 
 import { Router, Request, Response } from 'express';
 import { getAllCookies, addCookie, deleteCookie, toggleCookieStatus } from '../services/cookie.service';
+import { getAllApiKeys, addApiKey, deleteApiKey, toggleApiKeyStatus } from '../services/apikey.service';
+import { getUsageMetrics } from '../services/metric.service';
 import { log } from '../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
+
+// ============================
+// Cookie Management Routes
+// ============================
 
 // Ana yönetim sayfasını render et (cookie listesi)
 // GET /admin/cookies - Render the main admin page (cookie list)
@@ -71,6 +78,107 @@ router.post('/cookies/toggle/:id', async (req: Request, res: Response) => {
   } catch (error) {
     log.error(`Cookie durumu güncellenirken hata (ID: ${id}):`, error);
     res.redirect('/admin/cookies?error=Cookie durumu güncellenirken bir hata oluştu.');
+  }
+});
+
+// ============================
+// API Key Management Routes
+// ============================
+
+// API anahtarı yönetim sayfasını render et
+// GET /admin/apikeys
+router.get('/apikeys', async (req: Request, res: Response) => {
+  try {
+    const apiKeys = await getAllApiKeys();
+    res.render('apikeys', {
+      apiKeys: apiKeys,
+      message: req.query.message,
+      error: req.query.error,
+      title: 'API Anahtarı Yönetimi'
+    });
+  } catch (error) {
+    log.error('API anahtarı yönetim sayfası yüklenirken hata:', error);
+    res.status(500).render('apikeys', {
+      apiKeys: [],
+      error: 'Sayfa yüklenirken bir hata oluştu.',
+      title: 'Hata'
+    });
+  }
+});
+
+// Yeni bir API anahtarı ekle
+// POST /admin/apikeys/add
+router.post('/apikeys/add', async (req: Request, res: Response) => {
+  const { alias } = req.body;
+  if (!alias) {
+    return res.redirect('/admin/apikeys?error=Takma ad boş olamaz.');
+  }
+  try {
+    const newKey = `s2a-${uuidv4()}`; // Yeni, benzersiz bir anahtar oluştur
+    await addApiKey(alias, newKey);
+    res.redirect('/admin/apikeys?message=API anahtarı başarıyla oluşturuldu ve eklendi.');
+  } catch (error) {
+    log.error('API anahtarı eklenirken hata:', error);
+    res.redirect('/admin/apikeys?error=API anahtarı eklenirken bir hata oluştu.');
+  }
+});
+
+// Bir API anahtarını sil
+// POST /admin/apikeys/delete/:id
+router.post('/apikeys/delete/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await deleteApiKey(Number(id));
+    res.redirect('/admin/apikeys?message=API anahtarı başarıyla silindi.');
+  } catch (error) {
+    log.error(`API anahtarı silinirken hata (ID: ${id}):`, error);
+    res.redirect('/admin/apikeys?error=API anahtarı silinirken bir hata oluştu.');
+  }
+});
+
+// Bir API anahtarının durumunu değiştir
+// POST /admin/apikeys/toggle/:id
+router.post('/apikeys/toggle/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await toggleApiKeyStatus(Number(id));
+    res.redirect('/admin/apikeys?message=API anahtarı durumu başarıyla güncellendi.');
+  } catch (error) {
+    log.error(`API anahtarı durumu güncellenirken hata (ID: ${id}):`, error);
+    res.redirect('/admin/apikeys?error=API anahtarı durumu güncellenirken bir hata oluştu.');
+  }
+});
+
+// ============================
+// Usage Metrics Route
+// ============================
+
+// Kullanım metrikleri sayfasını render et
+// GET /admin/metrics
+router.get('/metrics', async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 20; // Sayfa başına gösterilecek kayıt sayısı
+    
+    const { rows: metrics, count } = await getUsageMetrics({ page, limit });
+    
+    res.render('metrics', {
+      metrics,
+      title: 'Kullanım Metrikleri',
+      currentPage: page,
+      totalPages: Math.ceil(count / limit),
+      message: req.query.message,
+      error: req.query.error,
+    });
+  } catch (error) {
+    log.error('Metrik sayfası yüklenirken hata:', error);
+    res.status(500).render('metrics', {
+      metrics: [],
+      title: 'Hata',
+      currentPage: 1,
+      totalPages: 1,
+      error: 'Metrikler yüklenirken bir hata oluştu.',
+    });
   }
 });
 

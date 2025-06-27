@@ -7,7 +7,7 @@ import { startServer } from './app';
 import { log } from './utils/logger';
 import { validateConfig, logConfig } from './config';
 import { initializeDatabase } from './services/database';
-import './models/cookie.model'; // Modeli yükle ve Sequelize'nin bilmesini sağla / Load the model and let Sequelize know
+import './models'; // Tüm modelleri ve ilişkileri yükle / Load all models and relationships
 
 /**
  * Ana fonksiyon - server'ı başlat / Main function - start the server

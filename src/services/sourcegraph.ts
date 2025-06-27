@@ -15,6 +15,7 @@ import {
 import { PassThrough } from 'stream';
 import https from 'https';
 import { getRandomActiveCookie } from './cookie.service'; // Cookie servisini import et
+import { recordUsage } from './metric.service'; // Metrik servisini import et
 
 // Sourcegraph API sabitleri / Sourcegraph API constants
 const SOURCEGRAPH_BASE_URL = 'https://sourcegraph.com';
@@ -65,6 +66,10 @@ class SourcegraphClient {
     }
 
     const cookieValue = activeCookie.cookieValue;
+    
+    // Metrik kaydı için cookie ID'sini request'e ekle
+    // @ts-ignore
+    this.cookieId = activeCookie.id;
 
     // Go versiyonunda olduğu gibi, SG_COOKIE'yi alıp "token " önekiyle kullan. / As in the Go version, get SG_COOKIE and use it with the "token " prefix.
     const authorization = `token ${cookieValue}`;
@@ -81,114 +86,147 @@ class SourcegraphClient {
 
   async makeStreamRequest(
     request: OpenAIChatCompletionRequest,
-    requestId: string
+    requestId: string,
+    // Express Request nesnesini de alalım
+    expressRequest: import('express').Request
   ): Promise<AsyncIterable<string>> {
-    const modelRef = MODEL_MAP[request.model] || request.model;
-    const requestBody = convertToSourcegraphFormat(request, modelRef);
-    const headers = await this.getAuthHeaders(requestId); // await ekle
+    let activeCookieId: number | null = null;
+    try {
+      const modelRef = MODEL_MAP[request.model] || request.model;
+      const requestBody = convertToSourcegraphFormat(request, modelRef);
+      // @ts-ignore
+      const headers = await this.getAuthHeaders(requestId);
+      // @ts-ignore
+      activeCookieId = this.cookieId; // Cookie ID'sini al
 
-    const stream = new PassThrough();
+      const stream = new PassThrough();
 
-    // Proxy agent'ını yapılandır / Configure the proxy agent
-    const httpsAgent = config.proxyUrl
-      ? new (require('https-proxy-agent'))(config.proxyUrl)
-      : new https.Agent({ rejectUnauthorized: false }); // Veya varsayılan agent / Or the default agent
+      // Proxy agent'ını yapılandır / Configure the proxy agent
+      const httpsAgent = config.proxyUrl
+        ? new (require('https-proxy-agent'))(config.proxyUrl)
+        : new https.Agent({ rejectUnauthorized: false }); // Veya varsayılan agent / Or the default agent
 
-    axios({
-      method: 'post',
-      url: CHAT_ENDPOINT,
-      data: requestBody,
-      headers: headers,
-      responseType: 'stream',
-      httpsAgent: httpsAgent,
-    }).then(response => {
-      let buffer = '';
-      response.data.on('data', (chunk: Buffer) => {
-        buffer += chunk.toString('utf-8');
-        let boundary;
-        while ((boundary = buffer.indexOf('\n\n')) !== -1) {
-          const messageBlock = buffer.substring(0, boundary);
-          buffer = buffer.substring(boundary + 2);
+      axios({
+        method: 'post',
+        url: CHAT_ENDPOINT,
+        data: requestBody,
+        headers: headers,
+        responseType: 'stream',
+        httpsAgent: httpsAgent,
+      }).then(response => {
+        let buffer = '';
+        response.data.on('data', (chunk: Buffer) => {
+          buffer += chunk.toString('utf-8');
+          let boundary;
+          while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+            const messageBlock = buffer.substring(0, boundary);
+            buffer = buffer.substring(boundary + 2);
 
-          let eventType = '';
-          let eventData = '';
+            let eventType = '';
+            let eventData = '';
 
-          const lines = messageBlock.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('event:')) {
-              eventType = line.substring(6).trim();
-            } else if (line.startsWith('data:')) {
-              eventData += line.substring(5).trim();
+            const lines = messageBlock.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('event:')) {
+                eventType = line.substring(6).trim();
+              } else if (line.startsWith('data:')) {
+                eventData += line.substring(5).trim();
+              }
+            }
+
+            if (eventType === 'done' || eventData === '[DONE]') {
+              if (!stream.writableEnded) {
+                stream.end();
+              }
+              return;
+            }
+
+            // Sadece 'completion' olayından gelen veriyi işle ve gönder. / Process and send only the data from the 'completion' event.
+            if (eventType === 'completion' && eventData) {
+              stream.write(eventData);
             }
           }
+        });
 
-          if (eventType === 'done' || eventData === '[DONE]') {
-            if (!stream.writableEnded) {
-              stream.end();
-            }
-            return;
+        response.data.on('end', () => {
+          recordUsage({
+            ipAddress: expressRequest.ip || 'unknown',
+            apiKeyId: expressRequest.apiKeyId || null,
+            cookieId: activeCookieId,
+            wasSuccess: true,
+          });
+          log.request(requestId, 'debug', 'Sourcegraph stream ended. / Sourcegraph akışı sona erdi.');
+          if (!stream.writableEnded) {
+            stream.end();
           }
+        });
 
-          // Sadece 'completion' olayından gelen veriyi işle ve gönder. / Process and send only the data from the 'completion' event.
-          if (eventType === 'completion' && eventData) {
-            stream.write(eventData);
-          }
-        }
-      });
-
-      response.data.on('end', () => {
-        log.request(requestId, 'debug', 'Sourcegraph stream ended. / Sourcegraph akışı sona erdi.');
-        if (!stream.writableEnded) {
+        response.data.on('error', (err: Error) => {
+          log.request(requestId, 'error', `Sourcegraph stream error: ${err.message} / Sourcegraph akış hatası: ${err.message}`);
+          stream.emit('error', err);
           stream.end();
-        }
-      });
+        });
+      }).catch(error => {
+        // GÜVENLİ HATA YÖNETİMİ / SAFE ERROR HANDLING
+        // Axios'tan gelen error nesnesini ASLA doğrudan loglama veya JSON.stringify yapma. / NEVER log or JSON.stringify the error object from Axios directly.
+        const statusCode = error.response?.status || 'unknown';
+        let errorMessage = 'Axios request failed';
 
-      response.data.on('error', (err: Error) => {
-        log.request(requestId, 'error', `Sourcegraph stream error: ${err.message} / Sourcegraph akış hatası: ${err.message}`);
-        stream.emit('error', err);
+        if (error.response?.data) {
+          // error.response.data bir stream veya buffer olabilir, güvenli bir şekilde metne çevir. / error.response.data could be a stream or buffer, convert it to text safely.
+          try {
+            // Eğer data bir Buffer ise / If data is a Buffer
+            if (Buffer.isBuffer(error.response.data)) {
+              errorMessage = error.response.data.toString('utf8');
+            }
+            // Eğer data bir stream ise, bu asenkron olur ve burada işlemek karmaşıktır. / If data is a stream, this would be asynchronous and complex to handle here.
+            // Şimdilik sadece status kodunu ve genel bir mesajı loglayalım. / For now, let's just log the status code and a generic message.
+            else if (typeof error.response.data.pipe === 'function') {
+              errorMessage = 'Received a stream as error data. / Hata verisi olarak bir akış alındı.';
+            }
+            // Diğer durumlar (JSON veya string olabilir) / Other cases (could be JSON or string)
+            else {
+              errorMessage = JSON.stringify(error.response.data);
+            }
+          } catch (e) {
+            errorMessage = 'Failed to stringify error data. / Hata verisi metne dönüştürülemedi.';
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        // Başarısız metrik kaydı yap
+        recordUsage({
+          ipAddress: expressRequest.ip || 'unknown',
+          apiKeyId: expressRequest.apiKeyId || null,
+          cookieId: activeCookieId, // Hata olsa bile hangi cookie ile denendiğini kaydet
+          wasSuccess: false,
+          errorMessage: `Status ${statusCode}: ${errorMessage}`
+        });
+
+        log.request(requestId, 'error', `Axios request failed with status ${statusCode}. Data: ${errorMessage} / Axios isteği ${statusCode} durumuyla başarısız oldu. Veri: ${errorMessage}`);
+        stream.emit('error', new Error(`Request failed with status ${statusCode} / İstek ${statusCode} durumuyla başarısız oldu`));
         stream.end();
       });
-    }).catch(error => {
-      // GÜVENLİ HATA YÖNETİMİ / SAFE ERROR HANDLING
-      // Axios'tan gelen error nesnesini ASLA doğrudan loglama veya JSON.stringify yapma. / NEVER log or JSON.stringify the error object from Axios directly.
-      const statusCode = error.response?.status || 'unknown';
-      let errorMessage = 'Axios request failed';
 
-      if (error.response?.data) {
-        // error.response.data bir stream veya buffer olabilir, güvenli bir şekilde metne çevir. / error.response.data could be a stream or buffer, convert it to text safely.
-        try {
-          // Eğer data bir Buffer ise / If data is a Buffer
-          if (Buffer.isBuffer(error.response.data)) {
-            errorMessage = error.response.data.toString('utf8');
-          }
-          // Eğer data bir stream ise, bu asenkron olur ve burada işlemek karmaşıktır. / If data is a stream, this would be asynchronous and complex to handle here.
-          // Şimdilik sadece status kodunu ve genel bir mesajı loglayalım. / For now, let's just log the status code and a generic message.
-          else if (typeof error.response.data.pipe === 'function') {
-            errorMessage = 'Received a stream as error data. / Hata verisi olarak bir akış alındı.';
-          }
-          // Diğer durumlar (JSON veya string olabilir) / Other cases (could be JSON or string)
-          else {
-            errorMessage = JSON.stringify(error.response.data);
-          }
-        } catch (e) {
-          errorMessage = 'Failed to stringify error data. / Hata verisi metne dönüştürülemedi.';
+      async function* streamGenerator(): AsyncIterable<string> {
+        for await (const chunk of stream) {
+          yield chunk.toString();
         }
-      } else if (error.message) {
-        errorMessage = error.message;
       }
 
-      log.request(requestId, 'error', `Axios request failed with status ${statusCode}. Data: ${errorMessage} / Axios isteği ${statusCode} durumuyla başarısız oldu. Veri: ${errorMessage}`);
-      stream.emit('error', new Error(`Request failed with status ${statusCode} / İstek ${statusCode} durumuyla başarısız oldu`));
-      stream.end();
-    });
-
-    async function* streamGenerator(): AsyncIterable<string> {
-      for await (const chunk of stream) {
-        yield chunk.toString();
-      }
+      return streamGenerator();
+    } catch (error: any) {
+      // Bu catch bloğu genellikle cookie bulunamadığında tetiklenir
+      recordUsage({
+        ipAddress: expressRequest.ip || 'unknown',
+        apiKeyId: expressRequest.apiKeyId || null,
+        cookieId: null, // Cookie bulunamadığı için null
+        wasSuccess: false,
+        errorMessage: error.message
+      });
+      throw error;
     }
-
-    return streamGenerator();
   }
 
   async makeNonStreamRequest(
