@@ -179,14 +179,13 @@ You can easily run the project with Docker.
 1.  **Build the Docker image:**
 
     ```bash
-    # Run from the project's root directory (sourcegraph2api/)
-    docker build -t sourcegraph2api-nodejs -f nodejs/Dockerfile .
+    # Build the image
+    docker build -t sourcegraph2api-nodejs .
     ```
 
 2.  **Run the container:**
-    Start the container using your `.env` file from the `nodejs` folder.
     ```bash
-    docker run -p 7033:7033 --env-file nodejs/.env sourcegraph2api-nodejs
+    docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
 
 ## 🤖 Supported Models
@@ -414,14 +413,14 @@ Projeyi Docker ile kolayca çalıştırabilirsiniz.
 1.  **Docker imajını oluşturun:**
 
     ```bash
-    # Projenin ana dizininde (sourcegraph2api/) çalıştırın
-    docker build -t sourcegraph2api-nodejs -f nodejs/Dockerfile .
+
+    # İmajı oluşturun
+    docker build -t sourcegraph2api-nodejs .
     ```
 
 2.  **Container'ı çalıştırın:**
-    `nodejs` klasöründeki `.env` dosyanızı kullanarak container'ı başlatın.
     ```bash
-    docker run -p 7033:7033 --env-file nodejs/.env sourcegraph2api-nodejs
+    docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
 
 ## 🤖 Desteklenen Modeller
