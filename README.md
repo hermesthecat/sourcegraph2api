@@ -37,32 +37,35 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 
 ### Steps
 
-1.  **Clone the Repository:**
+1. **Clone the Repository:**
 
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
     cd sourcegraph2api/nodejs
     ```
 
-2.  **Install Dependencies:**
+2. **Install Dependencies:**
 
     ```bash
     npm install
     ```
 
-3.  **Set Up Environment Variables:**
+3. **Set Up Environment Variables:**
     Create a new file named `.env` by copying `.env.example` and edit the values within it.
 
     ```bash
     cp env.example .env
     ```
 
-4.  **Start the Server:**
+4. **Start the Server:**
     - **Development Mode (with auto-reload):**
+
       ```bash
       npm run dev
       ```
+
     - **Production Mode:**
+
       ```bash
       npm run build
       npm start
@@ -176,14 +179,15 @@ Additionally, the following endpoint is available for system status:
 
 You can easily run the project with Docker.
 
-1.  **Build the Docker image:**
+1. **Build the Docker image:**
 
     ```bash
     # Build the image
     docker build -t sourcegraph2api-nodejs .
     ```
 
-2.  **Run the container:**
+2. **Run the container:**
+
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
@@ -209,7 +213,7 @@ This proxy provides a wide variety of models supported by Sourcegraph in the Ope
 
 ### Project Structure
 
-```
+```bash
 nodejs/
 ├── src/
 │   ├── config/          # Configuration, environment variables, and model list
@@ -271,32 +275,35 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
 
 ### Adımlar
 
-1.  **Repository'yi Klonlayın:**
+1. **Repository'yi Klonlayın:**
 
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
     cd sourcegraph2api/nodejs
     ```
 
-2.  **Bağımlılıkları Yükleyin:**
+2. **Bağımlılıkları Yükleyin:**
 
     ```bash
     npm install
     ```
 
-3.  **Ortam Değişkenlerini Ayarlayın:**
+3. **Ortam Değişkenlerini Ayarlayın:**
     `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri kendinize göre düzenleyin.
 
     ```bash
     cp env.example .env
     ```
 
-4.  **Sunucuyu Başlatın:**
+4. **Sunucuyu Başlatın:**
     - **Geliştirme Modu (Otomatik Yenileme ile):**
+
       ```bash
       npm run dev
       ```
+
     - **Üretim Modu:**
+
       ```bash
       npm run build
       npm start
@@ -410,7 +417,7 @@ Ek olarak, sistem durumu için aşağıdaki endpoint mevcuttur:
 
 Projeyi Docker ile kolayca çalıştırabilirsiniz.
 
-1.  **Docker imajını oluşturun:**
+1. **Docker imajını oluşturun:**
 
     ```bash
 
@@ -418,7 +425,8 @@ Projeyi Docker ile kolayca çalıştırabilirsiniz.
     docker build -t sourcegraph2api-nodejs .
     ```
 
-2.  **Container'ı çalıştırın:**
+2. **Container'ı çalıştırın:**
+
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
@@ -444,7 +452,7 @@ Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI fo
 
 ### Proje Yapısı
 
-```
+```bash
 nodejs/
 ├── src/
 │   ├── config/          # Konfigürasyon, ortam değişkenleri ve model listesi

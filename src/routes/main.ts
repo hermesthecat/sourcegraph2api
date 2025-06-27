@@ -21,6 +21,9 @@ import { openaiAuth } from '../middleware';
 // Services - metrics
 import { getMetricsDashboard, getCacheStats, getServicesHealth } from '../services';
 
+// Admin router
+import { adminRouter } from './admin.routes';
+
 /**
  * API Router'ını oluştur ve yapılandır / Create and configure the API Router
  */
@@ -60,6 +63,11 @@ export function createApiRouter(): Router {
   router.get('/health', healthCheck);
   // @ts-ignore - Express middleware type conflict
   router.get('/health/detailed', detailedHealthCheck);
+
+  // ======================
+  // Admin Routes / Yönetim Rotaları
+  // ======================
+  router.use('/admin', adminRouter);
 
   // ======================
   // V1 API Routes / V1 API Rotaları

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Sourcegraph Cookie Yönetimi</h1>
+
+    <% if (message) { %>
+      <div class="alert alert-success"><%= message %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="form-container">
+      <h2>Yeni Cookie Ekle</h2>
+      <form action="/admin/cookies/add" method="POST">
+        <div class="form-group">
+          <label for="alias">Takma Ad (Alias)</label>
+          <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
+        </div>
+        <div class="form-group">
+          <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
+          <textarea id="cookieValue" name="cookieValue" placeholder="sg_user_id=... ile başlayan değeri yapıştırın" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Ekle</button>
+      </form>
+    </div>
+
+    <h2>Mevcut Cookie'ler (<%= cookies.length %>)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Takma Ad</th>
+          <th>Durum</th>
+          <th>Eklenme Tarihi</th>
+          <th>Eylemler</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (cookies.length > 0) { %>
+          <% cookies.forEach(cookie => { %>
+            <tr>
+              <td><%= cookie.alias %></td>
+              <td>
+                <% if (cookie.isActive) { %>
+                  <span class="status status-active">Aktif</span>
+                <% } else { %>
+                  <span class="status status-passive">Pasif</span>
+                <% } %>
+              </td>
+              <td><%= new Date(cookie.createdAt).toLocaleString('tr-TR') %></td>
+              <td class="actions">
+                <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST">
+                  <button type="submit" class="btn <%= cookie.isActive ? 'btn-secondary' : 'btn-success' %>">
+                    <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
+                  </button>
+                </form>
+                <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
+                  <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="4" style="text-align: center;">Henüz hiç cookie eklenmemiş.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html> 

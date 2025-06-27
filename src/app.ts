@@ -7,6 +7,7 @@ import express, { Application, Request, Response } from 'express';
 import { config } from './config';
 import { log } from './utils/logger';
 import { setupRoutes } from './routes';
+import path from 'path'; // path modülünü import et
 
 // Middleware imports
 import {
@@ -26,6 +27,17 @@ import {
  */
 export function createApp(): Application {
   const app = express();
+
+  // ======================
+  // View Engine Setup (EJS) / Görüntü Motoru Kurulumu (EJS)
+  // ======================
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(process.cwd(), 'views'));
+
+  // ======================
+  // Static Files / Statik Dosyalar
+  // ======================
+  app.use(express.static(path.join(process.cwd(), 'public')));
 
   // ======================
   // Trust proxy (production için) / Proxy'e güven (üretim için)

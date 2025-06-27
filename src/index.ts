@@ -6,6 +6,8 @@
 import { startServer } from './app';
 import { log } from './utils/logger';
 import { validateConfig, logConfig } from './config';
+import { initializeDatabase } from './services/database';
+import './models/cookie.model'; // Modeli yükle ve Sequelize'nin bilmesini sağla / Load the model and let Sequelize know
 
 /**
  * Ana fonksiyon - server'ı başlat / Main function - start the server
@@ -32,6 +34,9 @@ async function main(): Promise<void> {
 
     // Konfigürasyonu doğrula / Validate configuration
     validateConfig();
+
+    // Veritabanını başlat / Initialize the database
+    await initializeDatabase();
 
     // Konfigürasyonu logla (debug mode'da) / Log configuration (in debug mode)
     logConfig();

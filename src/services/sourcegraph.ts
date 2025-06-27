@@ -14,6 +14,7 @@ import {
 } from '../utils/helpers';
 import { PassThrough } from 'stream';
 import https from 'https';
+import { getRandomActiveCookie } from './cookie.service'; // Cookie servisini import et
 
 // Sourcegraph API sabitleri / Sourcegraph API constants
 const SOURCEGRAPH_BASE_URL = 'https://sourcegraph.com';
@@ -52,14 +53,24 @@ function convertToSourcegraphFormat(
 }
 
 class SourcegraphClient {
-  private getAuthHeaders(requestId: string) {
+  private async getAuthHeaders(requestId: string) { // Fonksiyonu async yap
     const traceParent = `00-${uuidv4().replace(/-/g, '').slice(0, 32)}-${uuidv4().replace(/-/g, '').slice(0, 16)}-01`;
 
+    // Havuzdan rastgele bir aktif cookie al / Get a random active cookie from the pool
+    const activeCookie = await getRandomActiveCookie();
+
+    if (!activeCookie) {
+      log.request(requestId, 'error', 'Havuzda kullanılabilir aktif cookie bulunamadı. İstek reddedildi.');
+      throw new Error('No active cookies available in the pool.');
+    }
+
+    const cookieValue = activeCookie.cookieValue;
+
     // Go versiyonunda olduğu gibi, SG_COOKIE'yi alıp "token " önekiyle kullan. / As in the Go version, get SG_COOKIE and use it with the "token " prefix.
-    const authorization = `token ${config.sgCookie}`;
+    const authorization = `token ${cookieValue}`;
 
     return {
-      'cookie': config.sgCookie,
+      'cookie': cookieValue,
       'authorization': authorization,
       'traceparent': traceParent,
       'x-sourcegraph-interaction-id': uuidv4(),
@@ -74,7 +85,7 @@ class SourcegraphClient {
   ): Promise<AsyncIterable<string>> {
     const modelRef = MODEL_MAP[request.model] || request.model;
     const requestBody = convertToSourcegraphFormat(request, modelRef);
-    const headers = this.getAuthHeaders(requestId);
+    const headers = await this.getAuthHeaders(requestId); // await ekle
 
     const stream = new PassThrough();
 
