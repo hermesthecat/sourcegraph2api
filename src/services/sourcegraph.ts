@@ -93,22 +93,34 @@ class SourcegraphClient {
     }).then(response => {
         let buffer = '';
         response.data.on('data', (chunk: Buffer) => {
-            buffer += chunk.toString();
+            buffer += chunk.toString('utf-8');
             let boundary;
             while ((boundary = buffer.indexOf('\n\n')) !== -1) {
-                const eventString = buffer.substring(0, boundary);
+                const messageBlock = buffer.substring(0, boundary);
                 buffer = buffer.substring(boundary + 2);
                 
-                if (eventString.startsWith('data: ')) {
-                    const data = eventString.substring(6).trim();
-                    if (data === '[DONE]') {
+                let eventType = '';
+                let eventData = '';
+
+                const lines = messageBlock.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('event:')) {
+                        eventType = line.substring(6).trim();
+                    } else if (line.startsWith('data:')) {
+                        eventData += line.substring(5).trim();
+                    }
+                }
+
+                if (eventType === 'done' || eventData === '[DONE]') {
+                    if (!stream.writableEnded) {
                         stream.end();
-                        return;
                     }
-                    if (data) {
-                        // SSE formatında data göndermeye gerek yok, doğrudan JSON gönder
-                        stream.write(data);
-                    }
+                    return;
+                }
+
+                // Sadece 'completion' olayından gelen veriyi işle ve gönder.
+                if (eventType === 'completion' && eventData) {
+                    stream.write(eventData);
                 }
             }
         });
