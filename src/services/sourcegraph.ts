@@ -3,373 +3,179 @@
  * Sourcegraph API ile iletişimi sağlar
  */
 
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 import { log } from '../utils/logger';
 import { OpenAIChatCompletionRequest, OpenAIChatMessage } from '../types';
-import { 
-  delay, 
-  calculateBackoff, 
-  safeJsonParse, 
-  sanitizeString, 
-  messagesToText,
-  extractStatusCode,
-  isValidCookie,
-  truncateText
+import {
+  delay,
+  calculateBackoff,
 } from '../utils/helpers';
+import { PassThrough } from 'stream';
+import https from 'https';
 
 // Sourcegraph API sabitleri
 const SOURCEGRAPH_BASE_URL = 'https://sourcegraph.com';
 const CHAT_ENDPOINT = `${SOURCEGRAPH_BASE_URL}/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0`;
 
-/**
- * Traceparent header oluştur (dağıtık izleme için)
- */
-function generateTraceParent(): string {
-  const version = '00';
-  const traceId = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-  const spanId = Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-  const flags = '01';
-  return `${version}-${traceId}-${spanId}-${flags}`;
-}
+// Modelleri OpenAI formatından Sourcegraph formatına çevir
+const MODEL_MAP: Record<string, string> = {
+  'claude-3-haiku-20240307': 'anthropic/claude-3-haiku-20240307',
+  'claude-3-sonnet-20240229': 'anthropic/claude-3-sonnet-20240229',
+  'claude-3-opus-20240229': 'anthropic/claude-3-opus-20240229',
+};
 
 /**
- * OpenAI formatını Sourcegraph formatına çevir (Go createRequestBody ile uyumlu)
+ * Gelen isteği Sourcegraph API formatına dönüştürür.
+ * @param request OpenAIChatCompletionRequest
+ * @param modelRef string
+ * @returns SourcegraphChatCompletionRequest
  */
-function convertToSourcegraphFormat(request: OpenAIChatCompletionRequest, modelRef: string) {
-  // Go versiyonu ile aynı format: messages array ile speaker/text structure
-  const messages = request.messages.map((message: OpenAIChatMessage) => {
-    let speaker: string = message.role;
-    
-    // Go'da user -> human dönüşümü var
-    if (message.role === 'user') {
-      speaker = 'human';
-    }
-    
-    return {
-      speaker: speaker,
-      text: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
-    };
-  });
+function convertToSourcegraphFormat(
+  request: OpenAIChatCompletionRequest,
+  modelRef: string
+) {
+  const messages = request.messages.map((msg: OpenAIChatMessage) => ({
+    speaker: msg.role === 'user' ? 'human' : 'assistant',
+    text: msg.content,
+  }));
 
   return {
     model: modelRef,
     messages: messages,
     maxTokensToSample: request.max_tokens || 4000,
-    temperature: request.temperature || 0.7,
-    topP: -1,
-    topK: -1
+    temperature: request.temperature ?? 0, // Go versiyonuyla uyumlu
+    topP: -1, // Go versiyonuyla uyumlu
+    topK: -1, // Go versiyonuyla uyumlu
   };
 }
 
-/**
- * Cookie Manager Class
- */
-export class CookieManager {
-  private cookies: string[] = [];
-  private currentIndex: number = 0;
-  private rateLimitedCookies: Map<string, Date> = new Map();
+class SourcegraphClient {
+  private getAuthHeaders(requestId: string) {
+    const traceParent = `00-${uuidv4().replace(/-/g, '').slice(0, 32)}-${uuidv4().replace(/-/g, '').slice(0, 16)}-01`;
 
-  constructor() {
-    this.initializeCookies();
+    // Go versiyonunda olduğu gibi, SG_COOKIE'yi alıp "token " önekiyle kullan.
+    const authorization = `token ${config.sgCookie}`;
+
+    return {
+      'cookie': config.sgCookie,
+      'authorization': authorization,
+      'traceparent': traceParent,
+      'x-sourcegraph-interaction-id': uuidv4(),
+      'content-type': 'application/json',
+      'user-agent': config.userAgent,
+    };
   }
-
-  private initializeCookies() {
-    if (config.sgCookie) {
-      this.cookies = config.sgCookie
-        .split(',')
-        .map(cookie => cookie.trim())
-        .filter(cookie => cookie.length > 0);
-    }
-  }
-
-  /**
-   * Rate limit kontrolü
-   */
-  private isRateLimited(cookie: string): boolean {
-    const limitTime = this.rateLimitedCookies.get(cookie);
-    if (!limitTime) return false;
-    
-    if (new Date() > limitTime) {
-      this.rateLimitedCookies.delete(cookie);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Rastgele cookie al
-   */
-  getRandomCookie(): string {
-    const availableCookies = this.cookies.filter(cookie => !this.isRateLimited(cookie));
-    
-    if (availableCookies.length === 0) {
-      throw new Error('No available cookies - all are rate limited');
-    }
-    
-    const randomIndex = Math.floor(Math.random() * availableCookies.length);
-    return availableCookies[randomIndex];
-  }
-
-  /**
-   * Sonraki cookie'yi al
-   */
-  getNextCookie(): string {
-    const availableCookies = this.cookies.filter(cookie => !this.isRateLimited(cookie));
-    
-    if (availableCookies.length === 0) {
-      throw new Error('No available cookies - all are rate limited');
-    }
-    
-    const cookie = availableCookies[this.currentIndex % availableCookies.length];
-    this.currentIndex++;
-    return cookie;
-  }
-
-  /**
-   * Cookie'yi rate limit listesine ekle
-   */
-  addRateLimitCookie(cookie: string, duration: number = 60): void {
-    const expirationTime = new Date(Date.now() + duration * 1000);
-    this.rateLimitedCookies.set(cookie, expirationTime);
-    log.warn(`Cookie rate limited for ${duration}s: ${cookie.substring(0, 10)}...`);
-  }
-
-  /**
-   * Cookie'yi tamamen kaldır
-   */
-  removeCookie(cookie: string): void {
-    this.cookies = this.cookies.filter(c => c !== cookie);
-    this.rateLimitedCookies.delete(cookie);
-    log.warn(`Cookie removed: ${cookie.substring(0, 10)}...`);
-  }
-
-  /**
-   * Mevcut cookie sayısı
-   */
-  getAvailableCookieCount(): number {
-    return this.cookies.filter(cookie => !this.isRateLimited(cookie)).length;
-  }
-}
-
-/**
- * Sourcegraph API Client
- */
-export class SourcegraphClient {
-  private httpClient: AxiosInstance;
-  private cookieManager: CookieManager;
-
-  constructor() {
-    this.cookieManager = new CookieManager();
-    
-    this.httpClient = axios.create({
-      timeout: 10 * 60 * 1000, // 10 dakika timeout
-      headers: {
-        'accept-encoding': 'gzip;q=0',
-        'connection': 'keep-alive',
-        'content-type': 'application/json',
-        'user-agent': 'vscode/1.86.0 (Node.js v20.18.3)',
-        'x-requested-with': 'vscode 1.86.0',
-        'Host': 'sourcegraph.com',
-      }
-    });
-
-    // Proxy ayarla
-    if (config.proxyUrl) {
-      log.info(`Using proxy: ${config.proxyUrl}`);
-      // Proxy konfigürasyonu burada eklenebilir
-    }
-  }
-
-  /**
-   * Streaming chat request gönder
-   */
+  
   async makeStreamRequest(
     request: OpenAIChatCompletionRequest,
-    modelRef: string,
     requestId: string
   ): Promise<AsyncIterable<string>> {
-    const maxRetries = this.cookieManager.getAvailableCookieCount();
-    let attempt = 0;
-
-    while (attempt < maxRetries) {
-      try {
-        const cookie = attempt === 0 
-          ? this.cookieManager.getRandomCookie() 
-          : this.cookieManager.getNextCookie();
-
-        log.request(requestId, 'debug', `Attempting request with cookie ${attempt + 1}/${maxRetries}`);
-
-        return await this.performStreamRequest(request, modelRef, cookie, requestId);
-
-      } catch (error: any) {
-        attempt++;
-        const statusCode = error.response?.status || error.status || 'unknown';
-        
-        log.request(requestId, 'warn', `Request attempt ${attempt} failed: ${error.message}`);
-        log.request(requestId, 'error', `Error status: ${statusCode}`);
-        
-        // Güvenli hata loglaması
-        if (error.response) {
-          // Axios hatası (sunucudan cevap var)
-          log.request(requestId, 'debug', `Error data: ${JSON.stringify(error.response.data)}`);
-          log.request(requestId, 'debug', `Error headers: ${JSON.stringify(error.response.headers)}`);
-        } else if (error.request) {
-          // Axios hatası (cevap yok)
-          log.request(requestId, 'debug', 'Error: No response received from server.');
-        } else {
-          // Diğer hatalar
-          log.request(requestId, 'debug', `Error details: ${error.message}`);
-        }
-        
-        // 400 hatası - model izni yok
-        if (statusCode === 400) {
-          log.request(requestId, 'error', `No permission to call this model - status 400`);
-          // 400 hatası genellikle model izni ile ilgili, cookie değiştir
-        }
-
-        // Rate limit hatası
-        if (statusCode === 429) {
-          const currentCookie = this.cookieManager.getRandomCookie();
-          this.cookieManager.addRateLimitCookie(currentCookie, config.rateLimitCookieLockDuration);
-          log.request(requestId, 'warn', `Cookie rate limited - switching to next cookie`);
-        }
-
-        // Son deneme
-        if (attempt >= maxRetries) {
-          throw new Error(`All cookie attempts exhausted. Last error: ${error.message} (Status: ${statusCode})`);
-        }
-      }
-    }
-
-    throw new Error('Unexpected error in makeStreamRequest');
-  }
-
-  /**
-   * Gerçek stream request'i gerçekleştir
-   */
-  private async performStreamRequest(
-    request: OpenAIChatCompletionRequest,
-    modelRef: string,
-    cookie: string,
-    requestId: string
-  ): Promise<AsyncIterable<string>> {
+    const modelRef = MODEL_MAP[request.model] || request.model;
     const requestBody = convertToSourcegraphFormat(request, modelRef);
-    const traceParent = generateTraceParent();
+    const headers = this.getAuthHeaders(requestId);
 
-    const headers = {
-      'accept-encoding': 'gzip;q=0',
-      'authorization': `token ${cookie}`,
-      'connection': 'keep-alive',
-      'content-type': 'application/json',
-      'traceparent': traceParent,
-      'user-agent': 'vscode/1.86.0 (Node.js v20.18.3)',
-      'x-requested-with': 'vscode 1.86.0',
-      'x-sourcegraph-interaction-id': uuidv4(),
-      'Host': 'sourcegraph.com',
-      'Transfer-Encoding': 'chunked'
-    };
+    const stream = new PassThrough();
+    
+    // Proxy agent'ını yapılandır
+    const httpsAgent = config.proxyUrl 
+      ? new (require('https-proxy-agent'))(config.proxyUrl) 
+      : new https.Agent({ rejectUnauthorized: false }); // Veya varsayılan agent
 
-    log.request(requestId, 'debug', `Making stream request to Sourcegraph API`);
-    log.request(requestId, 'debug', `Request body: ${JSON.stringify(requestBody)}`);
-    log.request(requestId, 'debug', `Request headers: ${JSON.stringify(headers)}`);
+    axios({
+        method: 'post',
+        url: CHAT_ENDPOINT,
+        data: requestBody,
+        headers: headers,
+        responseType: 'stream',
+        httpsAgent: httpsAgent,
+    }).then(response => {
+        let buffer = '';
+        response.data.on('data', (chunk: Buffer) => {
+            buffer += chunk.toString();
+            let boundary;
+            while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+                const eventString = buffer.substring(0, boundary);
+                buffer = buffer.substring(boundary + 2);
+                
+                if (eventString.startsWith('data: ')) {
+                    const data = eventString.substring(6).trim();
+                    if (data === '[DONE]') {
+                        stream.end();
+                        return;
+                    }
+                    if (data) {
+                        // SSE formatında data göndermeye gerek yok, doğrudan JSON gönder
+                        stream.write(data);
+                    }
+                }
+            }
+        });
 
-    const response = await this.httpClient.post(CHAT_ENDPOINT, requestBody, {
-      headers,
-      responseType: 'stream'
+        response.data.on('end', () => {
+            log.request(requestId, 'debug', 'Sourcegraph stream ended.');
+            if (!stream.writableEnded) {
+                stream.end();
+            }
+        });
+
+        response.data.on('error', (err: Error) => {
+            log.request(requestId, 'error', `Sourcegraph stream error: ${err.message}`);
+            stream.emit('error', err);
+            stream.end();
+        });
+    }).catch(error => {
+        // GÜVENLİ HATA YÖNETİMİ
+        // Axios'tan gelen error nesnesini ASLA doğrudan loglama veya JSON.stringify yapma.
+        const statusCode = error.response?.status || 'unknown';
+        let errorMessage = 'Axios request failed';
+
+        if (error.response?.data) {
+            // error.response.data bir stream veya buffer olabilir, güvenli bir şekilde metne çevir.
+            try {
+                // Eğer data bir Buffer ise
+                if (Buffer.isBuffer(error.response.data)) {
+                    errorMessage = error.response.data.toString('utf8');
+                } 
+                // Eğer data bir stream ise, bu asenkron olur ve burada işlemek karmaşıktır.
+                // Şimdilik sadece status kodunu ve genel bir mesajı loglayalım.
+                else if (typeof error.response.data.pipe === 'function') {
+                    errorMessage = 'Received a stream as error data.';
+                }
+                // Diğer durumlar (JSON veya string olabilir)
+                else {
+                    errorMessage = JSON.stringify(error.response.data);
+                }
+            } catch (e) {
+                errorMessage = 'Failed to stringify error data.';
+            }
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        log.request(requestId, 'error', `Axios request failed with status ${statusCode}. Data: ${errorMessage}`);
+        stream.emit('error', new Error(`Request failed with status ${statusCode}`));
+        stream.end();
     });
 
-    return this.processStreamResponse(response, requestId);
-  }
-
-  /**
-   * Stream response'u işle
-   */
-  private async *processStreamResponse(
-    response: AxiosResponse,
-    requestId: string
-  ): AsyncIterable<string> {
-    const stream = response.data;
-
-    for await (const chunk of stream) {
-      const lines = chunk.toString().split('\n');
-      
-      for (const line of lines) {
-        if (line.trim() === '') continue;
-        
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
-          
-          if (data === '[DONE]') {
-            log.request(requestId, 'debug', 'Stream completed');
-            return;
-          }
-
-          // Cloudflare challenge kontrolü
-          if (this.isCloudflareChallenge(data)) {
-            throw new Error('Cloudflare challenge detected');
-          }
-
-          // Not login kontrolü
-          if (this.isNotLogin(data)) {
-            throw new Error('Authentication failed - not logged in');
-          }
-
-          yield data;
+    async function* streamGenerator(): AsyncIterable<string> {
+        for await (const chunk of stream) {
+            yield chunk.toString();
         }
-      }
     }
-  }
 
-  /**
-   * Non-streaming request gönder
-   */
+    return streamGenerator();
+  }
+  
   async makeNonStreamRequest(
     request: OpenAIChatCompletionRequest,
-    modelRef: string,
     requestId: string
-  ): Promise<string> {
-    // Stream request kullanıp tüm verileri birleştir
-    const streamIterator = await this.makeStreamRequest(request, modelRef, requestId);
-    let fullResponse = '';
-
-    for await (const chunk of streamIterator) {
-      try {
-        const parsed = JSON.parse(chunk);
-        if (parsed.delta && parsed.delta.content) {
-          fullResponse += parsed.delta.content;
-        }
-      } catch (error) {
-        // JSON parse hatası - chunk'ı doğrudan ekle
-        fullResponse += chunk;
-      }
-    }
-
-    return fullResponse;
-  }
-
-  /**
-   * Cloudflare challenge kontrolü
-   */
-  private isCloudflareChallenge(data: string): boolean {
-    return data.includes('cf-challenge') || data.includes('cloudflare');
-  }
-
-  /**
-   * Login kontrolü
-   */
-  private isNotLogin(data: string): boolean {
-    return data.includes('not authenticated') || data.includes('login required');
-  }
-
-  /**
-   * Mevcut cookie sayısını al
-   */
-  getAvailableCookieCount(): number {
-    return this.cookieManager.getAvailableCookieCount();
+  ) {
+    // Bu fonksiyon şimdilik stream versiyonuyla benzer şekilde bırakılabilir
+    // veya özel bir non-stream implementasyonu yapılabilir.
+    throw new Error('Non-streaming requests not implemented yet.');
   }
 }
 
-// Singleton instance
 export const sourcegraphClient = new SourcegraphClient(); 

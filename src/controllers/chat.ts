@@ -59,9 +59,9 @@ export async function chatCompletion(req: Request, res: Response): Promise<void>
     log.request(requestId, 'info', `Chat request: ${request.model}, stream: ${request.stream}`);
 
     if (request.stream) {
-      await handleStreaming(request, modelInfo.modelRef, requestId, res);
+      await handleStreaming(request, requestId, res);
     } else {
-      await handleNonStreaming(request, modelInfo.modelRef, requestId, res);
+      await handleNonStreaming(request, requestId, res);
     }
 
   } catch (error: any) {
@@ -79,7 +79,6 @@ export async function chatCompletion(req: Request, res: Response): Promise<void>
  */
 async function handleStreaming(
   request: OpenAIChatCompletionRequest,
-  modelRef: string,
   requestId: string,
   res: Response
 ): Promise<void> {
@@ -90,7 +89,7 @@ async function handleStreaming(
   res.setHeader('Connection', 'keep-alive');
   
   try {
-    const streamIterator = await sourcegraphClient.makeStreamRequest(request, modelRef, requestId);
+    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
     
     for await (const chunk of streamIterator) {
       const content = processChunk(chunk);
@@ -110,8 +109,26 @@ async function handleStreaming(
     res.end();
     
   } catch (error: any) {
-    log.request(requestId, 'error', `Streaming error: ${error.message}`);
-    res.write(`data: ${JSON.stringify({ error: { message: error.message } })}\n\n`);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown streaming error occurred';
+    log.request(requestId, 'error', `Streaming error: ${errorMessage}`);
+    
+    const errorResponse = {
+      error: {
+        message: errorMessage,
+        type: 'server_error',
+        code: error.code || 'streaming_error'
+      }
+    };
+    
+    // Header'lar gönderilmediyse, normal bir JSON hatası gönder
+    if (!res.headersSent) {
+        res.status(500).json(errorResponse);
+        return;
+    }
+
+    // Header'lar gönderildiyse, SSE formatında hata gönder
+    res.write(`data: ${JSON.stringify(errorResponse)}\n\n`);
+    res.write(`data: [DONE]\n\n`);
     res.end();
   }
 }
@@ -121,15 +138,22 @@ async function handleStreaming(
  */
 async function handleNonStreaming(
   request: OpenAIChatCompletionRequest,
-  modelRef: string,
   requestId: string,
   res: Response
 ): Promise<void> {
   const responseId = generateResponseId();
   
   try {
-    const content = await sourcegraphClient.makeNonStreamRequest(request, modelRef, requestId);
-    
+    // Geçici olarak makeStreamRequest'i kullanıp sonucu birleştirelim
+    const streamIterator = await sourcegraphClient.makeStreamRequest(request, requestId);
+    let content = '';
+    for await (const chunk of streamIterator) {
+      const processed = processChunk(chunk);
+      if (processed) {
+        content += processed;
+      }
+    }
+
     const promptText = request.messages.map(m => typeof m.content === 'string' ? m.content : '').join(' ');
     const promptTokens = countTokens(promptText);
     const completionTokens = countTokens(content);
@@ -164,8 +188,13 @@ async function handleNonStreaming(
 function processChunk(chunk: string): string | null {
   try {
     const parsed = JSON.parse(chunk);
-    return parsed.delta?.content || parsed.content || null;
-  } catch {
-    return typeof chunk === 'string' && chunk.trim() ? chunk : null;
+    if (parsed.error) {
+      log.warn(`Received error event from Sourcegraph: ${parsed.error.message}`);
+      return null;
+    }
+    return parsed.completion || null;
+  } catch (e) {
+    // JSON parse hatası olursa, chunk'ın kendisi bir string olabilir
+    return chunk;
   }
 } 
