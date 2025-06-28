@@ -56,11 +56,6 @@ export const config: AppConfig = {
   // Session
   sessionSecret: getEnvString('SESSION_SECRET'),
 
-  // Sourcegraph ayarları / Sourcegraph settings
-  sgCookie: getEnvString('SG_COOKIE'),
-
-  // API güvenlik ayarları / API security settings
-  apiSecret: getEnvString('API_SECRET'),
   apiKeys: getEnvArray('API_KEYS'),
 
   // Network ayarları / Network settings
@@ -76,7 +71,6 @@ export const config: AppConfig = {
 
   // Özellikler / Features
   routePrefix: getEnvString('ROUTE_PREFIX'),
-  swaggerEnable: getEnvBoolean('SWAGGER_ENABLE', true),
 
   // Güvenlik / Security
   ipBlacklist: getEnvArray('IP_BLACKLIST'),
