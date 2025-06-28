@@ -409,41 +409,41 @@ router.get('/settings', async (req, res) => {
 
 // Ayarları güncelle
 router.post('/settings', async (req, res) => {
-    try {
-        const {
-            sessionSecret,
-            requestRateLimit,
-            routePrefix,
-            proxyUrl,
-            ipBlacklist,
-            logLevel,
-            userAgent,
-            tz,
-            reasoningHide,
-            sourcegraphBaseUrl,
-            chatEndpoint
-        } = req.body;
+  try {
+    const {
+      sessionSecret,
+      requestRateLimit,
+      routePrefix,
+      proxyUrl,
+      ipBlacklist,
+      logLevel,
+      userAgent,
+      tz,
+      reasoningHide,
+      sourcegraphBaseUrl,
+      chatEndpoint
+    } = req.body;
 
-        const settingsToUpdate = {
-            sessionSecret,
-            requestRateLimit,
-            routePrefix,
-            proxyUrl,
-            ipBlacklist,
-            logLevel,
-            userAgent,
-            tz,
-            reasoningHide,
-            sourcegraphBaseUrl,
-            chatEndpoint
-        };
+    const settingsToUpdate = {
+      sessionSecret,
+      requestRateLimit,
+      routePrefix,
+      proxyUrl,
+      ipBlacklist,
+      logLevel,
+      userAgent,
+      tz,
+      reasoningHide,
+      sourcegraphBaseUrl,
+      chatEndpoint
+    };
 
-        await updateSettings(settingsToUpdate);
-        req.flash('success', 'Ayarlar başarıyla güncellendi ve anında devreye alındı. Sunucuyu yeniden başlatmaya gerek yoktur.');
-    } catch (error: any) {
-        req.flash('error', `Ayarlar güncellenirken bir hata oluştu: ${error.message}`);
-    }
-    res.redirect('/admin/settings');
+    await updateSettings(settingsToUpdate);
+    req.flash('success', 'Ayarlar başarıyla güncellendi ve anında devreye alındı. Sunucuyu yeniden başlatmaya gerek yoktur.');
+  } catch (error: any) {
+    req.flash('error', `Ayarlar güncellenirken bir hata oluştu: ${error.message}`);
+  }
+  res.redirect('/admin/settings');
 });
 
 

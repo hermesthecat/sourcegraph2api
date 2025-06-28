@@ -33,7 +33,7 @@ Yönetim paneli arayüzü için gerekli olan tüm rotaları içerir. Bu rotalar�
 * **API Anahtarı Yönetimi (`/apikeys`):** API anahtarlarını listelemek, oluşturmak, silmek ve durumunu değiştirmek için CRUD rotalarını içerir.
 * **Kullanıcı Yönetimi (`/users`):** Yönetim paneline erişebilen kullanıcıları listelemek, eklemek, güncellemek ve silmek için rotaları içerir.
 * **Kullanım Metrikleri (`/metrics`):** API kullanım loglarını sayfalama (pagination) yaparak gösteren bir sayfa sunar.
-* **Ayarlar (`/settings`):** Uygulamanın dinamik ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`) görüntülemek ve güncellemek için bir arayüz sağlar.
+* **Ayarlar (`/settings`):** Uygulamanın dinamik ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`) görüntülemek ve güncellemek için bir arayüz sağlar.
 * **Flash Mesajları:** Kullanıcı işlemlerinden sonra (örneğin, "Cookie başarıyla eklendi") bilgilendirme mesajları göstermek için `connect-flash` ve session tabanlı bir ara katman kullanır.
 
 ### `index.ts`

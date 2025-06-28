@@ -28,19 +28,21 @@ export {
   getCacheStats
 } from './cache';
 
-// Import for health check / Sağlık kontrolü için içe aktarma
+// Import for health check / Sağlık kontrolü için içe aktırma
 import { config } from '../config';
 import { sourcegraphClient } from './sourcegraph';
 import { metricsStore } from './analytics';
 import { getCacheStats } from './cache';
+import { countActiveCookies } from './cookie.service'; // countActiveCookies'i import et
 
 // Service health check / Servis sağlık kontrolü
-export function getServicesHealth(): any {
-  const hasCookie = !!config.sgCookie;
+export async function getServicesHealth(): Promise<any> { // async yapıldı
+  const activeCookieCount = await countActiveCookies(); // Aktif cookie sayısını al
+  const hasCookie = activeCookieCount > 0;
   return {
     sourcegraph: {
       status: hasCookie ? 'ok' : 'warning',
-      availableCookies: hasCookie ? 1 : 0
+      availableCookies: activeCookieCount
     },
 
     analytics: {
@@ -53,4 +55,4 @@ export function getServicesHealth(): any {
       stats: getCacheStats()
     }
   };
-} 
+}

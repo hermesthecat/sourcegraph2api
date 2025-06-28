@@ -20,12 +20,12 @@ let liveConfig: Partial<AppConfig> = {};
  * .env dosyasından temel (yeniden başlatma gerektiren) ayarları okur.
  */
 function getBaseConfig(): BaseConfig {
-    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7033;
-    const host = process.env.HOST || '0.0.0.0';
-    const debug = process.env.DEBUG?.toLowerCase() === 'true' || false;
-    const nodeEnv = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'production';
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7033;
+  const host = process.env.HOST || '0.0.0.0';
+  const debug = process.env.DEBUG?.toLowerCase() === 'true' || false;
+  const nodeEnv = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'production';
 
-    return { port, host, debug, nodeEnv };
+  return { port, host, debug, nodeEnv };
 }
 
 /**
@@ -33,56 +33,58 @@ function getBaseConfig(): BaseConfig {
  * Ayrıca, veritabanında eksik olan varsayılan ayarları oluşturur.
  */
 export async function loadConfigFromDb(): Promise<void> {
-    log.info('🔄 Ayarlar veritabanından yükleniyor...');
-    try {
-        const settingsFromDb = await Setting.findAll();
-        const dbSettingsMap = new Map(settingsFromDb.map(s => [s.key, s.value]));
+  log.info('🔄 Ayarlar veritabanından yükleniyor...');
+  try {
+    const settingsFromDb = await Setting.findAll();
+    const dbSettingsMap = new Map(settingsFromDb.map(s => [s.key, s.value]));
 
-        const defaults: Record<keyof DynamicConfig, any> = {
-            sessionSecret: 's2a-super-secret-key-please-change-me-in-admin-panel',
-            requestRateLimit: '60',
-            routePrefix: '',
-            proxyUrl: '',
-            ipBlacklist: '',
-            logLevel: 'info',
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-            tz: 'Europe/Istanbul',
-            reasoningHide: 'false', // Veritabanında string olarak saklanacak
-            sourcegraphBaseUrl: 'https://sourcegraph.com',
-            chatEndpoint: '/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0',
-        };
+    const defaults: Record<keyof DynamicConfig, any> = {
+      sessionSecret: 's2a-super-secret-key-please-change-me-in-admin-panel',
+      requestRateLimit: '60',
+      routePrefix: '',
+      proxyUrl: '',
+      ipBlacklist: '',
+      logLevel: 'info',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      tz: 'Europe/Istanbul',
+      reasoningHide: 'false', // Veritabanında string olarak saklanacak
+      sourcegraphBaseUrl: 'https://sourcegraph.com',
+      chatEndpoint: '/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0',
+      swaggerEnable: 'false', // Yeni eklendi
+    };
 
-        const configToCreate: { key: string, value: string }[] = [];
+    const configToCreate: { key: string, value: string }[] = [];
 
-        // Veritabanındaki ayarları `liveConfig`'e yükle ve eksikleri bul
-        for (const key of Object.keys(defaults) as Array<keyof DynamicConfig>) {
-            if (dbSettingsMap.has(key)) {
-                liveConfig[key] = dbSettingsMap.get(key) as any;
-            } else {
-                log.warn(`Veritabanında eksik ayar: '${key}'. Varsayılan değer kullanılacak ve oluşturulacak.`);
-                liveConfig[key] = defaults[key] as any;
-                configToCreate.push({ key, value: defaults[key] });
-            }
-        }
-
-        // Eksik ayarları veritabanına toplu olarak ekle
-        if (configToCreate.length > 0) {
-            await Setting.bulkCreate(configToCreate);
-            log.info(`${configToCreate.length} adet eksik ayar veritabanına eklendi.`);
-        }
-
-        // String'den doğru tiplere dönüştürme
-        liveConfig.requestRateLimit = parseInt(String(liveConfig.requestRateLimit), 10);
-        liveConfig.ipBlacklist = String(liveConfig.ipBlacklist || '').split(',').map(ip => ip.trim()).filter(Boolean);
-        liveConfig.reasoningHide = String(liveConfig.reasoningHide).toLowerCase() === 'true';
-
-        log.info('✅ Ayarlar başarıyla yüklendi ve belleğe alındı.');
-
-    } catch (error) {
-        log.error('❌ Ayarlar veritabanından yüklenirken kritik bir hata oluştu:', error);
-        // Bu hata kritik olduğu için uygulamayı durdurmak daha güvenli olabilir.
-        process.exit(1);
+    // Veritabanındaki ayarları `liveConfig`'e yükle ve eksikleri bul
+    for (const key of Object.keys(defaults) as Array<keyof DynamicConfig>) {
+      if (dbSettingsMap.has(key)) {
+        liveConfig[key] = dbSettingsMap.get(key) as any;
+      } else {
+        log.warn(`Veritabanında eksik ayar: '${key}'. Varsayılan değer kullanılacak ve oluşturulacak.`);
+        liveConfig[key] = defaults[key] as any;
+        configToCreate.push({ key, value: defaults[key] });
+      }
     }
+
+    // Eksik ayarları veritabanına toplu olarak ekle
+    if (configToCreate.length > 0) {
+      await Setting.bulkCreate(configToCreate);
+      log.info(`${configToCreate.length} adet eksik ayar veritabanına eklendi.`);
+    }
+
+    // String'den doğru tiplere dönüştürme
+    liveConfig.requestRateLimit = parseInt(String(liveConfig.requestRateLimit), 10);
+    liveConfig.ipBlacklist = String(liveConfig.ipBlacklist || '').split(',').map(ip => ip.trim()).filter(Boolean);
+    liveConfig.reasoningHide = String(liveConfig.reasoningHide).toLowerCase() === 'true';
+    liveConfig.swaggerEnable = String(liveConfig.swaggerEnable).toLowerCase() === 'true'; // Yeni eklendi
+
+    log.info('✅ Ayarlar başarıyla yüklendi ve belleğe alındı.');
+
+  } catch (error) {
+    log.error('❌ Ayarlar veritabanından yüklenirken kritik bir hata oluştu:', error);
+    // Bu hata kritik olduğu için uygulamayı durdurmak daha güvenli olabilir.
+    process.exit(1);
+  }
 }
 
 /**
@@ -91,25 +93,25 @@ export async function loadConfigFromDb(): Promise<void> {
  * her zaman en güncel değeri (bellekteki `liveConfig`'ten) alır.
  */
 export const config = new Proxy({}, {
-    get(_target, prop: string) {
-        // Önce bellekteki dinamik ayarlara bak
-        // @ts-ignore
-        if (liveConfig.hasOwnProperty(prop)) {
-            // @ts-ignore
-            return liveConfig[prop];
-        }
-
-        // Sonra .env'den okunan temel ayarlara bak
-        const baseConfig = getBaseConfig();
-        // @ts-ignore
-        if (baseConfig.hasOwnProperty(prop)) {
-            // @ts-ignore
-            return baseConfig[prop];
-        }
-
-        // Hiçbir yerde bulunamazsa undefined dön
-        return undefined;
+  get(_target, prop: string) {
+    // Önce bellekteki dinamik ayarlara bak
+    // @ts-ignore
+    if (liveConfig.hasOwnProperty(prop)) {
+      // @ts-ignore
+      return liveConfig[prop];
     }
+
+    // Sonra .env'den okunan temel ayarlara bak
+    const baseConfig = getBaseConfig();
+    // @ts-ignore
+    if (baseConfig.hasOwnProperty(prop)) {
+      // @ts-ignore
+      return baseConfig[prop];
+    }
+
+    // Hiçbir yerde bulunamazsa undefined dön
+    return undefined;
+  }
 }) as AppConfig;
 
 
@@ -120,19 +122,21 @@ export const config = new Proxy({}, {
  * @param value Yeni değer
  */
 export function updateLiveConfig(key: keyof AppConfig, value: any) {
-    let processedValue = value;
-    // Tipe göre işlem yap
-    if (key === 'requestRateLimit') {
-        processedValue = parseInt(value, 10);
-    } else if (key === 'ipBlacklist') {
-        processedValue = String(value || '').split(',').map(ip => ip.trim()).filter(Boolean);
-    } else if (key === 'reasoningHide') {
-        processedValue = String(value).toLowerCase() === 'true';
-    }
+  let processedValue = value;
+  // Tipe göre işlem yap
+  if (key === 'requestRateLimit') {
+    processedValue = parseInt(value, 10);
+  } else if (key === 'ipBlacklist') {
+    processedValue = String(value || '').split(',').map(ip => ip.trim()).filter(Boolean);
+  } else if (key === 'reasoningHide') {
+    processedValue = String(value).toLowerCase() === 'true';
+  } else if (key === 'swaggerEnable') { // Yeni eklendi
+    processedValue = String(value).toLowerCase() === 'true';
+  }
 
-    // @ts-ignore
-    liveConfig[key] = processedValue;
-    log.info(`Bellekteki ayar güncellendi: ${key} = ${JSON.stringify(processedValue)}`);
+  // @ts-ignore
+  liveConfig[key] = processedValue;
+  log.info(`Bellekteki ayar güncellendi: ${key} = ${JSON.stringify(processedValue)}`);
 }
 
 // ====================================================================

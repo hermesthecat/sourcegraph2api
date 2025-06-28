@@ -15,7 +15,7 @@ Bu klasör, uygulamanın iş mantığının (business logic) merkezidir. Control
 
 * **`database.ts`**: Uygulamanın temelidir.
   * **Sequelize Kurulumu:** `database.sqlite` dosyasını kullanarak bir Sequelize instance'ı oluşturur ve veritabanı bağlantısını yönetir.
-  * **Model Senkronizasyonu:** Uygulama başladığında `models` klasöründeki tüm modelleri veritabanı şemasıyla senkronize eder (`sequelize.sync`).
+  * **Migration Yönetimi:** `sequelize.sync()` yerine `Umzug` kütüphanesi ile veritabanı şemasını migration'lar aracılığıyla yönetir. Bu, geliştirme ortamında veri kaybı olmadan şema güncellemelerine olanak tanır.
   * **Session Store:** `connect-session-sequelize` kullanarak kullanıcı oturumlarını (sessions) veritabanında saklamak için bir session store oluşturur.
   * **Varsayılan Kullanıcı:** Veritabanı boşsa, ilk başlangıçta bir `admin` kullanıcısı oluşturur.
 

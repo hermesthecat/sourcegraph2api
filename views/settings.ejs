@@ -36,8 +36,8 @@
 
                             <div class="mb-3">
                                 <label for="requestRateLimit" class="form-label">İstek Limiti (Dakikada)</label>
-                                <input type="number" class="form-control" id="requestRateLimit"
-                                    name="requestRateLimit" value="<%= settings.requestRateLimit %>" required>
+                                <input type="number" class="form-control" id="requestRateLimit" name="requestRateLimit"
+                                    value="<%= settings.requestRateLimit %>" required>
                                 <div class="form-text">Bir IP adresinin bir dakika içinde yapabileceği maksimum istek
                                     sayısı.</div>
                             </div>
@@ -81,37 +81,47 @@
                                 <div class="form-text">Uygulamanın ne kadar detaylı log tutacağını belirler.</div>
                             </div>
 
-                    <div class="mb-3">
-                        <label for="userAgent" class="form-label">User-Agent</label>
-                        <input type="text" class="form-control" id="userAgent" name="userAgent" value="<%= settings.userAgent %>">
-                        <div class="form-text">Sourcegraph'a yapılan isteklerde gönderilecek User-Agent başlığı.</div>
-                    </div>
+                            <div class="mb-3">
+                                <label for="userAgent" class="form-label">User-Agent</label>
+                                <input type="text" class="form-control" id="userAgent" name="userAgent"
+                                    value="<%= settings.userAgent %>">
+                                <div class="form-text">Sourcegraph'a yapılan isteklerde gönderilecek User-Agent başlığı.
+                                </div>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="tz" class="form-label">Zaman Dilimi (Time Zone)</label>
-                        <input type="text" class="form-control" id="tz" name="tz" value="<%= settings.tz %>">
-                        <div class="form-text">Uygulama genelinde kullanılacak zaman dilimi (örn: Europe/Istanbul, UTC).</div>
-                    </div>
+                            <div class="mb-3">
+                                <label for="tz" class="form-label">Zaman Dilimi (Time Zone)</label>
+                                <input type="text" class="form-control" id="tz" name="tz" value="<%= settings.tz %>">
+                                <div class="form-text">Uygulama genelinde kullanılacak zaman dilimi (örn:
+                                    Europe/Istanbul, UTC).</div>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="reasoningHide" class="form-label">Reasoning Gizle</label>
-                        <select class="form-select" id="reasoningHide" name="reasoningHide">
-                            <option value="true" <%= settings.reasoningHide === true ? 'selected' : '' %>>Evet</option>
-                            <option value="false" <%= settings.reasoningHide === false ? 'selected' : '' %>>Hayır</option>
-                        </select>
-                        <div class="form-text">Modelin düşünme sürecini (reasoning) yanıttan gizleyip gizlemeyeceğini belirler.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sourcegraphBaseUrl" class="form-label">Sourcegraph Base URL</label>
-                        <input type="text" class="form-control" id="sourcegraphBaseUrl" name="sourcegraphBaseUrl" value="<%= settings.sourcegraphBaseUrl %>" required>
-                        <div class="form-text">Sourcegraph API'sinin temel URL'si (örn: https://sourcegraph.com).</div>
-                    </div>
+                            <div class="mb-3">
+                                <label for="reasoningHide" class="form-label">Reasoning Gizle</label>
+                                <select class="form-select" id="reasoningHide" name="reasoningHide">
+                                    <option value="true" <%=settings.reasoningHide===true ? 'selected' : '' %>>Evet
+                                    </option>
+                                    <option value="false" <%=settings.reasoningHide===false ? 'selected' : '' %>>Hayır
+                                    </option>
+                                </select>
+                                <div class="form-text">Modelin düşünme sürecini (reasoning) yanıttan gizleyip
+                                    gizlemeyeceğini belirler.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sourcegraphBaseUrl" class="form-label">Sourcegraph Base URL</label>
+                                <input type="text" class="form-control" id="sourcegraphBaseUrl"
+                                    name="sourcegraphBaseUrl" value="<%= settings.sourcegraphBaseUrl %>" required>
+                                <div class="form-text">Sourcegraph API'sinin temel URL'si (örn:
+                                    https://sourcegraph.com).</div>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="chatEndpoint" class="form-label">Chat Endpoint</label>
-                        <input type="text" class="form-control" id="chatEndpoint" name="chatEndpoint" value="<%= settings.chatEndpoint %>" required>
-                        <div class="form-text">Sourcegraph chat API'sinin endpoint yolu (örn: /.api/completions/stream).</div>
-                    </div>
+                            <div class="mb-3">
+                                <label for="chatEndpoint" class="form-label">Chat Endpoint</label>
+                                <input type="text" class="form-control" id="chatEndpoint" name="chatEndpoint"
+                                    value="<%= settings.chatEndpoint %>" required>
+                                <div class="form-text">Sourcegraph chat API'sinin endpoint yolu (örn:
+                                    /.api/completions/stream).</div>
+                            </div>
                             <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
                         </form>
                     </div>

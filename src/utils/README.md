@@ -1,6 +1,6 @@
 # Utils Klasörü
 
-"Utils" (Utilities - Araçlar), uygulama genelinde tekrar tekrar kullanılabilen, belirli bir iş alanına (domain) ait olmayan, genel amaçlı yardımcı fonksiyonları ve sınıfları içeren bir klasördür. Bu klasör, kod tekrarını önlemeye (`Don't Repeat Yourself - DRY`) ve kodun daha modüler ve temiz olmasına yardımcı olur.
+"Utils" (Utilities - Araçlar), uygulama genelinde tekrar tekrar kullanılabilen, belirli bir iş alanına (domain) ait olmayan, genel amaçlı yardımcı fonksiyonları ve sınıfları içeren bir klasörüdür. Bu klasör, kod tekrarını önlemeye (`Don't Repeat Yourself - DRY`) ve kodun daha modüler ve temiz olmasına yardımcı olur.
 
 ## Sorumluluklar
 

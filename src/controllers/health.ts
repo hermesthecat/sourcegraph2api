@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { sourcegraphClient } from '../services/sourcegraph';
 import { config } from '../config';
 import { log } from '../utils/logger';
+import { countActiveCookies } from '../services/cookie.service'; // countActiveCookies'i import et
 
 /**
  * Basit health check
@@ -50,13 +51,14 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
     const startTime = Date.now();
 
     // Cookie durumunu kontrol et / Check cookie status
-    const hasCookie = !!config.sgCookie;
+    const activeCookieCount = await countActiveCookies();
+    const hasActiveCookie = activeCookieCount > 0;
 
     // Memory kullanımı / Memory usage
     const memoryUsage = process.memoryUsage();
 
     const health = {
-      status: hasCookie ? 'ok' : 'warning',
+      status: hasActiveCookie ? 'ok' : 'warning', // Aktif cookie yoksa uyarı
       timestamp: new Date().toISOString(),
       version: '1.1.4',
       uptime: process.uptime(),
@@ -66,8 +68,8 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
       // Detaylar / Details
       details: {
         cookies: {
-          available: hasCookie ? 1 : 0,
-          status: hasCookie ? 'ok' : 'no_cookies_available'
+          available: activeCookieCount,
+          status: hasActiveCookie ? 'ok' : 'no_cookies_available'
         },
 
         memory: {
@@ -81,7 +83,7 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
           debug: config.debug,
           rateLimitEnabled: config.requestRateLimit > 0,
           proxyConfigured: !!config.proxyUrl,
-          swaggerEnabled: config.swaggerEnable
+          swaggerEnabled: config.swaggerEnable // config'den al
         },
 
         responseTime: Date.now() - startTime
@@ -144,4 +146,4 @@ export async function rootEndpoint(req: Request, res: Response): Promise<void> {
       message: error.message
     });
   }
-} 
+}

@@ -106,6 +106,7 @@ export interface DynamicConfig {
   reasoningHide: boolean;
   sourcegraphBaseUrl: string;
   chatEndpoint: string;
+  swaggerEnable: boolean; // Yeni eklendi
 }
 
 // Uygulamanın tam yapılandırma tipi
@@ -193,4 +194,4 @@ export class AppError extends Error {
 
     Error.captureStackTrace(this, this.constructor);
   }
-} 
+}

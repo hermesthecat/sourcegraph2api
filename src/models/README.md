@@ -25,7 +25,7 @@ Bu klasör, uygulamanın "M" (Model) katmanını temsil eder ve veritabanı şem
 
 ### `setting.model.ts`
 
-`settings` tablosunu temsil eden `Setting` modelini tanımlar. Bu tablo, uygulamanın dinamik olarak yönetilen yapılandırma ayarlarını anahtar-değer çiftleri olarak saklar. `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `USER_AGENT` gibi ayarlar artık burada saklanır.
+`settings` tablosunu temsil eden `Setting` modelini tanımlar. Bu tablo, uygulamanın dinamik olarak yönetilen yapılandırma ayarlarını anahtar-değer çiftleri olarak saklar. `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `USER_AGENT`, `SOURCEGRAPH_BASE_URL` gibi ayarlar artık burada saklanır.
 
 * **Alanlar:** `key` (ayarın adı), `value` (ayarın değeri).
 

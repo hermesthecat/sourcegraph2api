@@ -153,4 +153,20 @@ export async function updateCookie(id: number, alias: string, cookieValue: strin
     log.error(`Cookie güncellenirken hata (ID: ${id}):`, error);
     throw error;
   }
-} 
+}
+
+/**
+ * Aktif cookie sayısını döndürür / Returns the count of active cookies
+ * @returns {Promise<number>}
+ */
+export async function countActiveCookies(): Promise<number> {
+  try {
+    const count = await Cookie.count({
+      where: { isActive: true },
+    });
+    return count;
+  } catch (error) {
+    log.error('Aktif cookie sayısı alınırken hata oluştu:', error);
+    throw error;
+  }
+}

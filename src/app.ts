@@ -142,7 +142,6 @@ export async function startServer(): Promise<void> {
       log.info(`📍 Host: ${host}:${port}`);
       log.info(`🌍 Environment / Ortam: ${config.nodeEnv}`);
       log.info(`🔧 Route Prefix / Rota Öneki: ${config.routePrefix || 'none / yok'}`);
-      log.info(`📊 Swagger: ${config.swaggerEnable ? 'enabled / etkin' : 'disabled / devre dışı'}`);
       log.info(`🛡️  Rate Limit / Hız Limiti: ${config.requestRateLimit} requests/minute`);
       log.info(`🔍 Debug Mode / Hata Ayıklama Modu: ${config.debug ? 'enabled / etkin' : 'disabled / devre dışı'}`);
 

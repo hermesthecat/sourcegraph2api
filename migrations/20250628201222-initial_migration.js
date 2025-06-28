@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (context) { // context objesini alacak şekilde değiştirildi
+  async up(context) { // context objesini alacak şekilde değiştirildi
     const queryInterface = context.queryInterface;
     const Sequelize = context.Sequelize;
 
@@ -184,7 +184,7 @@ module.exports = {
     });
   },
 
-  async down (context) { // context objesini alacak şekilde değiştirildi
+  async down(context) { // context objesini alacak şekilde değiştirildi
     const queryInterface = context.queryInterface;
     const Sequelize = context.Sequelize;
 

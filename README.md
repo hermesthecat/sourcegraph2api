@@ -36,15 +36,17 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 This project includes a powerful admin panel to manage and monitor your proxy server.
 
 **How to Access:**
-1.  Start the server.
-2.  Open your browser and go to `http://localhost:7033/login`.
-3.  Log in with the default credentials:
+
+1. Start the server.
+2. Open your browser and go to `http://localhost:7033/login`.
+3. Log in with the default credentials:
     - **Username:** `admin`
     - **Password:** `admin`
 
 **(Security Note: It is highly recommended to change the default admin password immediately after your first login.)**
 
 **Panel Features:**
+
 - **Dashboard**: View real-time statistics, including total requests, error rates, and usage charts for models, cookies, and API keys.
 - **Cookie Management**: Add, delete, and toggle multiple Sourcegraph cookies to create a resilient request pool.
 - **API Key Management**: Create, delete, and manage API keys for your users.
@@ -60,36 +62,42 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 ### Steps
 
-1.  **Clone the Repository:**
+1. **Clone the Repository:**
+
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
     cd sourcegraph2api/nodejs
     ```
 
-2.  **Install Dependencies:**
+2. **Install Dependencies:**
+
     ```bash
     npm install
     ```
 
-3.  **Set Up Environment Variables:**
+3. **Set Up Environment Variables:**
     Create a new file named `.env` by copying `env.example` and edit the values within it.
 
     ```bash
     cp env.example .env
     ```
 
-4.  **Run Migrations:**
+4. **Run Migrations:**
     Before starting the server for the first time, or after pulling new changes that include database schema updates, run the migrations:
+
     ```bash
     npm run db:migrate
     ```
 
-5.  **Start the Server:**
+5. **Start the Server:**
     - **Development Mode (with auto-reload):**
+
       ```bash
       npm run dev
       ```
+
     - **Production Mode:**
+
       ```bash
       npm run build
       npm start
@@ -99,8 +107,8 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 The application's configuration is managed in two ways:
 
-1.  **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
-2.  **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
+1. **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
+2. **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
 
 ### `.env` File Settings
 
@@ -188,12 +196,14 @@ curl http://localhost:7033/v1/chat/completions \
 ## 🐳 Docker
 
 1. **Build the Docker image:**
+
     ```bash
     docker build -t sourcegraph2api-nodejs .
     ```
 
 2. **Run the container:**
     Make sure your `.env` file is created and configured.
+
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
@@ -331,18 +341,22 @@ Bu proje, proxy sunucunuzu yönetmek ve izlemek için güçlü bir yönetim pane
     cp env.example .env
     ```
 
-4.  **Migration'ları Çalıştırın:**
+4. **Migration'ları Çalıştırın:**
     Sunucuyu ilk kez başlatmadan önce veya veritabanı şema güncellemeleri içeren yeni değişiklikleri çektikten sonra migration'ları çalıştırın:
+
     ```bash
     npm run db:migrate
     ```
 
-5.  **Sunucuyu Başlatın:**
+5. **Sunucuyu Başlatın:**
     - **Geliştirme Modu (Otomatik Yenileme ile):**
+
       ```bash
       npm run dev
       ```
+
     - **Üretim Modu:**
+
       ```bash
       npm run build
       npm start

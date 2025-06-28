@@ -54,7 +54,6 @@ export function createApiRouter(): Router {
         'GET /metrics/dashboard': 'Metrics dashboard / Metrikler panosu'
       },
 
-      documentation: config.swaggerEnable ? '/swagger' : 'disabled / devre dışı',
       repository: 'https://github.com/hermesthecat/sourcegraph2api'
     });
   });
