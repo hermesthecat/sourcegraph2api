@@ -1,41 +1,42 @@
-# Routes Folder
+# `routes` Folder
 
-This folder defines the routing layer of the Express.js application. It directs incoming HTTP requests to the relevant controller functions based on specific URL paths (endpoints). It also applies middleware for specific paths.
-
-## Responsibilities
-
-* **Defining URL Paths:** Defines the application's API endpoints (e.g., `/v1/chat/completions`, `/admin/dashboard`) and which HTTP methods (GET, POST, etc.) can be used to access these paths.
-* **Directing Controllers:** Connects an incoming request to the relevant controller function that will execute the business logic.
-* **Applying Middleware:** Applies middleware such as authentication (`openaiAuth`) and authorization (`isAuthenticated`) for specific paths or groups of paths.
-* **Path Grouping:** Organizes related paths into modular groups using `Express.Router` (e.g., `adminRouter`, `v1Router`).
+This folder defines the application's routing, mapping specific URL endpoints to their corresponding controller functions. It acts as the "switchboard" of the application, directing incoming requests to the appropriate logic.
 
 ## Files
 
 ### `main.ts`
 
-This file creates and configures the application's main router.
+This file creates and configures the main router for the application. It orchestrates all the different routing segments.
 
-* `createApiRouter`: Creates the main router object and connects all sub-routes (API, admin, health check, etc.) to it.
-  * **Root (`/`) and Health Check (`/health`) Routes:** Defines general information about the application and health status endpoints.
-  * **Authentication Routes (`/login`, `/logout`):** Manages user login and logout operations for the admin panel. Integrated with `passport.js`.
-  * **Admin Panel (`/admin`):** Redirects all requests with the `/admin` prefix to the `adminRouter` defined in `admin.routes.ts`.
-  * **V1 API Routes (`/v1`):** Defines the main OpenAI-compatible API routes (`/chat/completions`, `/models`) with the `/v1` prefix. These routes are protected by the `openaiAuth` middleware.
-  * **Metric Routes (`/metrics`):** Contains endpoints that provide information about application performance and statistics.
-* `setupRoutes`: Connects the main router created by `createApiRouter` to the main Express `app` object.
-* `processRoutePrefix`: Processes the `routePrefix` value from `config` (now dynamically loaded from the database) to allow API routes to be served under a custom prefix.
+* **Public Routes**: Defines routes that do not require authentication, such as:
+  * `GET /`: The root endpoint providing basic API information.
+  * `GET /health` and `GET /health/detailed`: Publicly accessible health check endpoints.
+* **Authentication Routes**: Handles the web-based login/logout for the admin panel.
+  * `GET /login`: Renders the login page.
+  * `POST /login`: Processes the login form submission using Passport.js for authentication.
+  * `GET /logout`: Handles the user logout process.
+* **V1 API Routes**: Defines the core, OpenAI-compatible API endpoints under the `/v1` path prefix.
+  * All `/v1` routes are protected by the `openaiAuth` middleware, which requires a valid Bearer token (API key).
+  * Routes include `POST /v1/chat/completions` and `GET /v1/models`.
+* **Admin Router Integration**: It mounts the `adminRouter` (defined in `admin.routes.ts`) under the `/admin` path. This means all routes defined in `adminRouter` will be prefixed with `/admin`.
+* **Route Prefixing**: It dynamically applies a global route prefix (e.g., `/api`) from the application configuration to the `/v1` routes.
+* **`setupRoutes`**: The main exported function that takes the Express `app` instance and applies the configured main router to it.
 
 ### `admin.routes.ts`
 
-Contains all routes required for the admin panel interface. All of these routes are protected by middleware that requires the user to be logged in.
+This file defines all the routes for the web-based administration panel.
 
-* **Dashboard (`/dashboard`):** Renders the main panel page showing general statistics, usage graphs, and model usage rates.
-* **Cookie Management (`/cookies`):** Includes routes that manage CRUD (Create, Read, Update, Delete) operations for listing, adding, editing, deleting, and changing the active/inactive status of cookies.
-* **API Key Management (`/apikeys`):** Includes CRUD routes for listing, creating, deleting, and changing the status of API keys.
-* **User Management (`/users`):** Includes routes for listing, adding, updating, and deleting users who can access the admin panel.
-* **Usage Metrics (`/metrics`):** Provides a page displaying API usage logs with pagination.
-* **Settings (`/settings`):** Provides an interface for viewing and updating the application's dynamic settings (e.g., `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`).
-* **Flash Messages:** Uses `connect-flash` and session-based middleware to display informational messages after user operations (e.g., "Cookie added successfully").
+* **Authentication**: A middleware at the top of this file ensures that **all** admin routes are protected. It uses the `isAuthenticated` middleware to check if a user is logged in. If not, it redirects them to the `/login` page.
+* **CRUD Operations**: It defines routes for managing all the key database models:
+  * **Cookies (`/cookies`)**: Routes to list, add, edit, update, delete, and toggle the status of Sourcegraph cookies.
+  * **API Keys (`/apikeys`)**: Routes to list, add, delete, and toggle the status of API keys.
+  * **Users (`/users`)**: Routes to list, add, edit, and delete admin panel users.
+* **Dashboard and Settings**:
+  * `GET /dashboard`: Fetches comprehensive statistics from the `statistics.service` and renders the main dashboard page with charts and tables.
+  * `GET /settings` and `POST /settings`: Routes to display and update the application's dynamic settings.
+  * `GET /metrics`: Renders a paginated view of all API usage logs from the `usage_metrics` table.
+* **Rendering Views**: All `GET` routes in this file use `res.render()` to render the appropriate `.ejs` view template, passing in the data retrieved from the various services.
 
 ### `index.ts`
 
-Exports the `createApiRouter` and `setupRoutes` functions from `main.ts`, allowing higher-level modules like `app.ts` to access these functions cleanly.
+A simple barrel file that exports the `setupRoutes` function from `main.ts`. This provides a clean entry point for the main `app.ts` file to initialize all the application's routes.

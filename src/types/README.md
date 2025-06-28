@@ -1,35 +1,48 @@
-# Types Folder
+# `types` Folder
 
-This folder centralizes all TypeScript type definitions (`interface`, `class`, `type`) used throughout the project. This ensures that the code is more readable, maintainable, and type-safe. Thanks to TypeScript's static typing features, potential errors are prevented during the development phase.
+This directory contains TypeScript type definitions (`interfaces`, `types`, `classes`) that are used across the entire application. Centralizing these types ensures type safety, improves code readability and autocompletion, and makes refactoring easier.
 
-## Responsibilities
+The primary file is `index.ts`.
 
-* **Defining Data Structures:** Defines the shape and field types of data objects (e.g., API requests, database objects, configuration) that flow within the application.
-* **Creating API Contracts:** Clearly defines the structure of request and response bodies, especially in interactions with external APIs (like OpenAI). This guarantees compatibility with the API.
-* **Ensuring Type Safety:** Ensures that types remain consistent when data is transferred between different layers of the project (controllers, services, models).
-* **Improving Developer Experience:** Enables features such as autocompletion, type checking, and instant error reporting in code editors (like VS Code).
+## File Content (`index.ts`)
 
-## Files
+The `index.ts` file is organized into several logical sections:
 
-### `index.ts`
+### 1. OpenAI-Compatible Types
 
-This file contains all custom type definitions in the project and is divided into logical groups:
+This is one of the most critical sections. It defines a set of interfaces (`OpenAIChatMessage`, `OpenAIChatCompletionRequest`, `OpenAIChatCompletionResponse`, `OpenAIErrorResponse`, etc.) that mirror the official OpenAI Chat Completions API. By using these types, our proxy guarantees that it can correctly process incoming requests from standard OpenAI clients and produce responses in the expected format. This ensures seamless compatibility.
 
-* **OpenAI Compatible Types:**
-  * `OpenAIChatCompletionRequest`: Defines the structure of the request body for the `/v1/chat/completions` endpoint.
-  * `OpenAIChatCompletionResponse`: Defines the structure of the response (stream or non-stream) returned from this endpoint.
-  * Sub-interfaces like `OpenAIChatMessage`, `Choice`, `Usage`, `Delta` ensure full compatibility with the OpenAI API specification.
-  * `OpenAIErrorResponse`: Defines the structure of the standard error object returned to the client in case of errors.
+### 2. Sourcegraph-Specific Types
 
-* **Application and Configuration Types:**
-  * `BaseConfig`: Defines the type of basic configuration settings (e.g., `port`, `host`, `debug`) read from the `.env` file and determined at server startup.
-  * `DynamicConfig`: Defines the type of settings stored in the database and dynamically updatable from the admin panel (e.g., `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`).
-  * `AppConfig`: Combines `BaseConfig` and `DynamicConfig` to define the type of the application's full configuration object.
-  * `AppUser`: Contains basic properties of the admin panel user (`id`, `username`).
+This section defines types used for internal communication with the Sourcegraph API.
 
-* **Express & Passport.js Type Extensions:**
-  * `declare global { namespace Express { ... } }`: Uses TypeScript's "declaration merging" feature to define types for properties like `user`, `login()`, `logout()`, `isAuthenticated()` added to Express's `Request` object by libraries like `passport.js`. This allows these properties to be used in a type-safe manner.
+- **`SourcegraphRequest`**: Defines the structure of the request body sent to the Sourcegraph stream endpoint.
+- **`SGModelInfo`**: Represents the structure of a model entry in the application's internal model registry.
 
-* **Helper Types:**
-  * `ModelInfo`, `ModelListResponse`: Define data structures for the `/v1/models` endpoint.
-  * `AppError`: A custom `Error` class used for standardized error handling throughout the application, including additional properties like `statusCode` and `isOperational`. This helps distinguish between operational errors (predictable, e.g., "User not found") and programming errors (unexpected errors).
+### 3. Configuration Types
+
+This section defines the structure of the application's configuration object. It's split into two parts:
+
+- **`BaseConfig`**: Types for settings that are loaded from the `.env` file at startup and require a server restart to change (e.g., `port`, `host`).
+- **`DynamicConfig`**: Types for settings that are loaded from the database and can be changed "live" from the admin panel without a restart (e.g., `requestRateLimit`, `ipBlacklist`, `sourcegraphBaseUrl`).
+- **`AppConfig`**: A combined type that merges `BaseConfig` and `DynamicConfig` into a single, comprehensive configuration type.
+
+### 4. Express & Passport.js Type Extensions
+
+This is a crucial piece of TypeScript configuration. It uses `declare global` to augment the global `Express` namespace. This "teaches" TypeScript about the properties and methods that `passport.js` adds to the Express `Request` object, such as:
+
+- `req.user`
+- `req.isAuthenticated()`
+- `req.login()`
+- `req.logout()`
+
+Without this, using these methods would result in TypeScript compilation errors.
+
+### 5. Other Utility Types
+
+This section contains various other types and classes used throughout the application:
+
+- **`AppUser`**: Defines the basic structure of a user object.
+- **`ModelListResponse` / `ModelInfo`**: Defines the structure for the response of the `/v1/models` endpoint.
+- **`AppError`**: A custom error class that extends the native `Error`. It allows for creating errors with an associated `statusCode`, which helps in generating appropriate HTTP responses in the error handling middleware.
+- Other minor types for components like the logger and cookie manager.

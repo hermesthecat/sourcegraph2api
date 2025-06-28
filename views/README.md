@@ -1,31 +1,37 @@
-# Views Folder
+# `views` Folder
 
-This folder represents the "V" (View) layer of the application and contains all EJS (Embedded JavaScript) template files that form the user interface of the administration panel. These files are used to generate HTML pages on the server side (server-side rendering) by receiving dynamic data (e.g., cookie list from the database).
+This directory contains all the EJS (Embedded JavaScript) templates for rendering the application's web interface, specifically the admin panel. These files are responsible for generating the HTML sent to the client's browser.
 
-The routes in `src/routes/admin.routes.ts` render these template files using the `res.render()` function and present them to the user.
+## Templating Engine
 
-## Responsibilities
+The application uses **EJS** as its templating engine. This allows embedding dynamic data and JavaScript logic directly into HTML files.
 
-* **Defining the User Interface:** Defines the HTML structure and layout of different pages of the administration panel (Dashboard, Cookie Management, Login, etc.).
-* **Dynamic Data Display:** Displays data coming from controllers (e.g., `cookies`, `apiKeys`, `stats`) within HTML using EJS syntax (`<%= %>`).
-* **Reusable Components:** Enables the reuse of repeating UI components on pages, such as the navigation menu, through the `partials` folder.
+- `<%= ... %>`: Outputs the value of a variable into the HTML (HTML-escaped).
+- `<%- ... %>`: Outputs the unescaped value. Used for including other templates (like partials).
+- `<% ... %>`: Used for control flow statements like loops (`forEach`) and conditionals (`if`).
 
-## Files
+## Main Views
 
-### Main Page Templates
+- **`dashboard.ejs`**: The main landing page of the admin panel. It displays a comprehensive overview of the application's statistics, including general stats (total requests, error rate), performance charts (daily usage, model distribution via `Chart.js`), and summary tables for cookie and API key usage.
 
-* **`login.ejs`**: The login page containing username and password fields for users to log in to the administration panel.
-* **`dashboard.ejs`**: The main panel accessed after logging in. Displays general usage statistics, graphs, and other summary information.
-* **`cookies.ejs`**: A page that lists all `Cookie`s in the database in a table format, includes a form for adding new cookies, and offers options to edit/delete/activate existing ones.
-* **`edit-cookie.ejs`**: A special form page used to edit a specific cookie.
-* **`apikeys.ejs`**: A page that lists all API keys in the database, offers options to create new keys and delete/activate existing ones.
-* **`users.ejs`**: A page that lists users with access to the administration panel, includes forms for adding new users, editing, and deleting.
-* **`metrics.ejs`**: A page that displays API usage logs (`UsageMetric` records) in detail with pagination.
-* **`settings.ejs`**: A page containing form fields to view and update the application's dynamically managed settings (e.g., `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`).
+- **`apikeys.ejs`**: Provides an interface for managing proxy API keys. It includes a form to create new keys and a table to list, activate/deactivate, and delete existing keys.
 
-### `partials/` Folder
+- **`cookies.ejs`**: Provides an interface for managing Sourcegraph cookies (referred to as Sourcegraph API Keys in the UI). It contains a form for adding new cookies and a table to list, edit, toggle the status of, and delete existing cookies.
 
-This subfolder contains recurring HTML snippets used across multiple pages. This prevents code duplication and simplifies maintenance.
+- **`edit-cookie.ejs`**: A dedicated page with a form to edit the alias and value of a specific Sourcegraph cookie.
 
-* **`nav.ejs`**: Contains the top navigation bar visible on all administration panel pages.
-* **`messages.ejs`**: The component used to display success or error messages (flash messages) after a user performs an action (e.g., "Cookie successfully added").
+- **`users.ejs`**: Manages admin panel users. It features a form to add new users and a table to list existing ones. It also includes a JavaScript-powered modal popup for editing user details (username and password), with special protections to prevent modification of the primary 'admin' user.
+
+- **`metrics.ejs`**: Displays a detailed, paginated log of all API requests recorded by the system. The table includes information like timestamp, IP address, success status, and error messages.
+
+- **`settings.ejs`**: A form that allows administrators to view and update all the dynamic application settings stored in the database. These changes are applied instantly without requiring a server restart.
+
+- **`login.ejs`**: The authentication page. It displays a simple form for users to enter their username and password to access the admin panel.
+
+## Partials
+
+The `partials/` subdirectory contains reusable snippets of EJS templates that are included in multiple main views. This follows the DRY (Don't Repeat Yourself) principle.
+
+- **`partials/nav.ejs`**: Defines the main navigation bar, providing consistent navigation links across all pages of the admin panel.
+
+- **`partials/messages.ejs`**: Renders success or error messages that are passed to the view via `express-flash`. This is used to provide feedback to the user after they perform an action (e.g., "Settings saved successfully").

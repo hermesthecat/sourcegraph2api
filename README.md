@@ -6,18 +6,18 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 
 ## 📋 Table of Contents
 
-- [Features](#-features)
-- [Admin Panel](#-admin-panel)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [API Endpoints](#-api-endpoints)
-- [Docker](#-docker)
-- [Supported Models](#-supported-models)
-- [Development](#-development)
-- [License](#-license)
+- [Features](#features)
+- [Admin Panel](#admin-panel)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Docker](#docker)
+- [Supported Models](#supported-models)
+- [Development](#development)
+- [License](#license)
 
-## ⚡ Features
+## Features
 
 - **Full OpenAI Compatibility**: Works seamlessly with existing OpenAI libraries and tools.
 - **Built-in Admin Panel**: A comprehensive web interface to manage the entire proxy.
@@ -28,7 +28,7 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 - **Enterprise Security**: Rate limiting, IP blacklisting, and a robust user/API key authentication system.
 - **Production-Ready**: Developed with TypeScript for stability and performance.
 
-## 👑 Admin Panel
+## Admin Panel
 
 This project includes a powerful admin panel to manage and monitor your proxy server.
 
@@ -40,7 +40,7 @@ This project includes a powerful admin panel to manage and monitor your proxy se
     - **Username:** `admin`
     - **Password:** `admin`
 
-**(Security Note: It is highly recommended to change the default admin password immediately after your first login.)**
+> **Security Note:** It is highly recommended to change the default admin password immediately after your first login.
 
 **Panel Features:**
 
@@ -50,7 +50,7 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 - **User Management**: Add or remove admin users who can access the panel.
 - **Usage Metrics**: Browse through a detailed, paginated log of all API requests.
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -100,7 +100,7 @@ This project includes a powerful admin panel to manage and monitor your proxy se
       npm start
       ```
 
-## ⚙️ Configuration
+## Configuration
 
 The application's configuration is managed in two ways:
 
@@ -132,9 +132,9 @@ The following settings can be configured from the UI:
 - **Sourcegraph Base URL**: The base URL for the Sourcegraph API.
 - **Chat Endpoint**: The endpoint path for Sourcegraph chat API.
 
-## 🎯 Usage
+## Usage
 
-Once the server is running, first **create an API key in the [Admin Panel](#-admin-panel)**. Then, use that key to make requests with standard OpenAI libraries.
+Once the server is running, first **create an API key in the [Admin Panel](#admin-panel)**. Then, use that key to make requests with standard OpenAI libraries.
 
 ### With OpenAI Library (Node.js/TypeScript)
 
@@ -182,7 +182,7 @@ curl http://localhost:7033/v1/chat/completions \
   }'
 ```
 
-## 📡 API Endpoints
+## API Endpoints
 
 - `POST /v1/chat/completions`: The main endpoint for chat completion requests.
 - `GET /v1/models`: Returns a list of all supported models.
@@ -190,7 +190,7 @@ curl http://localhost:7033/v1/chat/completions \
 - `GET /login`: The login page for the admin panel.
 - `GET /admin/dashboard`: The main dashboard for the admin panel.
 
-## 🐳 Docker
+## Docker
 
 1. **Build the Docker image:**
 
@@ -205,7 +205,7 @@ curl http://localhost:7033/v1/chat/completions \
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
 
-## 🤖 Supported Models
+## Supported Models
 
 This proxy provides a wide variety of models supported by Sourcegraph in the OpenAI format.
 
@@ -222,7 +222,7 @@ This proxy provides a wide variety of models supported by Sourcegraph in the Ope
 
 `claude-sonnet-4-latest`, `claude-sonnet-4-thinking-latest`, `claude-3-7-sonnet-latest`, `claude-3-7-sonnet-extended-thinking`, `claude-3-5-sonnet-latest`, `claude-3-opus`, `claude-3-5-haiku-latest`, `claude-3-haiku`, `claude-3.5-sonnet`, `claude-3-5-sonnet-20240620`, `claude-3-sonnet`, `claude-2.1`, `claude-2.0`, `deepseek-v3`, `gemini-1.5-pro`, `gemini-1.5-pro-002`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`, `gemini-2.5-pro-preview-03-25`, `gemini-1.5-flash`, `gemini-1.5-flash-002`, `mixtral-8x7b-instruct`, `mixtral-8x22b-instruct`, `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini-medium`, `o3`, `o4-mini`, `o1`, `gpt-4-turbo`, `gpt-3.5-turbo`
 
-## 🛠️ Development
+## Development
 
 ### Project Structure
 
@@ -249,6 +249,6 @@ nodejs/
 └── .env.example
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.

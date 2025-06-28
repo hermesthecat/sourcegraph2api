@@ -16,18 +16,22 @@ The project generally adopts a **Model-View-Controller (MVC)**-like approach alo
 
 The heart and starting point of the application are located at the root of the `src` folder.
 
-* **`index.ts`**: This is the application's main entry point. The `main()` function sequentially manages all steps required when the application starts:
-    1. Validates configuration (`validateConfig`).
-    2. Establishes database connection and synchronizes models (`initializeDatabase`).
-    3. Logs configuration (`logConfig`).
-    4. Starts the Express server (`startServer`).
+* **`index.ts`**: This is the application's main entry point. The asynchronous `main()` function manages the entire startup sequence in a specific order:
+    1. **Environment Variables**: Loads the `.env` file using `dotenv`.
+    2. **Logger Initialization**: Initializes the `winston` logger with basic settings from environment variables.
+    3. **Database Initialization**: Calls `initializeDatabase()` to connect to the database and run migrations.
+    4. **Dynamic Configuration**: Calls `loadConfigFromDb()` to load settings from the database into the global `config` object.
+    5. **Server Start**: Calls `startServer()` from `app.ts` to launch the web server.
 
-* **`app.ts`**: Creates and configures the Express application itself.
-  * `createApp()`: Creates the Express `app` object.
-  * **Middleware Stack:** Configures middleware that every incoming request passes through in a specific order (security, logging, CORS, rate limiting, etc.).
-  * **View Engine:** Sets up the EJS (Embedded JavaScript templates) view engine for the admin panel.
-  * **Route Setup:** Connects all API and web routes to the application using the `setupRoutes` function.
-  * **Error Handling:** Sets up 404 (Not Found) and general 500 (Internal Server Error) error trapping mechanisms.
+* **`app.ts`**: This file is responsible for creating, configuring, and starting the Express application.
+  * **`createApp()`**: This function assembles the Express `app` object. It's responsible for:
+    * **View Engine & Static Files**: Configures EJS as the view engine and sets up the `public` directory for static assets.
+    * **Session & Auth Middleware**: Sets up the complete stack for handling web sessions and admin authentication in the correct order: `cookie-parser`, `express-session` (with `connect-session-sequelize` for database storage), `passport.js`, and `connect-flash`.
+    * **Global Middleware Stack**: Applies a series of middleware to every incoming request, including `helmet` for security, CORS handling, request logging, rate limiting, and IP blacklisting.
+    * **Route Setup**: Integrates all the API and web routes defined in the `routes` layer.
+    * **Error Handling**: Attaches the final middleware for handling 404 Not Found errors and other application-wide errors.
+  * **`startServer()`**: This function calls `createApp()`, starts the server, logs essential startup information (like available endpoints), and sets up graceful shutdown handlers.
+  * **`setupGracefulShutdown()`**: Implements handlers for system signals (`SIGINT`, `SIGTERM`) and unhandled exceptions to ensure the application can shut down cleanly.
 
 ---
 
@@ -37,11 +41,11 @@ Below is a description of each subfolder (layer) within `src`.
 
 #### [`config/`](./config/README.md)
 
-Manages all application configuration. It reads environment variables from the `.env` file and provides a type-safe `config` object available throughout the application. It also maintains a registry (`modelRegistry`) of all supported language models.
+Manages all application configuration. It reads environment variables from the `.env` file, merges them with dynamic settings from the database, and provides a type-safe `config` object available throughout the application.
 
 #### [`models/`](./models/README.md)
 
-This is the **Model** layer that defines the database schema. Using Sequelize ORM, database tables (`User`, `ApiKey`, `Cookie`, `UsageMetric`) are abstracted as TypeScript classes, and their relationships (`hasMany`, `belongsTo`) are established here.
+This is the **Model** layer that defines the database schema. Using Sequelize ORM, database tables (`User`, `ApiKey`, `Cookie`, `UsageMetric`, etc.) are abstracted as TypeScript classes, and their relationships (`hasMany`, `belongsTo`) are established here.
 
 #### [`services/`](./services/README.md)
 
@@ -53,7 +57,7 @@ Contains **middleware** functions that process incoming requests. Cross-cutting 
 
 #### [`controllers/`](./controllers/README.md)
 
-This is the **Controller** layer that receives and responds to incoming HTTP requests. It validates requests, calls relevant service functions, and returns the results from the services as responses in the format expected by the client (usually JSON).
+This is the **Controller** layer that receives and responds to incoming HTTP requests. It validates requests, calls relevant service functions, and returns the results from the services as responses in the format expected by the client (usually JSON or a rendered EJS view).
 
 #### [`routes/`](./routes/README.md)
 

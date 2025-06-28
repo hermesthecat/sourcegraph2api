@@ -1,27 +1,30 @@
-# Config Folder
+# `config` Folder
 
-This folder is responsible for managing all application configuration settings. However, most settings are now managed dynamically from the database, not from the `.env` file.
-
-## Responsibilities
-
-* **Base Configuration:** Reads essential settings like `PORT`, `HOST`, `NODE_ENV`, `DEBUG` from the `.env` file when the server starts. A server restart is required to update these settings.
-* **Dynamic Configuration Loading:** When the application starts, it loads dynamic settings (such as `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `ROUTE_PREFIX`, `PROXY_URL`, `IP_BLACKLIST`, `LOG_LEVEL`, `USER_AGENT`, `TZ`, `REASONING_HIDE`, `SOURCEGRAPH_BASE_URL`, `CHAT_ENDPOINT`) from the `settings` table in the database and keeps them in memory.
-* **Instant Update:** Setting changes made from the admin panel instantly update the active configuration object in memory, in addition to the database. This eliminates the need for a server restart.
-* **Model Registry:** Contains a static registry (`modelRegistry`) of all supported language models by the application, along with their Sourcegraph references and maximum token counts.
+This folder contains the application's configuration management logic. It centralizes how settings are loaded, accessed, and updated, providing a clear separation between static and dynamic configuration.
 
 ## Files
 
 ### `index.ts`
 
-This file is the central point for configuration management and performs the following main responsibilities:
+This is the main file for configuration management and is responsible for several key functions:
 
-* **`getBaseConfig()`**: Reads essential settings like `PORT`, `HOST`, `DEBUG`, `NODE_ENV` from the `.env` file.
-* **`loadConfigFromDb()`**: Loads settings from the database using the `Setting` model. It creates missing default settings in the database and populates the `liveConfig` object.
-* **`config` Object (Proxy):** This is the main configuration object used throughout the application. It acts as a proxy, so when a value like `config.sessionSecret` is accessed, it always retrieves the most up-to-date value from `liveConfig` in memory.
-* **`updateLiveConfig()`**: Instantly updates the `liveConfig` object in memory. This function is called when a setting is updated from the settings panel.
-* **`modelRegistry` Object:** Contains the static list of language models supported by the application.
-* **`getModelInfo()` and `getModelList()`:** Helper functions that provide access to the model registry.
+1. **Dual Configuration System**: The system uses two types of settings:
+    * **Base Configuration (`BaseConfig`)**: Core settings that require a server restart to change. These are loaded directly from the `.env` file (e.g., `PORT`, `HOST`, `NODE_ENV`).
+    * **Dynamic Configuration (`DynamicConfig`)**: Settings that can be changed "live" from the admin panel while the application is running. These are stored in the database (`settings` table) and loaded into memory.
 
-## Usage
+2. **Loading from Database (`loadConfigFromDb`)**: On application startup, this function reads all settings from the database. It also creates and populates default values for any settings that are missing, ensuring the application can always run.
 
-The `config` object is used throughout the application by importing it with `import { config } from '../config'`. This centralized and dynamic approach simplifies configuration management and removes the need for server restarts.
+3. **In-Memory Caching**: Settings loaded from the database are stored in an in-memory `liveConfig` object. This prevents frequent database queries and ensures fast access to settings.
+
+4. **Unified Access with Proxy (`config`)**: A JavaScript `Proxy` object named `config` serves as the single source of truth for accessing all configuration values throughout the application. When a setting is requested (e.g., `config.requestRateLimit`), the proxy first checks the `liveConfig` (dynamic settings) and then the `BaseConfig` (static settings). This provides a seamless and unified way to access any setting.
+
+5. **Live Updates (`updateLiveConfig`)**: When a setting is changed in the admin panel, this function is called to instantly update the value in the `liveConfig` object in memory. This allows for real-time configuration changes without restarting the server.
+
+6. **Model Registry**: The file also includes a static `modelRegistry` object. This registry maps OpenAI-compatible model names (e.g., `gpt-4o`) to their specific internal Sourcegraph model references (e.g., `anthropic::...`) and defines properties like `maxTokens`. Helper functions like `getModelInfo` and `getModelList` are provided to work with this registry.
+
+## Key Exports
+
+* `config`: The proxied configuration object. **This should be imported and used by all other parts of the application** to access any setting.
+* `loadConfigFromDb`: The function that initializes dynamic settings from the database. Called once at startup.
+* `updateLiveConfig`: The function used to update a dynamic setting in memory.
+* `modelRegistry`, `getModelInfo`, `getModelList`: Utilities for managing and accessing information about supported AI models.
