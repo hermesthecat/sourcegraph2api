@@ -7,14 +7,24 @@ import { startServer } from './app';
 import { log, initializeLogger } from './utils/logger';
 import { config, loadConfigFromDb } from './config';
 import { initializeDatabase } from './services/database';
+import dotenv from 'dotenv'; // dotenv'i import et
 
 /**
  * Ana fonksiyon - server'ı başlat / Main function - start the server
  */
 async function main(): Promise<void> {
   try {
+    // .env dosyasını yükle (en başta olmalı)
+    dotenv.config();
+
+    // Logger'ı temel .env ayarlarıyla hemen başlat
+    const debugMode = process.env.DEBUG?.toLowerCase() === 'true' || false;
+    const logLevel = process.env.LOG_LEVEL || 'info';
+    const nodeEnv = process.env.NODE_ENV || 'production';
+    initializeLogger(debugMode, logLevel, nodeEnv);
+
     // ASCII banner
-    console.log(`
+    log.info(`
 ╔═══════════════════════════════════════════════════════╗
 ║              SOURCEGRAPH2API                          ║
 ║                                                       ║
@@ -29,22 +39,20 @@ async function main(): Promise<void> {
 ╚═══════════════════════════════════════════════════════╝
     `);
 
-    // Veritabanını başlat (bu, ayarları yüklemeden önce yapılmalı)
+    // Veritabanını başlat
     await initializeDatabase();
 
     // Ayarları veritabanından yükle
     await loadConfigFromDb();
 
-    // Ayarlar yüklendikten sonra Logger'ı başlat
-    initializeLogger(config);
-
     log.info('🚀 Server başlatılıyor... / Starting server...');
 
-    // Server'ı başlat / Start the server
+    // Server'ı başlat
     await startServer();
 
   } catch (error: any) {
     log.error(`❌ Başlatma hatası: ${error.message} / Startup error: ${error.message}`);
+    // Logger düzgün çalışmadığı durumlarda console.error da kullan
     console.error(error);
     process.exit(1);
   }

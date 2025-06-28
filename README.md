@@ -36,17 +36,15 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 This project includes a powerful admin panel to manage and monitor your proxy server.
 
 **How to Access:**
-
-1. Start the server.
-2. Open your browser and go to `http://localhost:7033/login`.
-3. Log in with the default credentials:
+1.  Start the server.
+2.  Open your browser and go to `http://localhost:7033/login`.
+3.  Log in with the default credentials:
     - **Username:** `admin`
     - **Password:** `admin`
 
 **(Security Note: It is highly recommended to change the default admin password immediately after your first login.)**
 
 **Panel Features:**
-
 - **Dashboard**: View real-time statistics, including total requests, error rates, and usage charts for models, cookies, and API keys.
 - **Cookie Management**: Add, delete, and toggle multiple Sourcegraph cookies to create a resilient request pool.
 - **API Key Management**: Create, delete, and manage API keys for your users.
@@ -62,35 +60,36 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 ### Steps
 
-1. **Clone the Repository:**
-
+1.  **Clone the Repository:**
     ```bash
     git clone https://github.com/hermesthecat/sourcegraph2api.git
     cd sourcegraph2api/nodejs
     ```
 
-2. **Install Dependencies:**
-
+2.  **Install Dependencies:**
     ```bash
     npm install
     ```
 
-3. **Set Up Environment Variables:**
-    Create a new file named `.env` by copying `env.example` and edit the values within it. **It is crucial to set a secure `SESSION_SECRET`**.
+3.  **Set Up Environment Variables:**
+    Create a new file named `.env` by copying `env.example` and edit the values within it.
 
     ```bash
     cp env.example .env
     ```
 
-4. **Start the Server:**
-    - **Development Mode (with auto-reload):**
+4.  **Run Migrations:**
+    Before starting the server for the first time, or after pulling new changes that include database schema updates, run the migrations:
+    ```bash
+    npm run db:migrate
+    ```
 
+5.  **Start the Server:**
+    - **Development Mode (with auto-reload):**
       ```bash
       npm run dev
       ```
-
     - **Production Mode:**
-
       ```bash
       npm run build
       npm start
@@ -100,8 +99,8 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 The application's configuration is managed in two ways:
 
-1. **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
-2. **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
+1.  **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
+2.  **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
 
 ### `.env` File Settings
 
@@ -122,6 +121,11 @@ The following settings can be configured from the UI:
 - **Proxy URL**: An HTTP/HTTPS proxy for outbound requests.
 - **IP Blacklist**: Comma-separated IPs to block.
 - **Log Level**: The verbosity of application logs (`info`, `debug`, etc.).
+- **User Agent**: The User-Agent header sent with requests to Sourcegraph.
+- **Time Zone (TZ)**: The application's timezone.
+- **Reasoning Hide**: Whether to hide the model's reasoning process.
+- **Sourcegraph Base URL**: The base URL for the Sourcegraph API.
+- **Chat Endpoint**: The endpoint path for Sourcegraph chat API.
 
 ## 🎯 Usage
 
@@ -184,14 +188,12 @@ curl http://localhost:7033/v1/chat/completions \
 ## 🐳 Docker
 
 1. **Build the Docker image:**
-
     ```bash
     docker build -t sourcegraph2api-nodejs .
     ```
 
 2. **Run the container:**
     Make sure your `.env` file is created and configured.
-
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
     ```
@@ -219,8 +221,10 @@ This proxy provides a wide variety of models supported by Sourcegraph in the Ope
 
 ```bash
 nodejs/
+├── config/              # Sequelize CLI configuration (config.json)
+├── migrations/          # Database migration files
 ├── src/
-│   ├── config/          # Configuration, environment variables, and model list
+│   ├── config/          # Dynamic configuration manager and model list
 │   ├── controllers/     # Logic for handling incoming HTTP requests
 │   ├── middleware/      # Middleware for authentication, logging, etc.
 │   ├── models/          # Sequelize database models and relationships
@@ -232,8 +236,9 @@ nodejs/
 │   └── index.ts         # The application's entry point
 ├── views/               # EJS templates for the Admin Panel
 ├── public/              # Static files (CSS, JS) for the Admin Panel
-├── database.sqlite      # SQLite database file
+├── database.sqlite      # SQLite veritabanı dosyası (migration'lar tarafından yönetilir)
 ├── package.json
+├── .sequelizerc         # Sequelize CLI konfigürasyonu
 └── .env.example
 ```
 
@@ -320,21 +325,24 @@ Bu proje, proxy sunucunuzu yönetmek ve izlemek için güçlü bir yönetim pane
     ```
 
 3. **Ortam Değişkenlerini Ayarlayın:**
-    `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri düzenleyin. **Güvenli bir `SESSION_SECRET` ayarlamak kritik öneme sahiptir.**
+    `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri düzenleyin.
 
     ```bash
     cp env.example .env
     ```
 
-4. **Sunucuyu Başlatın:**
-    - **Geliştirme Modu (Otomatik Yenileme ile):**
+4.  **Migration'ları Çalıştırın:**
+    Sunucuyu ilk kez başlatmadan önce veya veritabanı şema güncellemeleri içeren yeni değişiklikleri çektikten sonra migration'ları çalıştırın:
+    ```bash
+    npm run db:migrate
+    ```
 
+5.  **Sunucuyu Başlatın:**
+    - **Geliştirme Modu (Otomatik Yenileme ile):**
       ```bash
       npm run dev
       ```
-
     - **Üretim Modu:**
-
       ```bash
       npm run build
       npm start
@@ -366,6 +374,11 @@ Aşağıdaki ayarlar kullanıcı arayüzünden yapılandırılabilir:
 - **Proxy Adresi**: Giden istekler için bir HTTP/HTTPS proxy'si.
 - **IP Kara Listesi**: Engellenecek, virgülle ayrılmış IP'ler.
 - **Log Seviyesi**: Uygulama loglarının ayrıntı düzeyi (`info`, `debug` vb.).
+- **User-Agent**: Sourcegraph'a yapılan isteklerde gönderilecek User-Agent başlığı.
+- **Zaman Dilimi (TZ)**: Uygulama genelinde kullanılacak zaman dilimi.
+- **Reasoning Gizle**: Modelin düşünme sürecini yanıttan gizleyip gizlemeyeceğini belirler.
+- **Sourcegraph Base URL**: Sourcegraph API'sinin temel URL'si.
+- **Chat Endpoint**: Sourcegraph chat API'sinin endpoint yolu.
 
 ## 🎯 Kullanım
 
@@ -453,7 +466,7 @@ Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI fo
 | **GPT** (OpenAI) | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
 | **Diğer** | `mixtral-8x22b-instruct`, `deepseek-v3` |
 
-### Tam Model Listesi
+### Full Model Listesi
 
 `claude-sonnet-4-latest`, `claude-sonnet-4-thinking-latest`, `claude-3-7-sonnet-latest`, `claude-3-7-sonnet-extended-thinking`, `claude-3-5-sonnet-latest`, `claude-3-opus`, `claude-3-5-haiku-latest`, `claude-3-haiku`, `claude-3.5-sonnet`, `claude-3-5-sonnet-20240620`, `claude-3-sonnet`, `claude-2.1`, `claude-2.0`, `deepseek-v3`, `gemini-1.5-pro`, `gemini-1.5-pro-002`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `gemini-2.5-flash-preview-04-17`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`, `gemini-2.5-pro-preview-03-25`, `gemini-1.5-flash`, `gemini-1.5-flash-002`, `mixtral-8x7b-instruct`, `mixtral-8x22b-instruct`, `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini-medium`, `o3`, `o4-mini`, `o1`, `gpt-4-turbo`, `gpt-3.5-turbo`
 
@@ -463,8 +476,10 @@ Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI fo
 
 ```bash
 nodejs/
+├── config/              # Sequelize CLI konfigürasyonu (config.json)
+├── migrations/          # Veritabanı migration dosyaları
 ├── src/
-│   ├── config/          # Konfigürasyon, ortam değişkenleri ve model listesi
+│   ├── config/          # Dinamik konfigürasyon yöneticisi ve model listesi
 │   ├── controllers/     # Gelen HTTP isteklerini yöneten mantık
 │   ├── middleware/      # Kimlik doğrulama, loglama gibi ara katman yazılımları
 │   ├── models/          # Sequelize veritabanı modelleri ve ilişkileri
@@ -476,8 +491,9 @@ nodejs/
 │   └── index.ts         # Uygulamanın giriş noktası
 ├── views/               # Yönetim Paneli için EJS şablonları
 ├── public/              # Yönetim Paneli için statik dosyalar (CSS, JS)
-├── database.sqlite      # SQLite veritabanı dosyası
+├── database.sqlite      # SQLite veritabanı dosyası (migration'lar tarafından yönetilir)
 ├── package.json
+├── .sequelizerc         # Sequelize CLI konfigürasyonu
 └── .env.example
 ```
 
