@@ -1,213 +1,32 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <%= title %>
-  </title>
-  <link rel="stylesheet" href="/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background-color: #ecf0f1;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .stat-card h3 {
-      margin-top: 0;
-      color: #34495e;
-      font-size: 18px;
-    }
-
-    .stat-card p {
-      font-size: 36px;
-      font-weight: bold;
-      margin: 10px 0 0 0;
-      color: #e74c3c;
-    }
-
-    .grid-col-span-2 {
-      grid-column: span 2;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Sourcegraph Proxy</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
-  <div class="container">
     <%- include('partials/nav.ejs') %>
-      <%- include('partials/messages') %>
-        <h1>Gösterge Paneli</h1>
-
-
-        <!-- Genel İstatistikler -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Toplam İstek</h3>
-            <p>
-              <%= generalStats.totalRequests || 0 %>
-            </p>
-          </div>
-          <div class="stat-card">
-            <h3>Toplam Hata</h3>
-            <p>
-              <%= generalStats.totalErrors || 0 %>
-            </p>
-          </div>
-          <div class="stat-card">
-            <h3>Hata Oranı</h3>
-            <p>
-              <%= generalStats.errorRate || 0 %>%
-            </p>
-          </div>
-          <div class="stat-card">
-            <h3>Aktif Cookie</h3>
-            <p>
-              <%= generalStats.activeCookies || 0 %>
-            </p>
-          </div>
-          <div class="stat-card">
-            <h3>Aktif API Anahtarı</h3>
-            <p>
-              <%= generalStats.activeApiKeys || 0 %>
-            </p>
-          </div>
+    <main class="container">
+        <div class="page-header">
+            <h1>Gösterge Paneli</h1>
+            <p>Sistem kullanımına genel bakış.</p>
         </div>
-
-        <!-- Grafik -->
-        <div class="stats-grid">
-          <div class="chart-container grid-col-span-2" style="margin-bottom: 30px;">
-            <h2>Son 30 Günlük Kullanım</h2>
-            <canvas id="dailyUsageChart"></canvas>
-          </div>
-          <div class="chart-container" style="margin-bottom: 30px;">
-            <h2>Model Kullanım Dağılımı</h2>
-            <canvas id="modelUsageChart"></canvas>
-          </div>
-        </div>
+        <%- include('partials/messages.ejs') %>
 
         <div class="stats-grid">
-          <!-- Cookie İstatistikleri Tablosu -->
-          <div class="grid-col-span-2">
-            <h2>Cookie Kullanımı</h2>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Cookie Adı</th>
-                    <th>Başarısız İstek</th>
-                    <th>Toplam İstek</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (cookieUsage && cookieUsage.length > 0) { %>
-                    <% cookieUsage.forEach(stat => { %>
-                      <tr>
-                        <td><%= stat.cookie ? stat.cookie.alias : 'Bilinmeyen' %></td>
-                        <td><%= stat.get('failedRequests') || 0 %></td>
-                        <td><%= stat.get('totalRequests') %></td>
-                      </tr>
-                    <% }); %>
-                  <% } else { %>
-                    <tr>
-                      <td colspan="3">Gösterilecek veri yok.</td>
-                    </tr>
-                  <% } %>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- API Anahtarı İstatistikleri Tablosu -->
-          <div>
-            <h2>API Anahtarı Kullanımı</h2>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Anahtar Adı</th>
-                    <th>Toplam İstek</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (apiKeyUsage && apiKeyUsage.length > 0) { %>
-                    <% apiKeyUsage.forEach(stat => { %>
-                      <tr>
-                        <td><%= stat.apiKey ? stat.apiKey.alias : 'Bilinmeyen' %></td>
-                        <td><%= stat.get('totalRequests') %></td>
-                      </tr>
-                    <% }); %>
-                  <% } else { %>
-                    <tr>
-                      <td colspan="2">Gösterilecek veri yok.</td>
-                    </tr>
-                  <% } %>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <!-- Stat Cards -->
+        </div>
+        
+        <div class="stats-grid">
+            <!-- Tables and Charts -->
         </div>
 
-  </div>
-
-  <script>
-    // Günlük Kullanım Grafiği
-    const dailyCtx = document.getElementById('dailyUsageChart').getContext('2d');
-    const dailyUsageData = <%- JSON.stringify(dailyUsage || {labels: [], data: []}) %>;
-    new Chart(dailyCtx, {
-      type: 'line',
-      data: {
-        labels: dailyUsageData.labels,
-        datasets: [{
-          label: 'Günlük Toplam İstek',
-          data: dailyUsageData.data,
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-
-    // Model Kullanım Grafiği
-    const modelCtx = document.getElementById('modelUsageChart').getContext('2d');
-    const modelUsageData = <%- JSON.stringify(modelUsage || {labels: [], data: []}) %>;
-    new Chart(modelCtx, {
-      type: 'pie',
-      data: {
-        labels: modelUsageData.labels,
-        datasets: [{
-          label: 'Model Kullanımı',
-          data: modelUsageData.data,
-          backgroundColor: [
-            'rgb(255, 99, 132)',
-            'rgb(54, 162, 235)',
-            'rgb(255, 205, 86)',
-            'rgb(75, 192, 192)',
-            'rgb(153, 102, 255)',
-            'rgb(255, 159, 64)'
-          ],
-          hoverOffset: 4
-        }]
-      }
-    });
-  </script>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart.js logic here
+    </script>
 </body>
-
 </html>

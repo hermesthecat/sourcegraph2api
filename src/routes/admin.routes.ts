@@ -19,12 +19,20 @@ import {
     getModelUsageStats,
     getDailyUsageForChart
 } from '../services/statistics.service';
-import { isAuthenticated } from '../middleware/auth';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
 // Middleware: Bu satırdan sonraki tüm rotalar için kimlik doğrulaması gerekir.
-router.use(isAuthenticated);
+// Fonksiyonu doğrudan `router.use` içine yazarak modül yükleme sorununu çöz.
+router.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  logger.warn('[AuthCheck] Kullanıcı doğrulanmamış. /login sayfasına yönlendiriliyor.');
+  req.flash('error', 'Bu sayfayı görüntülemek için giriş yapmalısınız.');
+  res.redirect('/login');
+});
 
 // ============================
 // Flash Message Middleware
@@ -379,4 +387,4 @@ router.post('/users/edit/:id', async (req, res) => {
     res.redirect('/admin/users');
 });
 
-export default router; 
+export { router as adminRouter }; 
