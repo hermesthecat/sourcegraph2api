@@ -1,0 +1,27 @@
+<%- include('partials/nav.ejs') %>
+
+<main class="container">
+    <div class="page-header">
+        <h1>Kullanıcıyı Düzenle</h1>
+        <p>Kullanıcı bilgilerini güncelleyin. Şifreyi değiştirmek istemiyorsanız şifre alanını boş bırakın.</p>
+    </div>
+
+    <%- include('partials/messages') %>
+
+    <form action="/admin/users/edit/<%= user.id %>?_method=POST" method="POST" class="form-container">
+        <div class="form-group">
+            <label for="username">Kullanıcı Adı</label>
+            <input type="text" id="username" name="username" value="<%= user.username %>" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Yeni Şifre (Değiştirmek için doldurun)</label>
+            <input type="password" id="password" name="password" placeholder="Yeni şifreyi girin">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button">Güncelle</button>
+            <a href="/admin/users" class="button button-secondary">İptal</a>
+        </div>
+    </form>
+</main> 

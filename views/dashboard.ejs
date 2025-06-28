@@ -46,7 +46,7 @@
 
 <body>
   <div class="container">
-    <%- include('partials/nav') %>
+    <%- include('partials/nav.ejs') %>
       <%- include('partials/messages') %>
         <h1>Gösterge Paneli</h1>
 
@@ -56,31 +56,31 @@
           <div class="stat-card">
             <h3>Toplam İstek</h3>
             <p>
-              <%= generalStats.totalRequests %>
+              <%= generalStats.totalRequests || 0 %>
             </p>
           </div>
           <div class="stat-card">
             <h3>Toplam Hata</h3>
             <p>
-              <%= generalStats.totalErrors %>
+              <%= generalStats.totalErrors || 0 %>
             </p>
           </div>
           <div class="stat-card">
             <h3>Hata Oranı</h3>
             <p>
-              <%= generalStats.errorRate %>%
+              <%= generalStats.errorRate || 0 %>%
             </p>
           </div>
           <div class="stat-card">
             <h3>Aktif Cookie</h3>
             <p>
-              <%= generalStats.activeCookies %>
+              <%= generalStats.activeCookies || 0 %>
             </p>
           </div>
           <div class="stat-card">
             <h3>Aktif API Anahtarı</h3>
             <p>
-              <%= generalStats.activeApiKeys %>
+              <%= generalStats.activeApiKeys || 0 %>
             </p>
           </div>
         </div>
@@ -100,80 +100,79 @@
         <div class="stats-grid">
           <!-- Cookie İstatistikleri Tablosu -->
           <div class="grid-col-span-2">
-            <h2>Cookie Performansı</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Cookie (Alias)</th>
-                  <th>Toplam İstek</th>
-                  <th>Başarısız İstek</th>
-                  <th>Hata Oranı</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% cookieStats.forEach(stat=> { %>
+            <h2>Cookie Kullanımı</h2>
+            <div class="table-container">
+              <table>
+                <thead>
                   <tr>
-                    <td>
-                      <%= stat.cookie.alias %>
-                    </td>
-                    <td>
-                      <%= stat.get('totalRequests') %>
-                    </td>
-                    <td>
-                      <%= stat.get('failedRequests') %>
-                    </td>
-                    <td>
-                      <%= (stat.get('totalRequests')> 0 ? (stat.get('failedRequests') / stat.get('totalRequests') *
-                        100).toFixed(2) : 0) %>%
-                    </td>
+                    <th>Cookie Adı</th>
+                    <th>Başarısız İstek</th>
+                    <th>Toplam İstek</th>
                   </tr>
-                  <% }) %>
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  <% if (cookieUsage && cookieUsage.length > 0) { %>
+                    <% cookieUsage.forEach(stat => { %>
+                      <tr>
+                        <td><%= stat.cookie ? stat.cookie.alias : 'Bilinmeyen' %></td>
+                        <td><%= stat.get('failedRequests') || 0 %></td>
+                        <td><%= stat.get('totalRequests') %></td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="3">Gösterilecek veri yok.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- API Anahtarı İstatistikleri Tablosu -->
           <div>
-            <h2>En Aktif API Anahtarları</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>API Anahtarı (Alias)</th>
-                  <th>Toplam İstek</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% apiKeyStats.forEach(stat=> { %>
+            <h2>API Anahtarı Kullanımı</h2>
+            <div class="table-container">
+              <table>
+                <thead>
                   <tr>
-                    <td>
-                      <%= stat.apiKey.alias %>
-                    </td>
-                    <td>
-                      <%= stat.get('totalRequests') %>
-                    </td>
+                    <th>Anahtar Adı</th>
+                    <th>Toplam İstek</th>
                   </tr>
-                  <% }) %>
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  <% if (apiKeyUsage && apiKeyUsage.length > 0) { %>
+                    <% apiKeyUsage.forEach(stat => { %>
+                      <tr>
+                        <td><%= stat.apiKey ? stat.apiKey.alias : 'Bilinmeyen' %></td>
+                        <td><%= stat.get('totalRequests') %></td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="2">Gösterilecek veri yok.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
   </div>
 
   <script>
-    // Günlük Kullanım Grafiği (Çizgi)
-    const dailyChartData = JSON.parse('<%- chartData %>');
+    // Günlük Kullanım Grafiği
     const dailyCtx = document.getElementById('dailyUsageChart').getContext('2d');
+    const dailyUsageData = <%- JSON.stringify(dailyUsage || {labels: [], data: []}) %>;
     new Chart(dailyCtx, {
       type: 'line',
       data: {
-        labels: dailyChartData.labels,
+        labels: dailyUsageData.labels,
         datasets: [{
-          label: 'Günlük İstek Sayısı',
-          data: dailyChartData.data,
-          borderColor: '#3498db',
-          backgroundColor: 'rgba(52, 152, 219, 0.1)',
-          fill: true,
+          label: 'Günlük Toplam İstek',
+          data: dailyUsageData.data,
+          borderColor: 'rgb(75, 192, 192)',
           tension: 0.1
         }]
       },
@@ -186,19 +185,23 @@
       }
     });
 
-    // Model Kullanım Grafiği (Pasta)
-    const modelChartData = JSON.parse('<%- modelUsageData %>');
+    // Model Kullanım Grafiği
     const modelCtx = document.getElementById('modelUsageChart').getContext('2d');
+    const modelUsageData = <%- JSON.stringify(modelUsage || {labels: [], data: []}) %>;
     new Chart(modelCtx, {
       type: 'pie',
       data: {
-        labels: modelChartData.labels,
+        labels: modelUsageData.labels,
         datasets: [{
-          label: 'Kullanım Sayısı',
-          data: modelChartData.data,
+          label: 'Model Kullanımı',
+          data: modelUsageData.data,
           backgroundColor: [
-            '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71',
-            '#34495e', '#1abc9c', '#e67e22', '#7f8c8d', '#d35400'
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            'rgb(255, 205, 86)',
+            'rgb(75, 192, 192)',
+            'rgb(153, 102, 255)',
+            'rgb(255, 159, 64)'
           ],
           hoverOffset: 4
         }]

@@ -11,35 +11,19 @@ import { getUsageMetrics } from '../services/metric.service';
 import * as statsService from '../services/statistics.service'; // İstatistik servisini import et
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
-import { getAllUsers, addUser, deleteUser } from '../services/user.service'; // Kullanıcı servisini import et
+import { getAllUsers, addUser, deleteUser, findUserById, updateUser } from '../services/user.service'; // Kullanıcı servisini import et
+import { 
+    getGeneralStats,
+    getApiKeyUsageStats,
+    getCookieUsageStats,
+    getModelUsageStats,
+    getDailyUsageForChart
+} from '../services/statistics.service';
+import { isAuthenticated } from '../middleware/auth';
 
 const router = Router();
 
-// ============================
-// Authentication Middleware
-// ============================
-// Bu middleware, aşağıdaki tüm admin rotalarının sadece giriş yapmış kullanıcılar tarafından
-// erişilebilir olmasını sağlar.
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // === SORUN TEŞHİS LOGLARI / DIAGNOSTIC LOGS ===
-  log.debug('----------------- AUTH CHECK -----------------');
-  // @ts-ignore
-  log.debug(`[AuthCheck] Session ID: ${req.sessionID}`);
-  // @ts-ignore
-  log.debug('[AuthCheck] Tüm Session içeriği: ', req.session);
-  log.debug(`[AuthCheck] req.user mevcut mu?: ${!!req.user}`);
-  log.debug(`[AuthCheck] req.isAuthenticated fonksiyonu var mı?: ${typeof req.isAuthenticated}`);
-  log.debug('----------------------------------------------');
-  // ===============================================
-
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  log.warn('[AuthCheck] Kullanıcı doğrulanmamış. /login sayfasına yönlendiriliyor.');
-  res.redirect('/login');
-};
-
-// Tüm admin rotalarını bu middleware ile koru
+// Middleware: Bu satırdan sonraki tüm rotalar için kimlik doğrulaması gerekir.
 router.use(isAuthenticated);
 
 // ============================
@@ -64,34 +48,38 @@ router.use((req, res, next) => {
 router.get('/dashboard', async (req: Request, res: Response) => {
   try {
     const [
-      generalStats,
-      cookieStats,
-      apiKeyStats,
-      chartData,
-      modelUsageData,
+      generalStats, 
+      cookieUsage, 
+      apiKeyUsage, 
+      dailyUsage,
+      modelUsage
     ] = await Promise.all([
-      statsService.getGeneralStats(),
-      statsService.getCookieUsageStats(),
-      statsService.getApiKeyUsageStats(),
-      statsService.getDailyUsageForChart(),
-      statsService.getModelUsageStats(),
+      getGeneralStats(),
+      getCookieUsageStats(),
+      getApiKeyUsageStats(),
+      getDailyUsageForChart(),
+      getModelUsageStats()
     ]);
-
+    
     res.render('dashboard', {
-      title: 'Gösterge Paneli',
+      title: 'Dashboard',
+      currentRoute: '/admin/dashboard',
       generalStats,
-      cookieStats,
-      apiKeyStats,
-      chartData: JSON.stringify(chartData), // Grafikte kullanmak için JSON'a çevir
-      modelUsageData: JSON.stringify(modelUsageData), // Pasta grafik için
+      cookieUsage,
+      apiKeyUsage,
+      dailyUsage,
+      modelUsage
     });
-
   } catch (error) {
-    log.error('Dashboard sayfası yüklenirken hata:', error);
-    res.status(500).render('dashboard', {
-      title: 'Hata',
-      error: 'Dashboard verileri yüklenirken bir hata oluştu.',
-      generalStats: {}, cookieStats: [], apiKeyStats: [], chartData: '{}', modelUsageData: '{}',
+    req.flash('error', 'Dashboard verileri alınırken bir hata oluştu.');
+    res.render('dashboard', {
+      title: 'Dashboard',
+      currentRoute: '/admin/dashboard',
+      generalStats: {},
+      cookieUsage: [],
+      apiKeyUsage: [],
+      dailyUsage: { labels: [], data: [] },
+      modelUsage: { labels: [], data: [] }
     });
   }
 });
@@ -378,6 +366,49 @@ router.post('/users/delete/:id', async (req: Request, res: Response) => {
     req.session.error = error.message || 'Kullanıcı silinirken bir hata oluştu.';
   }
   res.redirect('/admin/users');
+});
+
+// Kullanıcı düzenleme sayfasını göster
+router.get('/users/edit/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const user = await findUserById(id);
+    if (!user) {
+      req.flash('error', 'Kullanıcı bulunamadı.');
+      return res.redirect('/admin/users');
+    }
+    res.render('edit-user', { 
+      title: 'Kullanıcıyı Düzenle',
+      user,
+      currentRoute: '/admin/users' 
+    });
+  } catch (error: any) {
+    req.flash('error', error.message);
+    res.redirect('/admin/users');
+  }
+});
+
+// Kullanıcıyı güncelle
+router.post('/users/edit/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { username, password } = req.body;
+    
+    await updateUser(id, username, password);
+    
+    req.flash('success', 'Kullanıcı başarıyla güncellendi.');
+    res.redirect('/admin/users');
+  } catch (error: any) {
+    req.flash('error', error.message);
+    // Hata durumunda düzenleme sayfasına geri dön, mevcut veriyi tekrar yolla
+    const id = parseInt(req.params.id, 10);
+    const user = await findUserById(id);
+    res.render('edit-user', {
+      title: 'Kullanıcıyı Düzenle',
+      user: { ...user?.get(), ...req.body }, // Formdaki veriyi koru
+      currentRoute: '/admin/users'
+    });
+  }
 });
 
 export { router as adminRouter }; 

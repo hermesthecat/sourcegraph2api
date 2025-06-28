@@ -140,4 +140,22 @@ export function apiAuth() {
       return;
     }
   };
-} 
+}
+
+/**
+ * Admin panel rotalarını korumak için kullanılır.
+ * Kullanıcının oturum açıp açmadığını kontrol eder.
+ * @param req 
+ * @param res 
+ * @param next 
+ */
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // Passport tarafından eklenen isAuthenticated metodunu kontrol et
+  if (req.isAuthenticated()) {
+    return next(); // Kullanıcı giriş yapmış, devam et
+  }
+  
+  // Kullanıcı giriş yapmamış, login sayfasına yönlendir
+  req.flash('error', 'Bu sayfayı görüntülemek için giriş yapmalısınız.');
+  res.redirect('/login');
+}; 
