@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kullanım Metrikleri | Sourcegraph Proxy</title>
+  <title>Usage Metrics | Sourcegraph Proxy</title>
   <link rel="stylesheet" href="/style.css">
   <style>
     .pagination {
@@ -50,18 +50,18 @@
     <%- include('partials/nav') %>
       <%- include('partials/messages') %>
 
-        <h1>Kullanım Metrikleri</h1>
+        <h1>Usage Metrics</h1>
 
         <table>
           <thead>
             <tr>
-              <th>Tarih</th>
-              <th>IP Adresi</th>
+              <th>Date</th>
+              <th>IP Address</th>
               <th>API Key</th>
-              <th>Kullanılan Sourcegraph API Key</th>
+              <th>Sourcegraph API Key Used</th>
               <th>Model</th>
-              <th>Durum</th>
-              <th>Hata Mesajı</th>
+              <th>Status</th>
+              <th>Error Message</th>
             </tr>
           </thead>
           <tbody>
@@ -69,23 +69,23 @@
               <% metrics.forEach(metric=> { %>
                 <tr>
                   <td>
-                    <%= new Date(metric.requestTimestamp).toLocaleString('tr-TR') %>
+                    <%= new Date(metric.requestTimestamp).toLocaleString('en-US') %>
                   </td>
                   <td>
                     <%= metric.ipAddress %>
                   </td>
                   <td>
-                    <%= metric.apiKey ? metric.apiKey.alias : 'Bilinmiyor' %>
+                    <%= metric.apiKey ? metric.apiKey.alias : 'Unknown' %>
                   </td>
                   <td>
-                    <%= metric.cookie ? metric.cookie.alias : 'Bilinmiyor' %>
+                    <%= metric.cookie ? metric.cookie.alias : 'Unknown' %>
                   </td>
                   <td><code><%= metric.model || '-' %></code></td>
                   <td>
                     <% if (metric.wasSuccess) { %>
-                      <span class="status status-active">Başarılı</span>
+                      <span class="status status-active">Success</span>
                       <% } else { %>
-                        <span class="status status-passive">Başarısız</span>
+                        <span class="status status-passive">Failed</span>
                         <% } %>
                   </td>
                   <td class="<%= metric.errorMessage ? 'error-message' : '' %>">
@@ -95,7 +95,7 @@
                 <% }) %>
                   <% } else { %>
                     <tr>
-                      <td colspan="7" style="text-align: center;">Görüntülenecek metrik kaydı bulunamadı.</td>
+                      <td colspan="7" style="text-align: center;">No metric records found.</td>
                     </tr>
                     <% } %>
           </tbody>

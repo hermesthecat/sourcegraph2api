@@ -1,6 +1,5 @@
 /**
- * Settings Service / Ayarlar Servisi
- * Veritabanındaki ayarları yönetmek için fonksiyonlar içerir.
+ * Settings Service
  * Contains functions for managing settings in the database.
  */
 
@@ -10,9 +9,8 @@ import { updateLiveConfig } from '../config';
 import { DynamicConfig } from '../types';
 
 /**
- * Veritabanından DÜZENLENEBİLİR tüm ayarları okur.
  * Reads all EDITABLE settings from the database.
- * @returns {Promise<Record<string, string>>} Düzenlenebilir ayarların bir nesnesi.
+ * @returns {Promise<Record<string, string>>} An object of editable settings.
  */
 export async function getEditableSettings(): Promise<Record<string, string>> {
   try {
@@ -23,15 +21,15 @@ export async function getEditableSettings(): Promise<Record<string, string>> {
     }
     return settingsMap;
   } catch (error) {
-    log.error('Veritabanından ayarlar okunurken hata:', error);
-    throw new Error('Ayarlar okunurken bir veritabanı hatası oluştu.');
+    log.error('Error reading settings from database:', error);
+    throw new Error('A database error occurred while reading settings.');
   }
 }
 
 /**
- * Veritabanındaki ayarları toplu olarak günceller ve bellekteki
- * anlık yapılandırmayı yeniler.
- * @param {Record<string, string>} newSettings - Güncellenecek ayarlar.
+ * Updates settings in the database in bulk and refreshes the in-memory
+ * live configuration.
+ * @param {Record<string, string>} newSettings - Settings to be updated.
  * @returns {Promise<void>}
  */
 export async function updateSettings(newSettings: Record<string, string>): Promise<void> {
@@ -40,18 +38,18 @@ export async function updateSettings(newSettings: Record<string, string>): Promi
     for (const key in newSettings) {
       const value = newSettings[key];
 
-      // 1. Veritabanını Güncelle
+      // 1. Update the database
       await Setting.upsert({ key, value }, { transaction });
 
-      // 2. Bellekteki Anlık Yapılandırmayı Güncelle
+      // 2. Update the in-memory live configuration
       updateLiveConfig(key as keyof DynamicConfig, value);
     }
 
     await transaction.commit();
-    log.info('Ayarlar başarıyla veritabanında ve bellekte güncellendi.');
+    log.info('Settings successfully updated in database and in-memory.');
   } catch (error) {
     await transaction.rollback();
-    log.error('Ayarlar güncellenirken hata:', error);
-    throw new Error('Ayarlar güncellenirken bir veritabanı hatası oluştu.');
+    log.error('Error updating settings:', error);
+    throw new Error('A database error occurred while updating settings.');
   }
 }

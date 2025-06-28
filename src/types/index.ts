@@ -1,9 +1,9 @@
 /**
  * Sourcegraph2API - Node.js Version
- * TypeScript Type Definitions / TypeScript Tür Tanımları
+ * TypeScript Type Definitions
  */
 
-// OpenAI API uyumlu request/response tipleri / OpenAI API compatible request/response types
+// OpenAI API compatible request/response types
 export interface OpenAIChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string | ChatContentPart[];
@@ -68,7 +68,7 @@ export interface OpenAIErrorResponse {
   };
 }
 
-// Sourcegraph API specific tipleri / Sourcegraph API specific types
+// Sourcegraph API specific types
 export interface SGModelInfo {
   model: string;
   modelRef: string;
@@ -83,9 +83,9 @@ export interface SourcegraphRequest {
   stream?: boolean;
 }
 
-// Konfigürasyon tipleri / Configuration types
+// Configuration types
 
-// .env dosyasından gelen ve yeniden başlatma gerektiren temel ayarlar
+// Base settings from .env file that require restart
 export interface BaseConfig {
   port: number;
   host: string;
@@ -93,7 +93,7 @@ export interface BaseConfig {
   nodeEnv: 'development' | 'production' | 'test';
 }
 
-// Veritabanından gelen ve dinamik olarak güncellenebilen ayarlar
+// Settings from database that can be dynamically updated from admin panel
 export interface DynamicConfig {
   sessionSecret: string;
   requestRateLimit: number;
@@ -106,17 +106,17 @@ export interface DynamicConfig {
   reasoningHide: boolean;
   sourcegraphBaseUrl: string;
   chatEndpoint: string;
-  swaggerEnable: boolean; // Yeni eklendi
+  swaggerEnable: boolean; // Newly added
 }
 
-// Uygulamanın tam yapılandırma tipi
+// Full application configuration type
 export type AppConfig = BaseConfig & DynamicConfig;
 
 // =================================================================
-// Express & PassportJS Tip Genişletmeleri
-// Bu bölüm, Express'in Request tipine Passport.js'in eklediği
-// .user, .isAuthenticated(), .login(), .logout() gibi özellikleri
-// TypeScript'e tanıtmak için gereklidir.
+// Express & PassportJS Type Extensions
+// This section is necessary to introduce properties like
+// .user, .isAuthenticated(), .login(), .logout() added by Passport.js
+// to Express's Request type in TypeScript.
 // =================================================================
 declare global {
   namespace Express {
@@ -133,13 +133,13 @@ declare global {
   }
 }
 
-// Uygulamamızdaki Kullanıcı modelinin temel alanlarını tanımlar
+// Defines the basic fields of our application's User model
 export interface AppUser {
   id: number;
   username: string;
 }
 
-// Cookie yönetimi tipleri / Cookie management types
+// Cookie management types
 export interface CookieManager {
   cookies: string[];
   currentIndex: number;
@@ -153,7 +153,7 @@ export interface RateLimitCookie {
   expirationTime: Date;
 }
 
-// HTTP istek tipleri / HTTP request types
+// HTTP request types
 export interface RequestContext {
   id: string;
   ip: string;
@@ -161,7 +161,7 @@ export interface RequestContext {
   timestamp: Date;
 }
 
-// Logger tipleri / Logger types
+// Logger types
 export interface LoggerOptions {
   level: 'error' | 'warn' | 'info' | 'debug';
   timestamp: boolean;
@@ -169,7 +169,7 @@ export interface LoggerOptions {
   colorize: boolean;
 }
 
-// Model listesi tipi / Model list type
+// Model list type
 export interface ModelListResponse {
   object: 'list';
   data: ModelInfo[];
@@ -182,7 +182,7 @@ export interface ModelInfo {
   owned_by?: string;
 }
 
-// Error handling / Hata yönetimi
+// Error handling
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;

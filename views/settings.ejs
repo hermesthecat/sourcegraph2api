@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayarlar - Yönetim Paneli</title>
+    <title>Settings - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -16,76 +16,74 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h2>Uygulama Ayarları</h2>
+                        <h2>Application Settings</h2>
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            Bu ayarlar veritabanında saklanır ve anında güncellenir.
-                            <strong>Kaydettikten sonra sunucuyu yeniden başlatmanıza gerek yoktur.</strong>
+                            These settings are stored in the database and updated instantly.
+                            <strong>You do not need to restart the server after saving.</strong>
                         </p>
 
                         <form action="/admin/settings" method="POST">
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Ayar Adı</th>
-                                        <th>Değer</th>
-                                        <th>Açıklama</th>
+                                        <th>Setting Name</th>
+                                        <th>Value</th>
+                                        <th>Description</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><label for="sessionSecret" class="form-label">Oturum Gizli Anahtarı (Session
-                                                Secret)</label></td>
+                                        <td><label for="sessionSecret" class="form-label">Session Secret</label></td>
                                         <td><input type="text" class="form-control" id="sessionSecret"
                                                 name="sessionSecret" value="<%= settings.sessionSecret %>" required>
                                         </td>
                                         <td>
-                                            <div class="form-text">Kullanıcı oturumlarının güvenliği için kullanılan
-                                                karmaşık bir anahtar.</div>
+                                            <div class="form-text">A complex key used for the security of user sessions.
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="requestRateLimit" class="form-label">İstek Limiti
-                                                (Dakikada)</label></td>
+                                        <td><label for="requestRateLimit" class="form-label">Request Limit
+                                                (Per Minute)</label></td>
                                         <td><input type="number" class="form-control" id="requestRateLimit"
                                                 name="requestRateLimit" value="<%= settings.requestRateLimit %>"
                                                 required></td>
                                         <td>
-                                            <div class="form-text">Bir IP adresinin bir dakika içinde yapabileceği
-                                                maksimum istek sayısı.</div>
+                                            <div class="form-text">Maximum number of requests an IP address can make
+                                                within a minute.</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="routePrefix" class="form-label">API Rota Ön Eki (Route
-                                                Prefix)</label></td>
+                                        <td><label for="routePrefix" class="form-label">API Route Prefix</label></td>
                                         <td><input type="text" class="form-control" id="routePrefix" name="routePrefix"
                                                 value="<%= settings.routePrefix %>"></td>
                                         <td>
-                                            <div class="form-text">Tüm API yollarının önüne eklenecek genel ön ek (örn:
-                                                /api). Boş bırakılabilir.</div>
+                                            <div class="form-text">General prefix to be added to all API paths (e.g.:
+                                                /api). Can be left empty.</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="proxyUrl" class="form-label">Proxy Adresi</label></td>
+                                        <td><label for="proxyUrl" class="form-label">Proxy Address</label></td>
                                         <td><input type="text" class="form-control" id="proxyUrl" name="proxyUrl"
                                                 value="<%= settings.proxyUrl %>"></td>
                                         <td>
-                                            <div class="form-text">Sourcegraph'a yapılan istekler için kullanılacak
-                                                HTTP/HTTPS proxy adresi. (örn: http://user:pass@host:port)</div>
+                                            <div class="form-text">HTTP/HTTPS proxy address to be used for requests to
+                                                Sourcegraph. (e.g.: http://user:pass@host:port)</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="ipBlacklist" class="form-label">IP Kara Listesi</label></td>
+                                        <td><label for="ipBlacklist" class="form-label">IP Blacklist</label></td>
                                         <td><textarea class="form-control" id="ipBlacklist" name="ipBlacklist"
                                                 rows="3"><%= settings.ipBlacklist %></textarea></td>
                                         <td>
-                                            <div class="form-text">Sunucuya erişimi engellenecek IP adresleri (virgülle
-                                                ayırarak yazınız).</div>
+                                            <div class="form-text">IP addresses to be blocked from accessing the server
+                                                (separate by comma).</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="logLevel" class="form-label">Log Seviyesi</label></td>
+                                        <td><label for="logLevel" class="form-label">Log Level</label></td>
                                         <td>
                                             <select class="form-select" id="logLevel" name="logLevel">
                                                 <option value="error" <%=settings.logLevel==='error' ? 'selected' : ''
@@ -99,8 +97,8 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <div class="form-text">Uygulamanın ne kadar detaylı log tutacağını belirler.
-                                            </div>
+                                            <div class="form-text">Determines how detailed the application will keep
+                                                logs.</div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -108,32 +106,33 @@
                                         <td><input type="text" class="form-control" id="userAgent" name="userAgent"
                                                 value="<%= settings.userAgent %>"></td>
                                         <td>
-                                            <div class="form-text">Sourcegraph'a yapılan isteklerde gönderilecek
-                                                User-Agent başlığı.</div>
+                                            <div class="form-text">User-Agent header to be sent in requests to
+                                                Sourcegraph.</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="tz" class="form-label">Zaman Dilimi (Time Zone)</label></td>
+                                        <td><label for="tz" class="form-label">Time Zone</label></td>
                                         <td><input type="text" class="form-control" id="tz" name="tz"
                                                 value="<%= settings.tz %>"></td>
                                         <td>
-                                            <div class="form-text">Uygulama genelinde kullanılacak zaman dilimi (örn:
+                                            <div class="form-text">Time zone to be used throughout the application
+                                                (e.g.:
                                                 Europe/Istanbul, UTC).</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="reasoningHide" class="form-label">Reasoning Gizle</label></td>
+                                        <td><label for="reasoningHide" class="form-label">Hide Reasoning</label></td>
                                         <td>
                                             <select class="form-select" id="reasoningHide" name="reasoningHide">
                                                 <option value="true" <%=settings.reasoningHide===true ? 'selected' : ''
-                                                    %>>Evet</option>
+                                                    %>>Yes</option>
                                                 <option value="false" <%=settings.reasoningHide===false ? 'selected'
-                                                    : '' %>>Hayır</option>
+                                                    : '' %>>No</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <div class="form-text">Modelin düşünme sürecini (reasoning) yanıttan
-                                                gizleyip gizlemeyeceğini belirler.</div>
+                                            <div class="form-text">Determines whether to hide the model's reasoning
+                                                process from the response.</div>
                                         </td>
                                     </tr>
                                     <tr>
@@ -143,7 +142,7 @@
                                                 name="sourcegraphBaseUrl" value="<%= settings.sourcegraphBaseUrl %>"
                                                 required></td>
                                         <td>
-                                            <div class="form-text">Sourcegraph API'sinin temel URL'si (örn:
+                                            <div class="form-text">Base URL of the Sourcegraph API (e.g.:
                                                 https://sourcegraph.com).</div>
                                         </td>
                                     </tr>
@@ -152,29 +151,29 @@
                                         <td><input type="text" class="form-control" id="chatEndpoint"
                                                 name="chatEndpoint" value="<%= settings.chatEndpoint %>" required></td>
                                         <td>
-                                            <div class="form-text">Sourcegraph chat API'sinin endpoint yolu (örn:
+                                            <div class="form-text">Endpoint path of the Sourcegraph chat API (e.g.:
                                                 /.api/completions/stream).</div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><label for="swaggerEnable" class="form-label">Swagger/API Docs Etkin</label>
+                                        <td><label for="swaggerEnable" class="form-label">Swagger/API Docs
+                                                Enable</label>
                                         </td>
                                         <td>
                                             <select class="form-select" id="swaggerEnable" name="swaggerEnable">
                                                 <option value="true" <%=settings.swaggerEnable===true ? 'selected' : ''
-                                                    %>>Evet</option>
+                                                    %>>Yes</option>
                                                 <option value="false" <%=settings.swaggerEnable===false ? 'selected'
-                                                    : '' %>>Hayır</option>
+                                                    : '' %>>No</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <div class="form-text">Swagger/API dokümantasyonunu etkinleştirir veya devre
-                                                dışı bırakır.</div>
+                                            <div class="form-text">Enables or disables Swagger/API documentation.</div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
                         </form>
                     </div>
                 </div>

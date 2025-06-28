@@ -1,55 +1,55 @@
-# Models Klasörü
+# Models Folder
 
-Bu klasör, uygulamanın "M" (Model) katmanını temsil eder ve veritabanı şemasını tanımlar. [Sequelize](https://sequelize.org/) ORM (Object-Relational Mapper) kullanılarak, veritabanı tabloları TypeScript sınıfları olarak soyutlanır. Bu, veritabanı işlemlerinin (oluşturma, okuma, güncelleme, silme) daha güvenli ve kolay bir şekilde yapılmasına olanak tanır.
+This folder represents the "M" (Model) layer of the application and defines the database schema. Using [Sequelize](https://sequelize.org/) ORM (Object-Relational Mapper), database tables are abstracted as TypeScript classes. This allows database operations (create, read, update, delete) to be performed more securely and easily.
 
-## Sorumluluklar
+## Responsibilities
 
-* **Veritabanı Tablo Şemalarını Tanımlama:** Her bir model dosyası, veritabanındaki bir tabloya karşılık gelir ve o tablonun sütunlarını, veri tiplerini, kısıtlamalarını (birincil anahtar, benzersizlik vb.) ve varsayılan değerlerini tanımlar.
-* **Veri Yapılarını Belirleme:** Uygulama içinde kullanılacak veri yapılarının (örneğin, `User`, `ApiKey`) niteliklerini (attributes) ve tiplerini belirtir.
-* **Model İlişkilerini Kurma:** `index.ts` dosyası aracılığıyla modeller arasındaki ilişkileri (One-to-Many, Many-to-Many vb.) tanımlar. Bu, ilişkili verilerin kolayca sorgulanmasını sağlar (`JOIN` işlemleri gibi).
-* **Veri Bütünlüğünü Sağlama:** Kancalar (hooks) gibi Sequelize özellikleri kullanılarak veri tabanına yazılmadan önce verilerin doğrulanmasını veya işlenmesini (örneğin, parola hash'leme) sağlar.
+* **Defining Database Table Schemas:** Each model file corresponds to a table in the database and defines its columns, data types, constraints (primary key, uniqueness, etc.), and default values.
+* **Determining Data Structures:** Specifies the attributes and types of data structures (e.g., `User`, `ApiKey`) to be used within the application.
+* **Establishing Model Associations:** Defines relationships between models (One-to-Many, Many-to-Many, etc.) via the `index.ts` file. This allows for easy querying of related data (like `JOIN` operations).
+* **Ensuring Data Integrity:** Ensures data validation or processing (e.g., password hashing) before data is written to the database, using Sequelize features like hooks.
 
-## Dosyalar
+## Files
 
 ### `apikey.model.ts`
 
-`api_keys` tablosunu temsil eden `ApiKey` modelini tanımlar. Bu tablo, uygulamaya programatik erişim için kullanılan API anahtarlarını saklar.
+Defines the `ApiKey` model representing the `api_keys` table. This table stores API keys used for programmatic access to the application.
 
-* **Alanlar:** `id`, `key` (asıl anahtar), `alias` (kolay isim), `isActive`.
+* **Fields:** `id`, `key` (the actual key), `alias` (friendly name), `isActive`.
 
 ### `cookie.model.ts`
 
-`cookies` tablosunu temsil eden `Cookie` modelini tanımlar. Bu tablo, Sourcegraph'a istek atmak için kullanılan `SG_COOKIE` değerlerini saklar.
+Defines the `Cookie` model representing the `cookies` table. This table stores `SG_COOKIE` values used to make requests to Sourcegraph.
 
-* **Alanlar:** `id`, `alias`, `cookieValue` (asıl cookie), `isActive`.
+* **Fields:** `id`, `alias`, `cookieValue` (the actual cookie), `isActive`.
 
 ### `setting.model.ts`
 
-`settings` tablosunu temsil eden `Setting` modelini tanımlar. Bu tablo, uygulamanın dinamik olarak yönetilen yapılandırma ayarlarını anahtar-değer çiftleri olarak saklar. `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `USER_AGENT`, `SOURCEGRAPH_BASE_URL` gibi ayarlar artık burada saklanır.
+Defines the `Setting` model representing the `settings` table. This table stores the application's dynamically managed configuration settings as key-value pairs. Settings like `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `USER_AGENT`, `SOURCEGRAPH_BASE_URL` are now stored here.
 
-* **Alanlar:** `key` (ayarın adı), `value` (ayarın değeri).
+* **Fields:** `key` (setting name), `value` (setting value).
 
 ### `usage.model.ts`
 
-`usage_metrics` tablosunu temsil eden `UsageMetric` modelini tanımlar. Bu tablo, yapılan her API isteğini loglayarak kullanım istatistikleri için veri sağlar.
+Defines the `UsageMetric` model representing the `usage_metrics` table. This table logs every API request, providing data for usage statistics.
 
-* **Alanlar:** `id`, `ipAddress`, `requestTimestamp`, `wasSuccess`, `errorMessage`, `model`, `cookieId`, `apiKeyId`.
+* **Fields:** `id`, `ipAddress`, `requestTimestamp`, `wasSuccess`, `errorMessage`, `model`, `cookieId`, `apiKeyId`.
 
 ### `user.model.ts`
 
-`users` tablosunu temsil eden `User` modelini tanımlar. Bu tablo, yönetim paneline giriş yapabilen kullanıcıların bilgilerini saklar.
+Defines the `User` model representing the `users` table. This table stores information about users who can log in to the admin panel.
 
-* **Alanlar:** `id`, `username`, `password`.
-* **Özellikler:**
-  * **Parola Hash'leme:** `beforeSave` kancası (hook) ile bir kullanıcı kaydı oluşturulmadan veya güncellenmeden önce `password` alanını otomatik olarak `bcryptjs` ile hash'ler.
-  * `validatePassword`: Girilen bir parolanın veritabanındaki hash'lenmiş parola ile eşleşip eşleşmediğini kontrol eden bir metot içerir.
+* **Fields:** `id`, `username`, `password`.
+* **Features:**
+  * **Password Hashing:** Automatically hashes the `password` field using `bcryptjs` before a user record is created or updated, via a `beforeSave` hook.
+  * `validatePassword`: Includes a method to check if a provided password matches the hashed password in the database.
 
 ### `index.ts`
 
-Bu dosya, tüm modelleri merkezi bir yerden yönetir:
+This file manages all models from a central location:
 
-* **Modelleri İçe Aktarır:** Diğer tüm model dosyalarını (artık `setting.model.ts` dahil) içe aktarır.
-* **İlişkileri Tanımlar:**
-  * `ApiKey` ve `UsageMetric` arasında **One-to-Many** ilişki kurar (bir API anahtarının birden çok kullanım metriği olabilir).
-  * `Cookie` ve `UsageMetric` arasında **One-to-Many** ilişki kurar (bir cookie'nin birden çok kullanım metriği olabilir).
-* **Modelleri Dışa Aktarır:** Tüm modelleri ve ilişkileri tek bir noktadan dışa aktararak uygulama genelinde kolayca kullanılmalarını sağlar.
+* **Imports Models:** Imports all other model files (including `setting.model.ts`).
+* **Defines Associations:**
+  * Establishes a **One-to-Many** relationship between `ApiKey` and `UsageMetric` (an API key can have multiple usage metrics).
+  * Establishes a **One-to-Many** relationship between `Cookie` and `UsageMetric` (a cookie can have multiple usage metrics).
+* **Exports Models:** Exports all models and their associations from a single point, allowing them to be easily used throughout the application.

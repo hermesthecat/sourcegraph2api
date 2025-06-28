@@ -1,64 +1,64 @@
-# Services Klasörü
+# Services Folder
 
-Bu klasör, uygulamanın iş mantığının (business logic) merkezidir. Controller'lar tarafından alınan istekleri işler, veritabanı operasyonlarını yürütür, harici API'lerle iletişim kurar ve uygulamanın temel fonksiyonlarını yerine getirir. Servis katmanı, uygulamanın "beyni" olarak kabul edilebilir.
+This folder is the core of the application's business logic. It processes requests received by controllers, executes database operations, communicates with external APIs, and performs the application's fundamental functions. The service layer can be considered the "brain" of the application.
 
-## Sorumluluklar
+## Responsibilities
 
-* **Veritabanı Etkileşimi:** `models` klasöründe tanımlanan Sequelize modellerini kullanarak veritabanına veri ekleme, okuma, güncelleme ve silme (CRUD) işlemlerini gerçekleştirir.
-* **Harici API İletişimi:** Uygulamanın ana amacı olan Sourcegraph API'si ile iletişimi yönetir.
-* **İş Mantığı:** Kimlik doğrulama, yetkilendirme, istatistik hesaplama, önbellekleme gibi karmaşık işlemleri yürütür.
-* **Veri İşleme:** Ham verileri alır ve bunları anlamlı bilgilere veya istatistiklere dönüştürür.
+* **Database Interaction:** Performs Create, Read, Update, and Delete (CRUD) operations on the database using Sequelize models defined in the `models` folder.
+* **External API Communication:** Manages communication with the Sourcegraph API, which is the main purpose of the application.
+* **Business Logic:** Executes complex operations such as authentication, authorization, statistics calculation, and caching.
+* **Data Processing:** Receives raw data and transforms it into meaningful information or statistics.
 
-## Dosyalar
+## Files
 
-### Çekirdek Servisler
+### Core Services
 
-* **`database.ts`**: Uygulamanın temelidir.
-  * **Sequelize Kurulumu:** `database.sqlite` dosyasını kullanarak bir Sequelize instance'ı oluşturur ve veritabanı bağlantısını yönetir.
-  * **Migration Yönetimi:** `sequelize.sync()` yerine `Umzug` kütüphanesi ile veritabanı şemasını migration'lar aracılığıyla yönetir. Bu, geliştirme ortamında veri kaybı olmadan şema güncellemelerine olanak tanır.
-  * **Session Store:** `connect-session-sequelize` kullanarak kullanıcı oturumlarını (sessions) veritabanında saklamak için bir session store oluşturur.
-  * **Varsayılan Kullanıcı:** Veritabanı boşsa, ilk başlangıçta bir `admin` kullanıcısı oluşturur.
+* **`database.ts`**: The foundation of the application.
+  * **Sequelize Setup:** Creates a Sequelize instance using the `database.sqlite` file and manages the database connection.
+  * **Migration Management:** Manages the database schema through migrations using the `Umzug` library instead of `sequelize.sync()`. This allows schema updates without data loss in the development environment.
+  * **Session Store:** Creates a session store to save user sessions in the database using `connect-session-sequelize`.
+  * **Default User:** Creates an `admin` user at the first startup if the database is empty.
 
-* **`sourcegraph.ts`**: Uygulamanın ana proxy işlevini yerine getiren en kritik servistir.
-  * `SourcegraphClient`: Sourcegraph API'sine istekleri yöneten bir sınıf içerir.
-  * **İstek Dönüşümü:** Gelen OpenAI formatındaki istekleri Sourcegraph'ın beklediği formata (`convertToSourcegraphFormat`) dönüştürür.
-  * **Cookie Havuzu:** Her istek için `cookie.service` üzerinden rastgele aktif bir cookie seçerek kimlik doğrulama başlıklarını (`Authorization`, `Cookie`) oluşturur.
-  * **Streaming İstekleri:** `axios` ve Node.js `stream` modüllerini kullanarak Sourcegraph'tan gelen yanıtları parça parça (stream) işler ve istemciye iletir.
-  * **Dinamik Endpointler:** `SOURCEGRAPH_BASE_URL` ve `CHAT_ENDPOINT` gibi değerleri artık `config` nesnesinden dinamik olarak alır, bu da panelden güncellenebilmelerini sağlar.
-  * **Metrik Kaydı:** Her başarılı veya başarısız isteğin sonucunu `metric.service`'i çağırarak veritabanına kaydeder.
+* **`sourcegraph.ts`**: The most critical service, performing the application's main proxy function.
+  * `SourcegraphClient`: Contains a class that manages requests to the Sourcegraph API.
+  * **Request Transformation:** Converts incoming OpenAI-formatted requests into the format expected by Sourcegraph (`convertToSourcegraphFormat`).
+  * **Cookie Pool:** Selects a random active cookie for each request via `cookie.service` to generate authentication headers (`Authorization`, `Cookie`).
+  * **Streaming Requests:** Processes responses streamed from Sourcegraph and transmits them to the client using `axios` and Node.js `stream` modules.
+  * **Dynamic Endpoints:** Dynamically retrieves values like `SOURCEGRAPH_BASE_URL` and `CHAT_ENDPOINT` from the `config` object, allowing them to be updated from the panel.
+  * **Metric Recording:** Records the result of each successful or unsuccessful request to the database by calling `metric.service`.
 
-* **`auth.service.ts`**: Yönetim paneli kimlik doğrulamasını yönetir.
-  * **Passport.js Kurulumu:** Kullanıcı adı ve parola ile girişi sağlayan `LocalStrategy`'yi yapılandırır.
-  * **Session Yönetimi:** Kullanıcı bilgilerini session'a kaydetmek (`serializeUser`) ve session'dan geri okumak (`deserializeUser`) için gerekli fonksiyonları tanımlar.
+* **`auth.service.ts`**: Manages admin panel authentication.
+  * **Passport.js Setup:** Configures `LocalStrategy` which provides user login with username and password.
+  * **Session Management:** Defines necessary functions for saving user information to the session (`serializeUser`) and reading it back from the session (`deserializeUser`).
 
-* **`settings.service.ts`**: Uygulamanın dinamik ayarlarını veritabanında yönetir.
-  * `getEditableSettings`: Yönetim panelindeki ayarlar sayfasında gösterilecek ayarları veritabanından getirir.
-  * `updateSettings`: Yönetim panelinden gelen güncellenmiş ayarları veritabanına kaydeder ve `config` nesnesini anında günceller.
+* **`settings.service.ts`**: Manages the application's dynamic settings in the database.
+  * `getEditableSettings`: Fetches settings to be displayed on the settings page in the admin panel from the database.
+  * `updateSettings`: Saves updated settings from the admin panel to the database and instantly updates the `config` object.
 
-### Veri Yönetim (CRUD) Servisleri
+### Data Management (CRUD) Services
 
-Bu servisler, yönetim panelinden gelen istekleri işlemek için `models` katmanı üzerinde standart CRUD operasyonları sağlar.
+These services provide standard CRUD operations on the `models` layer to process requests from the admin panel.
 
-* **`apikey.service.ts`**: API anahtarlarını yönetir (`getAllApiKeys`, `addApiKey`, `deleteApiKey`, `toggleApiKeyStatus`). `isValidActiveApiKey` fonksiyonu, `openaiAuth` middleware'i tarafından kullanılır.
-* **`cookie.service.ts`**: Cookie'leri yönetir (`getAllCookies`, `addCookie`, `deleteCookie`, `toggleCookieStatus`). `getRandomActiveCookie` fonksiyonu, `sourcegraph.ts` tarafından her istekte kullanılır.
-* **`user.service.ts`**: Yönetim paneli kullanıcılarını yönetir (`getAllUsers`, `addUser`, `deleteUser`, `updateUser`).
+* **`apikey.service.ts`**: Manages API keys (`getAllApiKeys`, `addApiKey`, `deleteApiKey`, `toggleApiKeyStatus`). The `isValidActiveApiKey` function is used by the `openaiAuth` middleware.
+* **`cookie.service.ts`**: Manages cookies (`getAllCookies`, `addCookie`, `deleteCookie`, `toggleCookieStatus`). The `getRandomActiveCookie` function is used by `sourcegraph.ts` for each request.
+* **`user.service.ts`**: Manages admin panel users (`getAllUsers`, `addUser`, `deleteUser`, `updateUser`).
 
-### Analitik ve İstatistik Servisleri
+### Analytics and Statistics Services
 
-* **`metric.service.ts`**: Veritabanı tabanlı metrik kaydı yapar.
-  * `recordUsage`: Her bir API isteğinin detaylarını (`ipAddress`, `model`, `wasSuccess` vb.) `usage_metrics` tablosuna kaydeder.
-  * `getUsageMetrics`: Kaydedilmiş metrikleri sayfalama ve filtreleme yaparak sorgulama imkanı sunar (Yönetim panelindeki `/metrics` sayfası için).
+* **`metric.service.ts`**: Performs database-based metric recording.
+  * `recordUsage`: Records details of each API request (`ipAddress`, `model`, `wasSuccess`, etc.) to the `usage_metrics` table.
+  * `getUsageMetrics`: Provides the ability to query recorded metrics with pagination and filtering (for the `/metrics` page in the admin panel).
 
-* **`statistics.service.ts`**: `metric.service` tarafından toplanan verilerden anlamlı istatistikler üretir.
-  * Veritabanında `COUNT`, `SUM`, `GROUP BY` gibi Sequelize'nin gelişmiş sorgulama yeteneklerini kullanarak dashboard için veri hazırlar (`getGeneralStats`, `getCookieUsageStats`, `getModelUsageStats`, `getDailyUsageForChart`).
+* **`statistics.service.ts`**: Generates meaningful statistics from the data collected by `metric.service`.
+  * Prepares data for the dashboard (`getGeneralStats`, `getCookieUsageStats`, `getModelUsageStats`, `getDailyUsageForChart`) using Sequelize's advanced querying capabilities such as `COUNT`, `SUM`, `GROUP BY` in the database.
 
-### Yardımcı Servisler
+### Helper Services
 
-* **`cache.ts`**: Bellek içi (in-memory) önbellekleme mekanizması sağlar.
-  * `InMemoryCache`: TTL (Time-To-Live), maksimum boyut ve LRU-benzeri (en eski olanı sil) çıkarma politikalarını destekleyen bir sınıf içerir.
-  * Farklı amaçlar için birden çok cache örneği (`responseCache`, `modelCache`) oluşturur.
-  * `SafeCache`: Orijinal cache sınıfını saran ve hata yönetimini kolaylaştıran bir sarmalayıcıdır.
+* **`cache.ts`**: Provides an in-memory caching mechanism.
+  * `InMemoryCache`: Contains a class that supports TTL (Time-To-Live), maximum size, and LRU-like (Least Recently Used) eviction policies.
+  * Creates multiple cache instances (`responseCache`, `modelCache`) for different purposes.
+  * `SafeCache`: A wrapper around the original cache class that simplifies error handling.
 
-* **`analytics.ts`**: Veritabanından bağımsız, sadece bellek içi (in-memory) çalışan ve anlık performans metrikleri (toplam istek, hata oranı, ortalama yanıt süresi vb.) tutan bir servistir. Bu metrikler uygulama yeniden başladığında sıfırlanır.
+* **`analytics.ts`**: An in-memory service that runs independently of the database and maintains real-time performance metrics (total requests, error rate, average response time, etc.). These metrics are reset when the application restarts.
 
-* **`index.ts`**: Tüm servisleri tek bir yerden dışa aktararak diğer modüllerin servislere kolayca erişimini sağlar ve servislerin genel sağlık durumunu kontrol eden `getServicesHealth` fonksiyonunu içerir.
+* **`index.ts`**: Exports all services from a single point, allowing other modules to easily access services, and includes the `getServicesHealth` function which checks the overall health of the services.

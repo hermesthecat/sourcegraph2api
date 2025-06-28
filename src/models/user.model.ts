@@ -9,7 +9,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  // Parola karşılaştırma metodu
+  // Password validation method
   public async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }
@@ -38,7 +38,7 @@ User.init(
     tableName: 'users',
     sequelize,
     hooks: {
-      // Bir kullanıcı oluşturulmadan veya güncellenmeden önce parolayı hash'le
+      // Hash the password before a user is created or updated
       beforeSave: async (user: User) => {
         if (user.changed('password')) {
           const salt = await bcrypt.genSalt(10);

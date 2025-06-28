@@ -1,40 +1,40 @@
-# Controllers Klasörü
+# Controllers Folder
 
-Bu klasör, uygulamanın "C" (Controller) katmanını temsil eder. Gelen HTTP isteklerini alır, bu istekleri işlemek için gerekli olan servis katmanı fonksiyonlarını çağırır ve istemciye uygun HTTP yanıtını döner. Her bir controller, belirli bir işlevsel alana odaklanmıştır.
+This folder represents the "C" (Controller) layer of the application. It receives incoming HTTP requests, calls the necessary service layer functions to process these requests, and returns the appropriate HTTP response to the client. Each controller focuses on a specific functional area.
 
-## Sorumluluklar
+## Responsibilities
 
-* **İstek/Yanıt Döngüsünü Yönetme:** Express'in `Request` ve `Response` nesnelerini kullanarak gelen istekleri işler ve yanıtları oluşturur.
-* **İstek Doğrulama:** Gelen istek gövdelerini (`body`), parametreleri (`params`) ve sorgu dizelerini (`query`) doğrular. Eksik veya geçersiz veri durumunda istemciye 4xx hata kodları ile bilgi verir.
-* **Servis Katmanını Çağırma:** İş mantığını içeren servisleri (örneğin, `sourcegraphClient`) çağırarak asıl işin yapılmasını sağlar.
-* **Yanıt Formatlama:** Servislerden dönen verileri, API spesifikasyonuna (örneğin, OpenAI API formatı) uygun bir şekilde formatlayarak istemciye JSON formatında sunar.
-* **Hata Yönetimi:** İşlemler sırasında oluşan hataları yakalar ve uygun HTTP hata kodları (genellikle 500) ile birlikte loglar.
+* **Managing Request/Response Cycle:** Processes incoming requests and generates responses using Express's `Request` and `Response` objects.
+* **Request Validation:** Validates incoming request bodies (`body`), parameters (`params`), and query strings (`query`). In case of missing or invalid data, it informs the client with 4xx error codes.
+* **Calling Service Layer:** Calls services (e.g., `sourcegraphClient`) containing business logic to perform the actual work.
+* **Response Formatting:** Formats the data returned from services in a way that is compatible with the API specification (e.g., OpenAI API format) and presents it to the client in JSON format.
+* **Error Handling:** Catches errors that occur during operations and logs them along with appropriate HTTP error codes (usually 500).
 
-## Dosyalar
+## Files
 
 ### `chat.ts`
 
-OpenAI uyumlu `/v1/chat/completions` endpoint'ini yönetir.
+Manages the OpenAI-compatible `/v1/chat/completions` endpoint.
 
-* `chatCompletion`: Ana fonksiyondur. Gelen isteği doğrular, modelin desteklenip desteklenmediğini kontrol eder ve isteğin `stream` olup olmamasına göre `handleStreaming` veya `handleNonStreaming` fonksiyonlarını çağırır.
-* `handleStreaming`: Server-Sent Events (SSE) kullanarak yanıtı parça parça (chunk) gönderir.
-* `handleNonStreaming`: Sourcegraph API'sinden gelen tüm yanıtı birleştirir ve tek bir JSON nesnesi olarak döner.
+* `chatCompletion`: This is the main function. It validates the incoming request, checks if the model is supported, and calls either `handleStreaming` or `handleNonStreaming` functions based on whether the request is `stream`ing.
+* `handleStreaming`: Sends the response in chunks using Server-Sent Events (SSE).
+* `handleNonStreaming`: Concatenates the entire response from the Sourcegraph API and returns it as a single JSON object.
 
 ### `health.ts`
 
-Uygulamanın sağlık durumunu kontrol etmek için kullanılan endpoint'leri yönetir.
+Manages endpoints used to check the application's health status.
 
-* `healthCheck`: (`/health`) Uygulamanın temel durumunu (uptime, versiyon, environment) içeren basit bir yanıt döner.
-* `detailedHealthCheck`: (`/health/detailed`) Bellek kullanımı, cookie durumu, yapılandırma detayları gibi daha ayrıntılı sistem bilgileri sunar.
-* `rootEndpoint`: (`/`) Uygulamanın kök dizinine yapılan istekleri karşılar ve proje hakkında genel bilgiler ile mevcut endpoint'lerin bir listesini sunar.
+* `healthCheck`: (`/health`) Returns a simple response containing the application's basic status (uptime, version, environment).
+* `detailedHealthCheck`: (`/health/detailed`) Provides more detailed system information such as memory usage, cookie status, and configuration details.
+* `rootEndpoint`: (`/`) Handles requests to the application's root directory and provides general information about the project along with a list of available endpoints.
 
 ### `models.ts`
 
-OpenAI uyumlu `/v1/models` endpoint'lerini yönetir.
+Manages the OpenAI-compatible `/v1/models` endpoints.
 
-* `getModels`: (`/v1/models`) Uygulama yapılandırmasından (artık veritabanından dinamik olarak yüklenen) desteklenen tüm modellerin bir listesini OpenAI formatında döner.
-* `getModel`: (`/v1/models/{model}`) Belirli bir modelin detaylarını döner.
+* `getModels`: (`/v1/models`) Returns a list of all supported models in OpenAI format from the application configuration (now dynamically loaded from the database).
+* `getModel`: (`/v1/models/{model}`) Returns details for a specific model.
 
 ### `index.ts`
 
-Bu dosya, klasördeki tüm controller fonksiyonlarını tek bir noktadan dışa aktararak (`export`) kodun daha düzenli ve yönetilebilir olmasını sağlar. Bu sayede, `routes` katmanı controller'lara daha temiz bir şekilde erişebilir.
+This file exports all controller functions in the folder from a single point, making the code more organized and manageable. This allows the `routes` layer to access controllers more cleanly.

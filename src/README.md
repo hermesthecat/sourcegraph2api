@@ -1,68 +1,68 @@
-# `src` Klasörü - Uygulama Kaynak Kodu
+# `src` Folder - Application Source Code
 
-Bu klasör, **Sourcegraph2API** projesinin tüm TypeScript kaynak kodunu içerir. Uygulama, modüler ve katmanlı bir mimariyi takip ederek geliştirilmiştir. Her alt klasör, belirli bir sorumluluğu yerine getiren ve projenin genel yapısını oluşturan bir katmanı temsil eder.
+This folder contains all the TypeScript source code for the **Sourcegraph2API** project. The application is developed following a modular and layered architecture. Each subfolder represents a layer that fulfills a specific responsibility and forms the overall structure of the project.
 
-## Projenin Amacı
+## Project Purpose
 
-Bu proje, **Sourcegraph AI API**'sini, popüler **OpenAI API** formatına dönüştüren bir proxy sunucusudur. Bu sayede, OpenAI API'si ile entegre olabilen herhangi bir araç veya uygulama, bu proxy üzerinden Sourcegraph'ın güçlü kod anlama yeteneklerini kullanabilir. Ayrıca, proje kendi içinde bir yönetim paneli, veritabanı, kimlik doğrulama, kullanım takibi ve daha birçok özellik barındırır.
+This project is a proxy server that converts the **Sourcegraph AI API** into the popular **OpenAI API** format. This allows any tool or application integrated with the OpenAI API to use Sourcegraph's powerful code understanding capabilities through this proxy. Additionally, the project includes an admin panel, database, authentication, usage tracking, and many other features.
 
-## Mimari ve Klasör Yapısı
+## Architecture and Folder Structure
 
-Proje, genel olarak **Model-View-Controller (MVC)** benzeri bir yaklaşımla birlikte **Servis Katmanı Mimarisi**'ni benimser. Bu, endişelerin ayrılmasını (Separation of Concerns) sağlar ve kodun daha test edilebilir, sürdürülebilir ve ölçeklenebilir olmasına yardımcı olur.
-
----
-
-### 1. Giriş Noktası ve Uygulama Kurulumu
-
-Uygulamanın kalbi ve başlangıç noktası `src` klasörünün kökünde yer alır.
-
-* **`index.ts`**: Uygulamanın ana giriş noktasıdır (`entrypoint`). `main()` fonksiyonu, uygulama başlarken yapılması gereken tüm adımları sırasıyla yönetir:
-    1. Yapılandırmayı doğrular (`validateConfig`).
-    2. Veritabanı bağlantısını kurar ve modelleri senkronize eder (`initializeDatabase`).
-    3. Yapılandırmayı loglar (`logConfig`).
-    4. Express sunucusunu başlatır (`startServer`).
-
-* **`app.ts`**: Express uygulamasının kendisini oluşturur ve yapılandırır.
-  * `createApp()`: Express `app` nesnesini oluşturur.
-  * **Middleware Yığını (Stack):** Gelen her isteğin geçtiği ara katmanları belirli bir sırada (güvenlik, loglama, CORS, rate limiting, vb.) yapılandırır.
-  * **View Engine:** Yönetim paneli için EJS (Embedded JavaScript templates) görüntü motorunu ayarlar.
-  * **Rota Kurulumu:** `setupRoutes` fonksiyonu ile tüm API ve web rotalarını uygulamaya bağlar.
-  * **Hata Yönetimi:** 404 (Not Found) ve genel 500 (Internal Server Error) hata yakalama mekanizmalarını kurar.
+The project generally adopts a **Model-View-Controller (MVC)**-like approach along with a **Service Layer Architecture**. This ensures the Separation of Concerns, helping the code to be more testable, maintainable, and scalable.
 
 ---
 
-### 2. Katmanlar ve Sorumlulukları
+### 1. Entry Point and Application Setup
 
-Aşağıda, `src` içindeki her bir alt klasörün (katmanın) açıklaması bulunmaktadır.
+The heart and starting point of the application are located at the root of the `src` folder.
+
+* **`index.ts`**: This is the application's main entry point. The `main()` function sequentially manages all steps required when the application starts:
+    1. Validates configuration (`validateConfig`).
+    2. Establishes database connection and synchronizes models (`initializeDatabase`).
+    3. Logs configuration (`logConfig`).
+    4. Starts the Express server (`startServer`).
+
+* **`app.ts`**: Creates and configures the Express application itself.
+  * `createApp()`: Creates the Express `app` object.
+  * **Middleware Stack:** Configures middleware that every incoming request passes through in a specific order (security, logging, CORS, rate limiting, etc.).
+  * **View Engine:** Sets up the EJS (Embedded JavaScript templates) view engine for the admin panel.
+  * **Route Setup:** Connects all API and web routes to the application using the `setupRoutes` function.
+  * **Error Handling:** Sets up 404 (Not Found) and general 500 (Internal Server Error) error trapping mechanisms.
+
+---
+
+### 2. Layers and Responsibilities
+
+Below is a description of each subfolder (layer) within `src`.
 
 #### [`config/`](./config/README.md)
 
-Uygulamanın tüm yapılandırmasını yönetir. `.env` dosyasından ortam değişkenlerini okur ve uygulama genelinde kullanılabilir, tip güvenli bir `config` nesnesi sunar. Ayrıca, desteklenen tüm dil modellerinin bir kaydını (`modelRegistry`) tutar.
+Manages all application configuration. It reads environment variables from the `.env` file and provides a type-safe `config` object available throughout the application. It also maintains a registry (`modelRegistry`) of all supported language models.
 
 #### [`models/`](./models/README.md)
 
-Veritabanı şemasını tanımlayan **Model** katmanıdır. Sequelize ORM kullanılarak veritabanı tabloları (`User`, `ApiKey`, `Cookie`, `UsageMetric`) TypeScript sınıfları olarak soyutlanır ve aralarındaki ilişkiler (`hasMany`, `belongsTo`) burada kurulur.
+This is the **Model** layer that defines the database schema. Using Sequelize ORM, database tables (`User`, `ApiKey`, `Cookie`, `UsageMetric`) are abstracted as TypeScript classes, and their relationships (`hasMany`, `belongsTo`) are established here.
 
 #### [`services/`](./services/README.md)
 
-Uygulamanın **iş mantığının (business logic)** merkezidir. Veritabanı işlemleri (CRUD), harici Sourcegraph API'si ile iletişim, kimlik doğrulama mantığı (Passport.js), istatistik hesaplama ve önbellekleme gibi karmaşık operasyonlar bu katmanda yer alır.
+This is the core of the application's **business logic**. Complex operations such as database operations (CRUD), communication with the external Sourcegraph API, authentication logic (Passport.js), statistics calculation, and caching are located in this layer.
 
 #### [`middleware/`](./middleware/README.md)
 
-Gelen istekleri işleyen **ara katman** fonksiyonlarını içerir. Kimlik doğrulama (`openaiAuth`, `isAuthenticated`), loglama (`requestLogger`), güvenlik (`helmet`), CORS, hız sınırlama (`rate-limit`) ve hata yönetimi gibi çapraz kesen ilgiler (cross-cutting concerns) burada yönetilir.
+Contains **middleware** functions that process incoming requests. Cross-cutting concerns such as authentication (`openaiAuth`, `isAuthenticated`), logging (`requestLogger`), security (`helmet`), CORS, rate limiting, and error handling are managed here.
 
 #### [`controllers/`](./controllers/README.md)
 
-Gelen HTTP isteklerini alan ve yanıtlayan **Controller** katmanıdır. İstekleri doğrular, ilgili servis fonksiyonlarını çağırır ve servislerden dönen sonuçları istemcinin beklediği formatta (genellikle JSON) yanıt olarak döner.
+This is the **Controller** layer that receives and responds to incoming HTTP requests. It validates requests, calls relevant service functions, and returns the results from the services as responses in the format expected by the client (usually JSON).
 
 #### [`routes/`](./routes/README.md)
 
-Uygulamanın URL yollarını (endpoints) tanımlayan **yönlendirme** katmanıdır. Hangi URL yolunun hangi HTTP metoduyla hangi controller fonksiyonuna bağlanacağını belirler. API (`/v1`) ve yönetim paneli (`/admin`) için ayrı rota grupları içerir.
+This is the **routing** layer that defines the application's URL paths (endpoints). It determines which URL path with which HTTP method connects to which controller function. It includes separate route groups for the API (`/v1`) and the admin panel (`/admin`).
 
 #### [`types/`](./types/README.md)
 
-Proje genelinde kullanılan tüm **TypeScript türlerini** (`interface`, `class`) barındırır. Bu, API sözleşmelerini, veri yapılarını ve nesnelerin şeklini tanımlayarak kodun tip güvenli olmasını sağlar.
+Contains all **TypeScript types** (`interface`, `class`) used throughout the project. This ensures type safety of the code by defining API contracts, data structures, and the shape of objects.
 
 #### [`utils/`](./utils/README.md)
 
-Belirli bir katmana ait olmayan, genel amaçlı **yardımcı fonksiyonları** içerir. Loglama altyapısı (`logger.ts`) ve diğer çeşitli yardımcı araçlar (`helpers.ts`) burada bulunur.
+Contains general-purpose **helper functions** that do not belong to a specific layer. The logging infrastructure (`logger.ts`) and various other utility tools (`helpers.ts`) are found here.

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kullanıcı Yönetimi | Sourcegraph Proxy</title>
+    <title>User Management | Sourcegraph Proxy</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -13,36 +13,36 @@
         <%- include('partials/nav') %>
             <%- include('partials/messages') %>
 
-                <h1>Kullanıcı Yönetimi</h1>
+                <h1>User Management</h1>
 
                 <div class="content-grid">
                     <div class="form-container">
-                        <h2>Kullanıcı Ekle</h2>
+                        <h2>Add User</h2>
                         <form action="/admin/users/add" method="POST">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="username">Kullanıcı Adı</label>
+                                    <label for="username">Username</label>
                                     <input type="text" id="username" name="username" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="password">Şifre</label>
+                                    <label for="password">Password</label>
                                     <input type="password" id="password" name="password" required>
                                 </div>
                             </div>
                             <br>
-                            <button type="submit" class="btn btn-primary">Ekle</button>
+                            <button type="submit" class="btn btn-primary">Add</button>
                         </form>
                     </div>
 
                     <div class="table-container-wrapper">
-                        <h2>Mevcut Kullanıcılar (<%= users.length %>)</h2>
+                        <h2>Existing Users (<%= users.length %>)</h2>
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Kullanıcı Adı</th>
-                                        <th>Oluşturulma Tarihi</th>
-                                        <th>Eylemler</th>
+                                        <th>Username</th>
+                                        <th>Creation Date</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -58,18 +58,18 @@
                                                 <td class="actions">
                                                     <button class="btn btn-warning open-edit-modal-btn"
                                                         data-userid="<%= user.id %>"
-                                                        data-username="<%= user.username %>">Düzenle</button>
+                                                        data-username="<%= user.username %>">Edit</button>
                                                     <form action="/admin/users/delete/<%= user.id %>" method="POST"
                                                         style="display:inline;">
                                                         <button type="submit" class="btn btn-danger"
-                                                            onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">Sil</button>
+                                                            onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
                                                     </form>
                                                 </td>
                                             </tr>
                                             <% }); %>
                                                 <% } else { %>
                                                     <tr>
-                                                        <td colspan="3">Gösterilecek veri yok.</td>
+                                                        <td colspan="3">No data to display.</td>
                                                     </tr>
                                                     <% } %>
                                 </tbody>
@@ -78,30 +78,30 @@
                     </div>
                 </div>
 
-                <!-- Kullanıcı Düzenle Modal -->
+                <!-- Edit User Modal -->
                 <div id="editUserModal" class="modal">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3>Kullanıcıyı Düzenle</h3>
+                            <h3>Edit User</h3>
                             <span class="close-btn">&times;</span>
                         </div>
                         <form id="editUserForm" action="" method="POST">
                             <div class="modal-body">
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="editUsername">Kullanıcı Adı</label>
+                                        <label for="editUsername">Username</label>
                                         <input type="text" id="editUsername" name="username" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="editPassword">Yeni Şifre</label>
+                                        <label for="editPassword">New Password</label>
                                         <input type="password" id="editPassword" name="password"
-                                            placeholder="Değiştirmek istemiyorsanız boş bırakın">
+                                            placeholder="Leave blank if you don't want to change">
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" id="cancelEditBtn">İptal</button>
-                                <button type="submit" class="btn btn-primary">Kaydet</button>
+                                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
                             </div>
                         </form>
                     </div>
@@ -123,7 +123,7 @@
 
                             editUsernameInput.value = username;
 
-                            // Kullanıcı 'admin' ise, kullanıcı adı alanını sadece okunabilir yap
+                            // If user is 'admin', make username field read-only
                             if (username === 'admin') {
                                 editUsernameInput.readOnly = true;
                             } else {

@@ -1,21 +1,21 @@
 /**
- * Logger Utility / Günlük Kayıt Aracı
- * Winston tabanlı loglama sistemi / Winston-based logging system
+ * Logger Utility
+ * Winston-based logging system
  */
 
 import winston from 'winston';
-// import { AppConfig } from '../types'; // Artık AppConfig'i burada import etmeyeceğiz
+// import { AppConfig } from '../types'; // We will no longer import AppConfig here
 
-// Henüz yapılandırılmamış bir logger nesnesi oluşturuyoruz.
-// Bu, diğer modüllerin hata almadan import edebilmesi için gereklidir.
+// We are creating an unconfigured logger object for now.
+// This is necessary so that other modules can import it without errors.
 export const logger = winston.createLogger();
 
 /**
- * Logger'ı, uygulama başlatılırken gelen ayarlarla başlatır.
- * Bu fonksiyon, config yüklenmeden önce çağrılabilir.
- * @param {boolean} debugMode - Hata ayıklama modu açık mı?
- * @param {string} logLevel - Log seviyesi (info, debug, warn, error)
- * @param {string} nodeEnv - Node.js ortamı (development, production)
+ * Initializes the logger with settings provided at application startup.
+ * This function can be called before config is loaded.
+ * @param {boolean} debugMode - Is debug mode enabled?
+ * @param {string} logLevel - Log level (info, debug, warn, error)
+ * @param {string} nodeEnv - Node.js environment (development, production)
  */
 export function initializeLogger(debugMode: boolean, logLevel: string, nodeEnv: string) {
   const logFormat = winston.format.combine(
@@ -65,7 +65,7 @@ export function initializeLogger(debugMode: boolean, logLevel: string, nodeEnv: 
 }
 
 /**
- * Logger fonksiyonları / Logger functions
+ * Logger functions
  */
 export const log = {
   error: (message: string, meta?: any): void => { logger.error(message, meta); },
@@ -73,7 +73,7 @@ export const log = {
   info: (message: string, meta?: any): void => { logger.info(message, meta); },
   debug: (message: string, meta?: any): void => { logger.debug(message, meta); },
 
-  // Request ID ile loglama / Logging with Request ID
+  // Logging with Request ID
   request: (requestId: string, level: string, message: string, meta?: any): void => {
     logger.log(level, `[${requestId}] ${message}`, meta);
   }

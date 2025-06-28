@@ -1,17 +1,17 @@
 /**
- * Main Application / Ana Uygulama
- * Express server konfigürasyonu ve middleware setup / Express server yapılandırması ve ara yazılım kurulumu
+ * Main Application
+ * Express server configuration and middleware setup
  */
 
 import express, { Application, Request, Response } from 'express';
 import { config } from './config';
 import { log } from './utils/logger';
 import { setupRoutes } from './routes';
-import path from 'path'; // path modülünü import et
-import cookieParser from 'cookie-parser'; // cookie-parser'ı import et
-import session from 'express-session'; // express-session'ı import et
-import passport from './services/auth.service'; // Passport yapılandırmamızı import et
-import flash from 'connect-flash'; // connect-flash'ı import et
+import path from 'path'; // Import path module
+import cookieParser from 'cookie-parser'; // Import cookie-parser
+import session from 'express-session'; // Import express-session
+import passport from './services/auth.service'; // Import our Passport configuration
+import flash from 'connect-flash'; // Import connect-flash
 import { sessionStore } from './services/database';
 
 // Middleware imports
@@ -28,35 +28,35 @@ import {
 } from './middleware';
 
 /**
- * Express uygulamasını oluştur ve yapılandır / Create and configure the Express application
+ * Create and configure the Express application
  */
 export function createApp(): Application {
   const app = express();
 
   // ======================
-  // View Engine Setup (EJS) / Görüntü Motoru Kurulumu (EJS)
+  // View Engine Setup (EJS)
   // ======================
   app.set('view engine', 'ejs');
   app.set('views', path.join(process.cwd(), 'views'));
 
   // ======================
-  // Static Files / Statik Dosyalar
+  // Static Files
   // ======================
   app.use(express.static(path.join(process.cwd(), 'public')));
 
   // ======================
   // Session & Auth Middleware
-  // Sıralama çok önemlidir: cookieParser -> session -> passport -> flash
+  // Order is very important: cookieParser -> session -> passport -> flash
   // ======================
   app.use(cookieParser(config.sessionSecret || 'a-super-secret-key-that-is-long-enough'));
   app.use(session({
     secret: config.sessionSecret || 'a-super-secret-key-that-is-long-enough',
     resave: false,
-    saveUninitialized: false, // Gerekli olmayana kadar session oluşturma
-    store: sessionStore, // Oturumları veritabanında sakla
+    saveUninitialized: false, // Don't create session until necessary
+    store: sessionStore, // Store sessions in database
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // Sadece HTTPS üzerinden gönder
-      maxAge: 1000 * 60 * 60 * 24 // 1 gün
+      secure: process.env.NODE_ENV === 'production', // Only send over HTTPS
+      maxAge: 1000 * 60 * 60 * 24 // 1 day
     }
   }));
 
@@ -64,63 +64,63 @@ export function createApp(): Application {
   app.use(passport.session());
   app.use(flash());
 
-  // Flash mesajlarını tüm view'lara (EJS) göndermek için middleware
+  // Middleware to pass flash messages to all views (EJS)
   app.use((req, res, next) => {
     res.locals.messages = req.flash();
-    res.locals.user = req.user; // Oturum açmış kullanıcı bilgisini de view'lara gönderelim
+    res.locals.user = req.user; // Also pass logged-in user info to views
     next();
   });
 
   // ======================
-  // Trust proxy (production için) / Proxy'e güven (üretim için)
+  // Trust proxy (for production)
   // ======================
   app.set('trust proxy', true);
 
   // ======================
-  // Global Middleware Stack / Global Ara Yazılım Yığını
+  // Global Middleware Stack
   // ======================
 
-  // 1. Request ID - Her request'e unique ID atar / Assigns a unique ID to each request
+  // 1. Request ID - Assigns a unique ID to each request
   app.use(requestId());
 
-  // 2. Request Logging - Gelen istekleri loglar / Logs incoming requests
+  // 2. Request Logging - Logs incoming requests
   app.use(requestLogger());
 
-  // 3. Security - Helmet güvenlik headers / Güvenlik - Helmet güvenlik başlıkları
+  // 3. Security - Helmet security headers
   app.use(securityMiddleware());
 
   // 4. CORS - Cross-origin resource sharing
   app.use(corsMiddleware());
 
-  // 5. Body Parsing - JSON ve URL-encoded / Gövde Ayrıştırma - JSON ve URL kodlamalı
+  // 5. Body Parsing - JSON and URL-encoded
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // 6. Compression - Response compression / Sıkıştırma - Yanıt sıkıştırma
+  // 6. Compression - Response compression
   app.use(compressionMiddleware());
 
-  // 7. IP Blacklist - Yasaklı IP kontrolü / IP Kara Listesi - Yasaklı IP kontrolü
+  // 7. IP Blacklist - IP blacklist check
   // @ts-ignore - Express middleware type conflict
   app.use(ipBlacklistMiddleware());
 
-  // 8. Rate Limiting - Request rate kontrolü / Hız Sınırlama - İstek oranı kontrolü
+  // 8. Rate Limiting - Request rate control
   // @ts-ignore - Express middleware type conflict
   app.use(rateLimitMiddleware());
 
   // ======================
-  // API Routes Setup / API Rotaları Kurulumu
+  // API Routes Setup
   // ======================
   setupRoutes(app);
 
   // ======================
-  // Error Handling / Hata Yönetimi
+  // Error Handling
   // ======================
 
-  // 404 Not Found Handler / 404 Bulunamadı Yöneticisi
+  // 404 Not Found Handler
   // @ts-ignore - Express middleware type conflict
   app.use(notFoundHandler());
 
-  // Global Error Handler (en son) / Global Hata Yöneticisi (en son)
+  // Global Error Handler (last)
   // @ts-ignore - Express middleware type conflict  
   app.use(errorHandler());
 
@@ -128,7 +128,7 @@ export function createApp(): Application {
 }
 
 /**
- * Server'ı başlat / Start the server
+ * Start the server
  */
 export async function startServer(): Promise<void> {
   try {
@@ -136,70 +136,72 @@ export async function startServer(): Promise<void> {
     const port = config.port;
     const host = config.host || '0.0.0.0';
 
-    // Server'ı dinlemeye başla / Start listening to the server
+    // Start listening to the server
     const server = app.listen(port, host, () => {
-      log.info(`🚀 Sourcegraph2API Server başlatıldı! / Sourcegraph2API Server started!`);
+      log.info(`🚀 Sourcegraph2API Server started!`);
       log.info(`📍 Host: ${host}:${port}`);
-      log.info(`🌍 Environment / Ortam: ${config.nodeEnv}`);
-      log.info(`🔧 Route Prefix / Rota Öneki: ${config.routePrefix || 'none / yok'}`);
-      log.info(`🛡️  Rate Limit / Hız Limiti: ${config.requestRateLimit} requests/minute`);
-      log.info(`🔍 Debug Mode / Hata Ayıklama Modu: ${config.debug ? 'enabled / etkin' : 'disabled / devre dışı'}`);
+      log.info(`🌍 Environment: ${config.nodeEnv}`);
+      log.info(`🔧 Route Prefix: ${config.routePrefix || 'none'}`);
+      log.info(`🛡️  Rate Limit: ${config.requestRateLimit} requests/minute`);
+      log.info(`🔍 Debug Mode: ${config.debug ? 'enabled' : 'disabled'}`);
 
-      // API endpoints listesi / API uç noktaları listesi
-      log.info(`\n📋 Available Endpoints / Mevcut Uç Noktalar:`);
-      log.info(`   GET  /                    - API bilgileri / API information`);
-      log.info(`   GET  /health              - Sağlık kontrolü / Health check`);
-      log.info(`   GET  /health/detailed     - Detaylı sağlık / Detailed health`);
-      log.info(`   POST /v1/chat/completions - Chat completion / Sohbet tamamlama`);
-      log.info(`   GET  /v1/models           - Model listesi / Model list`);
-      log.info(`   GET  /metrics             - Performance metrics / Performans metrikleri`);
-      log.info(`   GET  /metrics/dashboard   - Metrics dashboard / Metrik panosu\n`);
+      // List of API endpoints
+      log.info(`
+📋 Available Endpoints:`);
+      log.info(`   GET  /                    - API information`);
+      log.info(`   GET  /health              - Health check`);
+      log.info(`   GET  /health/detailed     - Detailed health`);
+      log.info(`   POST /v1/chat/completions - Chat completion`);
+      log.info(`   GET  /v1/models           - Model list`);
+      log.info(`   GET  /metrics             - Performance metrics`);
+      log.info(`   GET  /metrics/dashboard   - Metrics dashboard\n`);
     });
 
-    // Graceful shutdown handling / Düzgün kapatma yönetimi
+    // Graceful shutdown handling
     setupGracefulShutdown(server);
 
   } catch (error: any) {
-    log.error(`❌ Server başlatma hatası: ${error.message} / Server startup error: ${error.message}`);
+    log.error(`❌ Server startup error: ${error.message}`);
     process.exit(1);
   }
 }
 
 /**
- * Graceful shutdown setup / Düzgün kapatma kurulumu
+ * Graceful shutdown setup
  */
 function setupGracefulShutdown(server: any): void {
   const shutdown = (signal: string) => {
-    log.info(`\n🛑 ${signal} sinyali alındı, server kapatılıyor... / ${signal} signal received, shutting down server...`);
+    log.info(`
+🛑 ${signal} signal received, shutting down server...`);
 
     server.close((err: any) => {
       if (err) {
-        log.error(`❌ Server kapatma hatası: ${err.message} / Server shutdown error: ${err.message}`);
+        log.error(`❌ Server shutdown error: ${err.message}`);
         process.exit(1);
       }
 
-      log.info('✅ Server başarıyla kapatıldı / Server closed successfully');
+      log.info('✅ Server closed successfully');
       process.exit(0);
     });
 
-    // Force shutdown after 30 seconds / 30 saniye sonra zorla kapat
+    // Force shutdown after 30 seconds
     setTimeout(() => {
-      log.error('⏰ Zorla kapatma - 30 saniye timeout / Forced shutdown - 30 second timeout');
+      log.error('⏰ Forced shutdown - 30 second timeout');
       process.exit(1);
     }, 30000);
   };
 
-  // Signal handlers / Sinyal işleyicileri
+  // Signal handlers
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
 
-  // Unhandled errors / İşlenmemiş hatalar
+  // Unhandled errors
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    log.error(`Unhandled Rejection at: ${promise}, reason: ${reason} / İşlenmemiş Reddetme, konum: ${promise}, neden: ${reason}`);
+    log.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
   });
 
   process.on('uncaughtException', (error) => {
-    log.error('Uncaught Exception: / Yakalanmamış İstisna:', error);
+    log.error('Uncaught Exception:', error);
     process.exit(1);
   });
 } 

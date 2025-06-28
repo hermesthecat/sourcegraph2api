@@ -1,31 +1,31 @@
-# Views Klasörü
+# Views Folder
 
-Bu klasör, uygulamanın "V" (View) katmanını temsil eder ve yönetim panelinin kullanıcı arayüzünü oluşturan tüm EJS (Embedded JavaScript) şablon dosyalarını içerir. Bu dosyalar, dinamik verileri (örneğin, veritabanından gelen cookie listesi) alarak sunucu tarafında HTML sayfaları oluşturmak (server-side rendering) için kullanılır.
+This folder represents the "V" (View) layer of the application and contains all EJS (Embedded JavaScript) template files that form the user interface of the administration panel. These files are used to generate HTML pages on the server side (server-side rendering) by receiving dynamic data (e.g., cookie list from the database).
 
-`src/routes/admin.routes.ts` dosyasındaki rotalar, `res.render()` fonksiyonunu kullanarak bu şablon dosyalarını render eder ve kullanıcıya sunar.
+The routes in `src/routes/admin.routes.ts` render these template files using the `res.render()` function and present them to the user.
 
-## Sorumluluklar
+## Responsibilities
 
-* **Kullanıcı Arayüzünü Tanımlama:** Yönetim panelinin farklı sayfalarının (Dashboard, Cookie Yönetimi, Login vb.) HTML yapısını ve düzenini tanımlar.
-* **Dinamik Veri Gösterimi:** Controller'lardan gelen verileri (örneğin, `cookies`, `apiKeys`, `stats`) EJS sözdizimi (`<%= %>`) kullanarak HTML içinde görüntüler.
-* **Tekrar Kullanılabilir Bileşenler:** `partials` klasörü aracılığıyla, navigasyon menüsü gibi sayfalarda tekrar eden UI bileşenlerinin yeniden kullanılmasını sağlar.
+* **Defining the User Interface:** Defines the HTML structure and layout of different pages of the administration panel (Dashboard, Cookie Management, Login, etc.).
+* **Dynamic Data Display:** Displays data coming from controllers (e.g., `cookies`, `apiKeys`, `stats`) within HTML using EJS syntax (`<%= %>`).
+* **Reusable Components:** Enables the reuse of repeating UI components on pages, such as the navigation menu, through the `partials` folder.
 
-## Dosyalar
+## Files
 
-### Ana Sayfa Şablonları
+### Main Page Templates
 
-* **`login.ejs`**: Kullanıcıların yönetim paneline giriş yapması için kullanıcı adı ve parola alanlarını içeren giriş sayfası.
-* **`dashboard.ejs`**: Giriş yapıldıktan sonra ulaşılan ana panel. Genel kullanım istatistiklerini, grafiklerini ve diğer özet bilgileri görüntüler.
-* **`cookies.ejs`**: Veritabanındaki tüm `Cookie`'leri bir tablo halinde listeleyen, yeni cookie ekleme formu içeren ve mevcut olanları düzenleme/silme/aktifleştirme seçenekleri sunan sayfa.
-* **`edit-cookie.ejs`**: Belirli bir cookie'yi düzenlemek için kullanılan özel form sayfası.
-* **`apikeys.ejs`**: Veritabanındaki tüm API anahtarlarını listeleyen, yeni anahtar oluşturma ve mevcut olanları silme/aktifleştirme seçenekleri sunan sayfa.
-* **`users.ejs`**: Yönetim paneline erişimi olan kullanıcıları listeleyen, yeni kullanıcı ekleme, düzenleme ve silme formlarını içeren sayfa.
-* **`metrics.ejs`**: API kullanım loglarını (`UsageMetric` kayıtlarını) sayfalama (pagination) yaparak detaylı bir şekilde gösteren sayfa.
-* **`settings.ejs`**: Uygulamanın dinamik olarak yönetilen ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`) görüntülemek ve güncellemek için form alanlarını içeren sayfa.
+* **`login.ejs`**: The login page containing username and password fields for users to log in to the administration panel.
+* **`dashboard.ejs`**: The main panel accessed after logging in. Displays general usage statistics, graphs, and other summary information.
+* **`cookies.ejs`**: A page that lists all `Cookie`s in the database in a table format, includes a form for adding new cookies, and offers options to edit/delete/activate existing ones.
+* **`edit-cookie.ejs`**: A special form page used to edit a specific cookie.
+* **`apikeys.ejs`**: A page that lists all API keys in the database, offers options to create new keys and delete/activate existing ones.
+* **`users.ejs`**: A page that lists users with access to the administration panel, includes forms for adding new users, editing, and deleting.
+* **`metrics.ejs`**: A page that displays API usage logs (`UsageMetric` records) in detail with pagination.
+* **`settings.ejs`**: A page containing form fields to view and update the application's dynamically managed settings (e.g., `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`).
 
-### `partials/` Klasörü
+### `partials/` Folder
 
-Bu alt klasör, birden fazla sayfada kullanılan ve tekrar eden HTML parçalarını içerir. Bu, kod tekrarını önler ve bakımı kolaylaştırır.
+This subfolder contains recurring HTML snippets used across multiple pages. This prevents code duplication and simplifies maintenance.
 
-* **`nav.ejs`**: Yönetim panelinin tüm sayfalarında görünen üst navigasyon çubuğunu içerir.
-* **`messages.ejs`**: Kullanıcı bir işlem yaptıktan sonra (örneğin, "Cookie başarıyla eklendi") çıkan başarı veya hata mesajlarını (flash messages) görüntülemek için kullanılan bileşendir.
+* **`nav.ejs`**: Contains the top navigation bar visible on all administration panel pages.
+* **`messages.ejs`**: The component used to display success or error messages (flash messages) after a user performs an action (e.g., "Cookie successfully added").

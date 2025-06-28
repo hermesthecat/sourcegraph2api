@@ -1,45 +1,45 @@
-# Utils Klasörü
+# Utils Folder
 
-"Utils" (Utilities - Araçlar), uygulama genelinde tekrar tekrar kullanılabilen, belirli bir iş alanına (domain) ait olmayan, genel amaçlı yardımcı fonksiyonları ve sınıfları içeren bir klasörüdür. Bu klasör, kod tekrarını önlemeye (`Don't Repeat Yourself - DRY`) ve kodun daha modüler ve temiz olmasına yardımcı olur.
+"Utils" (Utilities) is a folder that contains general-purpose helper functions and classes that can be reused throughout the application and are not tied to a specific domain. This folder helps prevent code duplication (`Don't Repeat Yourself - DRY`) and makes the code more modular and clean.
 
-## Sorumluluklar
+## Responsibilities
 
-* **Genel Amaçlı Fonksiyonlar Sağlama:** Veri formatlama, doğrulama, string işleme, hata ayıklama gibi projenin birçok yerinde ihtiyaç duyulan küçük ve bağımsız işlevleri barındırır.
-* **Çekirdek Servisleri Destekleme:** Loglama gibi uygulama genelindeki temel servisleri yapılandırır ve kullanıma sunar.
-* **Kod Tekrarını Önleme:** Farklı modüllerde aynı kod parçasının tekrar yazılmasının önüne geçerek bakım maliyetini düşürür.
+* **Providing General-Purpose Functions:** Houses small and independent functionalities needed in many parts of the project, such as data formatting, validation, string manipulation, and debugging.
+* **Supporting Core Services:** Configures and provides access to essential application-wide services like logging.
+* **Preventing Code Duplication:** Reduces maintenance costs by preventing the same code snippets from being rewritten in different modules.
 
-## Dosyalar
+## Files
 
 ### `logger.ts`
 
-Uygulamanın loglama (günlük kaydı) altyapısını kurar ve yönetir.
+Sets up and manages the application's logging infrastructure.
 
-* **Winston Kütüphanesi:** Güçlü ve esnek bir loglama kütüphanesi olan `winston`'ı temel alır.
-* **Dinamik Yapılandırma:** Log seviyesi ve renkli çıktı gibi ayarları `config` nesnesinden (artık veritabanından dinamik olarak yüklenen) alır.
-* **Çoklu "Transport":** Logları birden fazla hedefe aynı anda yazdırabilir:
-  * **Console:** Geliştirme ortamında anlık takip için logları konsola yazdırır. `debug` modunda renklendirme yapar.
-  * **Dosya:** Hataları (`error.log`), tüm logları (`combined.log`), yakalanamayan istisnaları (`exceptions.log`) ve reddedilen Promise'leri (`rejections.log`) ayrı dosyalara kaydeder.
-* **Yapılandırılabilir Format:** Logların formatını (`timestamp`, `level`, `message`, `stack trace`) merkezi olarak tanımlar.
-* **`log` Nesnesi:** `log.info()`, `log.error()` gibi standart loglama fonksiyonlarının yanı sıra, her bir isteği kendi ID'si ile loglamayı sağlayan özel bir `log.request()` fonksiyonu sunar. Bu, bir isteğin yaşam döngüsünü takip etmeyi çok kolaylaştırır.
+* **Winston Library:** Based on `winston`, a powerful and flexible logging library.
+* **Dynamic Configuration:** Retrieves settings like log level and colored output from the `config` object (now dynamically loaded from the database).
+* **Multiple "Transports":** Can write logs to multiple destinations simultaneously:
+  * **Console:** Prints logs to the console for real-time monitoring in the development environment. Colors output in `debug` mode.
+  * **File:** Saves errors (`error.log`), all logs (`combined.log`), uncaught exceptions (`exceptions.log`), and unhandled Promise rejections (`rejections.log`) to separate files.
+* **Configurable Format:** Centrally defines the format of logs (`timestamp`, `level`, `message`, `stack trace`).
+* **`log` Object:** In addition to standard logging functions like `log.info()`, `log.error()`, it provides a special `log.request()` function that allows logging each request with its own ID. This makes tracking the lifecycle of a request very easy.
 
 ### `helpers.ts`
 
-Çeşitli küçük ve genel amaçlı yardımcı fonksiyonları içerir.
+Contains various small and general-purpose helper functions.
 
-* **Ağ ve Zamanlama:**
-  * `delay`: Belirtilen milisaniye kadar bekleyen bir Promise döndürür.
-  * `calculateBackoff`: Tekrarlanan denemeler (retry) için üssel olarak artan bir bekleme süresi hesaplar (Exponential Backoff).
-* **Veri İşleme ve Doğrulama:**
-  * `safeJsonParse`: Bir string'i JSON olarak ayrıştırmaya çalışır, hata olursa `null` döner.
-  * `sanitizeString`: Bir string'den zararlı olabilecek kontrol karakterlerini temizler.
-  * `isValidUrl`, `isValidCookie`: Verilen string'lerin geçerli bir URL veya cookie formatında olup olmadığını kontrol eder.
-* **Formatlama:**
-  * `formatMemoryUsage`: Bayt cinsinden verilen bellek boyutunu okunabilir bir formata (KB, MB, GB) dönüştürür.
-  * `formatDuration`: Milisaniye cinsinden verilen süreyi okunabilir bir formata (ms, s, m, h) dönüştürür.
-  * `truncateText`: Uzun metinleri belirli bir karakter sayısından sonra "..." ile kısaltır.
-* **Hata Yönetimi:**
-  * `extractStatusCode`: Bir hata nesnesinden HTTP durum kodunu çıkarmaya çalışır.
-* **Diğerleri:**
-  * `generateRandomString`: Rastgele bir karakter dizisi oluşturur.
-  * `isProduction`: Uygulamanın üretim ortamında çalışıp çalışmadığını kontrol eder.
-  * `getCurrentTimestamp`: Geçerli zamanı saniye cinsinden Unix zaman damgası olarak alır.
+* **Network and Timing:**
+  * `delay`: Returns a Promise that waits for the specified milliseconds.
+  * `calculateBackoff`: Calculates an exponentially increasing wait time for retries (Exponential Backoff).
+* **Data Processing and Validation:**
+  * `safeJsonParse`: Attempts to parse a string as JSON, returns `null` on error.
+  * `sanitizeString`: Cleans potentially harmful control characters from a string.
+  * `isValidUrl`, `isValidCookie`: Checks if the given strings are in a valid URL or cookie format.
+* **Formatting:**
+  * `formatMemoryUsage`: Converts memory size given in bytes to a human-readable format (KB, MB, GB).
+  * `formatDuration`: Converts duration given in milliseconds to a human-readable format (ms, s, m, h).
+  * `truncateText`: Truncates long texts with "..." after a specified character count.
+* **Error Handling:**
+  * `extractStatusCode`: Attempts to extract an HTTP status code from an error object.
+* **Others:**
+  * `generateRandomString`: Generates a random string of characters.
+  * `isProduction`: Checks if the application is running in production environment.
+  * `getCurrentTimestamp`: Gets the current time as a Unix timestamp in seconds.

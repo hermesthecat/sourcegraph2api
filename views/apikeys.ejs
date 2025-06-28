@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Anahtar Yönetimi | Sourcegraph Proxy</title>
+  <title>API Key Management | Sourcegraph Proxy</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -13,29 +13,29 @@
     <%- include('partials/nav.ejs') %>
       <%- include('partials/messages.ejs') %>
 
-        <h1>API Key Yönetimi</h1>
+        <h1>API Key Management</h1>
 
         <div class="content-grid">
           <div class="form-container">
-            <h2>API Key Oluştur</h2>
+            <h2>Create API Key</h2>
             <form action="/admin/apikeys/add" method="POST">
               <div class="form-group">
-                <label for="alias">Takma Ad (Alias)</label>
-                <input type="text" id="alias" name="alias" placeholder="Örn: Mobil Uygulama Anahtarı" required>
+                <label for="alias">Alias</label>
+                <input type="text" id="alias" name="alias" placeholder="Ex: Mobile App Key" required>
               </div>
-              <button type="submit" class="btn btn-primary">Ekle</button>
+              <button type="submit" class="btn btn-primary">Add</button>
             </form>
           </div>
 
-          <h2>Mevcut API Key'leri (<%= apiKeys.length %>)</h2>
+          <h2>Existing API Keys (<%= apiKeys.length %>)</h2>
           <table>
             <thead>
               <tr>
-                <th>Takma Ad</th>
+                <th>Alias</th>
                 <th>API Key</th>
-                <th>Durum</th>
-                <th>Oluşturulma Tarihi</th>
-                <th>Eylemler</th>
+                <th>Status</th>
+                <th>Creation Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -48,30 +48,30 @@
                     <td><code><%= apiKey.key %></code></td>
                     <td>
                       <% if (apiKey.isActive) { %>
-                        <span class="status status-active">Aktif</span>
+                        <span class="status status-active">Active</span>
                         <% } else { %>
-                          <span class="status status-passive">Pasif</span>
+                          <span class="status status-passive">Passive</span>
                           <% } %>
                     </td>
                     <td>
-                      <%= new Date(apiKey.createdAt).toLocaleString('tr-TR') %>
+                      <%= new Date(apiKey.createdAt).toLocaleString('en-US') %>
                     </td>
                     <td class="actions">
                       <form action="/admin/apikeys/toggle/<%= apiKey.id %>" method="POST">
                         <button type="submit" class="btn <%= apiKey.isActive ? 'btn-primary' : 'btn-success' %>">
-                          <%= apiKey.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
+                          <%= apiKey.isActive ? 'Deactivate' : 'Activate' %>
                         </button>
                       </form>
                       <form action="/admin/apikeys/delete/<%= apiKey.id %>" method="POST"
-                        onsubmit="return confirm('Bu API Key\'yi silmek istediğinizden emin misiniz? Bu Key\'i kullanan tüm uygulamaların erişimi kesilecektir.');">
-                        <button type="submit" class="btn btn-danger">Sil</button>
+                        onsubmit="return confirm('Are you sure you want to delete this API Key? All applications using this Key will lose access.');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
                       </form>
                     </td>
                   </tr>
                   <% }) %>
                     <% } else { %>
                       <tr>
-                        <td colspan="5" style="text-align: center;">Henüz hiç API Key eklenmemiş.</td>
+                        <td colspan="5" style="text-align: center;">No API Key added yet.</td>
                       </tr>
                       <% } %>
             </tbody>

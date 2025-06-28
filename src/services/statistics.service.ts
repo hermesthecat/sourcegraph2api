@@ -1,6 +1,5 @@
 /**
- * Statistics Service / İstatistik Servisi
- * Veritabanındaki metriklerden anlamlı istatistikler hesaplar
+ * Statistics Service
  * Calculates meaningful statistics from the metrics in the database
  */
 
@@ -10,7 +9,6 @@ import { Op } from 'sequelize';
 import { log } from '../utils/logger';
 
 /**
- * Panelin en üstünde gösterilecek genel istatistikleri hesaplar
  * Calculates general stats to be displayed at the top of the dashboard
  */
 export async function getGeneralStats() {
@@ -30,13 +28,12 @@ export async function getGeneralStats() {
       errorRate: errorRate.toFixed(2),
     };
   } catch (error) {
-    log.error('Genel istatistikler alınırken hata:', error);
+    log.error('Error occurred while fetching general statistics:', error);
     throw error;
   }
 }
 
 /**
- * Cookie bazında detaylı kullanım istatistiklerini hesaplar
  * Calculates detailed usage statistics on a per-cookie basis
  */
 export async function getCookieUsageStats() {
@@ -58,13 +55,12 @@ export async function getCookieUsageStats() {
     });
     return stats;
   } catch (error) {
-    log.error('Cookie kullanım istatistikleri alınırken hata:', error);
+    log.error('Error occurred while fetching cookie usage statistics:', error);
     throw error;
   }
 }
 
 /**
- * API Anahtarı bazında detaylı kullanım istatistiklerini hesaplar
  * Calculates detailed usage statistics on a per-apiKey basis
  */
 export async function getApiKeyUsageStats() {
@@ -82,17 +78,16 @@ export async function getApiKeyUsageStats() {
       }],
       group: ['apiKey.id'],
       order: [[sequelize.fn('COUNT', sequelize.col('UsageMetric.id')), 'DESC']],
-      limit: 10, // En çok kullanılan 10 anahtarı göster
+      limit: 10, // Show top 10 most used keys
     });
     return stats;
   } catch (error) {
-    log.error('API anahtarı kullanım istatistikleri alınırken hata:', error);
+    log.error('Error occurred while fetching API key usage statistics:', error);
     throw error;
   }
 }
 
 /**
- * Model bazında kullanım istatistiklerini hesaplar (Pasta grafik için)
  * Calculates usage statistics by model (for Pie chart)
  */
 export async function getModelUsageStats() {
@@ -104,7 +99,7 @@ export async function getModelUsageStats() {
       ],
       where: {
         model: {
-          [Op.ne]: null, // Modeli null olmayanları say
+          [Op.ne]: null, // Count models that are not null
         },
       },
       group: ['model'],
@@ -116,13 +111,12 @@ export async function getModelUsageStats() {
 
     return { labels, data };
   } catch (error) {
-    log.error('Model kullanım istatistikleri alınırken hata:', error);
+    log.error('Error occurred while fetching model usage statistics:', error);
     throw error;
   }
 }
 
 /**
- * Son 30 günün günlük kullanım verisini grafik için hazırlar
  * Prepares daily usage data for the last 30 days for a chart
  */
 export async function getDailyUsageForChart() {
@@ -144,14 +138,14 @@ export async function getDailyUsageForChart() {
       order: [[sequelize.fn('date', sequelize.col('requestTimestamp')), 'ASC']],
     });
 
-    // Veriyi Chart.js'in beklediği formata dönüştür
+    // Convert data to Chart.js expected format
     const labels = dailyCounts.map((item: any) => item.get('date'));
     const data = dailyCounts.map((item: any) => item.get('count'));
 
     return { labels, data };
 
   } catch (error) {
-    log.error('Grafik verisi alınırken hata:', error);
+    log.error('Error occurred while fetching chart data:', error);
     throw error;
   }
 } 

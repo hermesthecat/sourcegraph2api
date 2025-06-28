@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gösterge Paneli | Sourcegraph Proxy</title>
+    <title>Dashboard | Sourcegraph Proxy</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -47,66 +47,66 @@
         <%- include('partials/nav') %>
             <%- include('partials/messages') %>
 
-                <h1>Gösterge Paneli</h1>
+                <h1>Dashboard</h1>
 
 
-                <!-- Genel İstatistikler -->
+                <!-- General Statistics -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Toplam İstek</h3>
+                        <h3>Total Requests</h3>
                         <p>
                             <%= generalStats.totalRequests %>
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Toplam Hata</h3>
+                        <h3>Total Errors</h3>
                         <p>
                             <%= generalStats.totalErrors %>
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Hata Oranı</h3>
+                        <h3>Error Rate</h3>
                         <p>
                             <%= generalStats.errorRate %>%
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Aktif Sourcegraph API Key</h3>
+                        <h3>Active Sourcegraph API Key</h3>
                         <p>
                             <%= generalStats.activeCookies %>
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Aktif API Key</h3>
+                        <h3>Active API Key</h3>
                         <p>
                             <%= generalStats.activeApiKeys %>
                         </p>
                     </div>
                 </div>
 
-                <!-- Grafik -->
+                <!-- Chart -->
                 <div class="stats-grid">
                     <div class="chart-container grid-col-span-2" style="margin-bottom: 30px;">
-                        <h2>Son 30 Günlük Kullanım</h2>
+                        <h2>Last 30 Day Usage</h2>
                         <canvas id="dailyUsageChart"></canvas>
                     </div>
                     <div class="chart-container" style="margin-bottom: 30px;">
-                        <h2>Model Kullanım Dağılımı</h2>
+                        <h2>Model Usage Distribution</h2>
                         <canvas id="modelUsageChart"></canvas>
                     </div>
                 </div>
 
                 <div class="stats-grid">
-                    <!-- Cookie İstatistikleri Tablosu -->
+                    <!-- Cookie Statistics Table -->
                     <div class="grid-col-span-2">
-                        <h2>Sourcegraph API Key Performansı</h2>
+                        <h2>Sourcegraph API Key Performance</h2>
                         <table>
                             <thead>
                                 <tr>
                                     <th>Sourcegraph API Key (Alias)</th>
-                                    <th>Toplam İstek</th>
-                                    <th>Başarısız İstek</th>
-                                    <th>Hata Oranı</th>
+                                    <th>Total Requests</th>
+                                    <th>Failed Requests</th>
+                                    <th>Error Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -132,14 +132,14 @@
                         </table>
                     </div>
 
-                    <!-- API Anahtarı İstatistikleri Tablosu -->
+                    <!-- API Key Statistics Table -->
                     <div>
-                        <h2>En Aktif API Key'leri</h2>
+                        <h2>Most Active API Keys</h2>
                         <table>
                             <thead>
                                 <tr>
                                     <th>API Key (Alias)</th>
-                                    <th>Toplam İstek</th>
+                                    <th>Total Requests</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -161,7 +161,7 @@
     </div>
 
     <script>
-        // Günlük Kullanım Grafiği (Çizgi)
+        // Daily Usage Chart (Line)
         const dailyChartData = JSON.parse('<%- chartData %>');
         const dailyCtx = document.getElementById('dailyUsageChart').getContext('2d');
         new Chart(dailyCtx, {
@@ -169,7 +169,7 @@
             data: {
                 labels: dailyChartData.labels,
                 datasets: [{
-                    label: 'Günlük İstek Sayısı',
+                    label: 'Daily Request Count',
                     data: dailyChartData.data,
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
@@ -186,7 +186,7 @@
             }
         });
 
-        // Model Kullanım Grafiği (Pasta)
+        // Model Usage Chart (Pie)
         const modelChartData = JSON.parse('<%- modelUsageData %>');
         const modelCtx = document.getElementById('modelUsageChart').getContext('2d');
         new Chart(modelCtx, {
@@ -194,11 +194,11 @@
             data: {
                 labels: modelChartData.labels,
                 datasets: [{
-                    label: 'Kullanım Sayısı',
+                    label: 'Usage Count',
                     data: modelChartData.data,
                     backgroundColor: [
                         '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71',
-                        '#34495e', '#1abc9c', '#e67e22', '#7f8c8d', '#d35400'
+                        '#34495e', '#1abc9c', '#e67e22', '7f8c8d', '#d35400'
                     ],
                     hoverOffset: 4
                 }]

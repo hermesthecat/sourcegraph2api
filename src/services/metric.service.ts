@@ -1,6 +1,5 @@
 /**
- * Metric Service / Metrik Servisi
- * API kullanım metriklerini kaydetmek ve sorgulamak için fonksiyonlar içerir
+ * Metric Service
  * Contains functions for recording and querying API usage metrics
  */
 
@@ -18,9 +17,8 @@ interface RecordUsageData {
 }
 
 /**
- * Bir API kullanımını veritabanına kaydeder
  * Records an API usage event to the database
- * @param {RecordUsageData} data - Kaydedilecek metrik verisi
+ * @param {RecordUsageData} data - Metric data to be recorded
  * @returns {Promise<void>}
  */
 export async function recordUsage(data: RecordUsageData): Promise<void> {
@@ -35,9 +33,8 @@ export async function recordUsage(data: RecordUsageData): Promise<void> {
       requestTimestamp: new Date(),
     });
   } catch (error) {
-    // Metrik kaydındaki hatalar uygulamanın akışını bozmamalı, sadece loglanmalı
     // Errors in metric recording should not break the application flow, just log them
-    log.error('Metrik kaydedilirken hata oluştu:', error);
+    log.error('Error occurred while recording metric:', error);
   }
 }
 
@@ -49,9 +46,8 @@ interface MetricQueryOptions {
 }
 
 /**
- * Kaydedilmiş metrikleri sayfalama ve filtreleme yaparak getirir
  * Fetches recorded metrics with pagination and filtering
- * @param {MetricQueryOptions} options - Sorgulama seçenekleri
+ * @param {MetricQueryOptions} options - Query options
  * @returns {Promise<{rows: UsageMetric[], count: number}>}
  */
 export async function getUsageMetrics(options: MetricQueryOptions = {}) {
@@ -66,7 +62,7 @@ export async function getUsageMetrics(options: MetricQueryOptions = {}) {
     where.wasSuccess = false;
   }
 
-  // Arama özelliği (IP adresi veya hata mesajında)
+  // Search feature (in IP address or error message)
   if (options.search) {
     where[Op.or] = [
       { ipAddress: { [Op.like]: `%${options.search}%` } },
@@ -80,7 +76,7 @@ export async function getUsageMetrics(options: MetricQueryOptions = {}) {
       limit,
       offset,
       order: [['requestTimestamp', 'DESC']],
-      // İlişkili modelleri de getir (Join)
+      // Include associated models (Join)
       include: [
         { model: ApiKey, as: 'apiKey', attributes: ['alias'] },
         { model: Cookie, as: 'cookie', attributes: ['alias'] },
@@ -88,7 +84,7 @@ export async function getUsageMetrics(options: MetricQueryOptions = {}) {
     });
     return { rows, count };
   } catch (error) {
-    log.error('Metrikler alınırken hata oluştu:', error);
+    log.error('Error occurred while fetching metrics:', error);
     throw error;
   }
 } 

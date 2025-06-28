@@ -1,6 +1,5 @@
 /**
- * Dynamic Configuration Manager / Dinamik Konfigürasyon Yöneticisi
- * Ayarları veritabanından yükler ve uygulama çalışırken güncellenmesine olanak tanır.
+ * Dynamic Configuration Manager
  * Loads settings from the database and allows them to be updated while the application is running.
  */
 
@@ -9,15 +8,15 @@ import { log } from '../utils/logger';
 import { Setting } from '../models/setting.model';
 import { AppConfig, BaseConfig, DynamicConfig } from '../types';
 
-// .env dosyasını SADECE temel, yeniden başlatma gerektiren ayarlar için yükle
+// Load .env file ONLY for core, restart-required settings
 dotenv.config();
 
-// Bellekte tutulacak olan, anlık ve güncel konfigürasyon nesnesi
-// Bu nesne, uygulama genelinde "gerçeğin kaynağı" (source of truth) olacak.
+// The live and up-to-date configuration object to be kept in memory
+// This object will be the "source of truth" throughout the application.
 let liveConfig: Partial<AppConfig> = {};
 
 /**
- * .env dosyasından temel (yeniden başlatma gerektiren) ayarları okur.
+ * Reads core (restart-required) settings from the .env file.
  */
 function getBaseConfig(): BaseConfig {
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7033;
@@ -29,11 +28,11 @@ function getBaseConfig(): BaseConfig {
 }
 
 /**
- * Ayarları veritabanından yükler ve bellekteki `liveConfig` nesnesini doldurur.
- * Ayrıca, veritabanında eksik olan varsayılan ayarları oluşturur.
+ * Loads settings from the database and populates the `liveConfig` object in memory.
+ * Also, creates default settings that are missing in the database.
  */
 export async function loadConfigFromDb(): Promise<void> {
-  log.info('🔄 Ayarlar veritabanından yükleniyor...');
+  log.info('🔄 Loading settings from the database...');
   try {
     const settingsFromDb = await Setting.findAll();
     const dbSettingsMap = new Map(settingsFromDb.map(s => [s.key, s.value]));
@@ -47,61 +46,61 @@ export async function loadConfigFromDb(): Promise<void> {
       logLevel: 'info',
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
       tz: 'Europe/Istanbul',
-      reasoningHide: 'false', // Veritabanında string olarak saklanacak
+      reasoningHide: 'false', // Stored as string in the database
       sourcegraphBaseUrl: 'https://sourcegraph.com',
       chatEndpoint: '/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0',
-      swaggerEnable: 'false', // Yeni eklendi
+      swaggerEnable: 'false', // Newly added
     };
 
     const configToCreate: { key: string, value: string }[] = [];
 
-    // Veritabanındaki ayarları `liveConfig`'e yükle ve eksikleri bul
+    // Load settings from the database to `liveConfig` and find missing ones
     for (const key of Object.keys(defaults) as Array<keyof DynamicConfig>) {
       if (dbSettingsMap.has(key)) {
         liveConfig[key] = dbSettingsMap.get(key) as any;
       } else {
-        log.warn(`Veritabanında eksik ayar: '${key}'. Varsayılan değer kullanılacak ve oluşturulacak.`);
+        log.warn(`Missing setting in database: '${key}'. Using default value and will create.`);
         liveConfig[key] = defaults[key] as any;
         configToCreate.push({ key, value: defaults[key] });
       }
     }
 
-    // Eksik ayarları veritabanına toplu olarak ekle
+    // Add missing settings to the database in bulk
     if (configToCreate.length > 0) {
       await Setting.bulkCreate(configToCreate);
-      log.info(`${configToCreate.length} adet eksik ayar veritabanına eklendi.`);
+      log.info(`${configToCreate.length} missing settings added to the database.`);
     }
 
-    // String'den doğru tiplere dönüştürme
+    // Convert from string to correct types
     liveConfig.requestRateLimit = parseInt(String(liveConfig.requestRateLimit), 10);
     liveConfig.ipBlacklist = String(liveConfig.ipBlacklist || '').split(',').map(ip => ip.trim()).filter(Boolean);
     liveConfig.reasoningHide = String(liveConfig.reasoningHide).toLowerCase() === 'true';
-    liveConfig.swaggerEnable = String(liveConfig.swaggerEnable).toLowerCase() === 'true'; // Yeni eklendi
+    liveConfig.swaggerEnable = String(liveConfig.swaggerEnable).toLowerCase() === 'true'; // Newly added
 
-    log.info('✅ Ayarlar başarıyla yüklendi ve belleğe alındı.');
+    log.info('✅ Settings successfully loaded and cached.');
 
   } catch (error) {
-    log.error('❌ Ayarlar veritabanından yüklenirken kritik bir hata oluştu:', error);
-    // Bu hata kritik olduğu için uygulamayı durdurmak daha güvenli olabilir.
+    log.error('❌ A critical error occurred while loading settings from the database:', error);
+    // It might be safer to stop the application as this error is critical.
     process.exit(1);
   }
 }
 
 /**
- * Uygulama genelinde kullanılacak olan yapılandırma nesnesi.
- * Bu bir proxy nesnesidir, böylece `config.PORT` gibi bir değere erişildiğinde
- * her zaman en güncel değeri (bellekteki `liveConfig`'ten) alır.
+ * The configuration object to be used throughout the application.
+ * This is a proxy object, so when a value like `config.PORT` is accessed,
+ * it always retrieves the most up-to-date value (from `liveConfig` in memory).
  */
 export const config = new Proxy({}, {
   get(_target, prop: string) {
-    // Önce bellekteki dinamik ayarlara bak
+    // First look at dynamic settings in memory
     // @ts-ignore
     if (liveConfig.hasOwnProperty(prop)) {
       // @ts-ignore
       return liveConfig[prop];
     }
 
-    // Sonra .env'den okunan temel ayarlara bak
+    // Then look at base settings read from .env
     const baseConfig = getBaseConfig();
     // @ts-ignore
     if (baseConfig.hasOwnProperty(prop)) {
@@ -109,38 +108,38 @@ export const config = new Proxy({}, {
       return baseConfig[prop];
     }
 
-    // Hiçbir yerde bulunamazsa undefined dön
+    // Return undefined if not found anywhere
     return undefined;
   }
 }) as AppConfig;
 
 
 /**
- * Bellekteki yapılandırmayı anında günceller.
- * Bu fonksiyon, ayarlar panelinden bir ayar güncellendiğinde çağrılır.
- * @param key Güncellenecek ayarın anahtarı
- * @param value Yeni değer
+ * Instantly updates the configuration in memory.
+ * This function is called when a setting is updated from the settings panel.
+ * @param key The key of the setting to update
+ * @param value The new value
  */
 export function updateLiveConfig(key: keyof AppConfig, value: any) {
   let processedValue = value;
-  // Tipe göre işlem yap
+  // Process based on type
   if (key === 'requestRateLimit') {
     processedValue = parseInt(value, 10);
   } else if (key === 'ipBlacklist') {
     processedValue = String(value || '').split(',').map(ip => ip.trim()).filter(Boolean);
   } else if (key === 'reasoningHide') {
     processedValue = String(value).toLowerCase() === 'true';
-  } else if (key === 'swaggerEnable') { // Yeni eklendi
+  } else if (key === 'swaggerEnable') { // Newly added
     processedValue = String(value).toLowerCase() === 'true';
   }
 
   // @ts-ignore
   liveConfig[key] = processedValue;
-  log.info(`Bellekteki ayar güncellendi: ${key} = ${JSON.stringify(processedValue)}`);
+  log.info(`In-memory setting updated: ${key} = ${JSON.stringify(processedValue)}`);
 }
 
 // ====================================================================
-// Model bilgileri statik kalabilir, çünkü bunlar kodla yönetiliyor.
+// Model information can remain static as it is managed by code.
 // ====================================================================
 
 export const modelRegistry: Record<string, { modelRef: string; maxTokens: number }> = {

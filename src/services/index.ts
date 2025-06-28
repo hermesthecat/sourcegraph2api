@@ -1,43 +1,38 @@
 /**
- * Services Index / Servis Dizini
- * Tüm service'leri export eder / Exports all services
+ * Services Index
+ * Exports all services
  */
 
-// Sourcegraph API Service / Sourcegraph API Servisi
+// Sourcegraph API Service
 export {
   sourcegraphClient
 } from './sourcegraph';
 
-// Analytics Service / Analitik Servisi
+// Analytics Service
 export {
   metricsStore,
   createAnalyticsMiddleware,
   getMetricsDashboard
 } from './analytics';
 
-// Cache Service / Önbellek Servisi
+// Cache Service
 export {
   responseCache,
   modelCache,
   configCache,
-  safeResponseCache,
-  safeModelCache,
-  safeConfigCache,
-  SafeCache,
-  ResponseCacheUtils,
   getCacheStats
 } from './cache';
 
-// Import for health check / Sağlık kontrolü için içe aktırma
+// Import for health check
 import { config } from '../config';
 import { sourcegraphClient } from './sourcegraph';
 import { metricsStore } from './analytics';
 import { getCacheStats } from './cache';
-import { countActiveCookies } from './cookie.service'; // countActiveCookies'i import et
+import { countActiveCookies } from './cookie.service'; // Import countActiveCookies
 
-// Service health check / Servis sağlık kontrolü
-export async function getServicesHealth(): Promise<any> { // async yapıldı
-  const activeCookieCount = await countActiveCookies(); // Aktif cookie sayısını al
+// Service health check
+export async function getServicesHealth(): Promise<any> { // Made async
+  const activeCookieCount = await countActiveCookies(); // Get active cookie count
   const hasCookie = activeCookieCount > 0;
   return {
     sourcegraph: {

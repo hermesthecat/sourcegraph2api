@@ -1,5 +1,4 @@
 /**
- * Health Controller - Sistem durumu kontrolleri
  * Health Controller - System status checks
  */
 
@@ -7,12 +6,11 @@ import { Request, Response } from 'express';
 import { sourcegraphClient } from '../services/sourcegraph';
 import { config } from '../config';
 import { log } from '../utils/logger';
-import { countActiveCookies } from '../services/cookie.service'; // countActiveCookies'i import et
+import { countActiveCookies } from '../services/cookie.service'; // Import countActiveCookies
 
 /**
- * Basit health check
- * GET /health
  * Simple health check
+ * GET /health
  */
 export async function healthCheck(req: Request, res: Response): Promise<void> {
   const requestId = req.requestId || 'unknown';
@@ -27,11 +25,11 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
       port: config.port
     };
 
-    log.request(requestId, 'debug', 'Health check requested / Sağlık kontrolü istendi');
+    log.request(requestId, 'debug', 'Health check requested');
     res.json(health);
 
   } catch (error: any) {
-    log.request(requestId, 'error', `Health check error / Sağlık kontrolü hatası: ${error.message}`);
+    log.request(requestId, 'error', `Health check error: ${error.message}`);
     res.status(500).json({
       status: 'error',
       message: error.message
@@ -40,9 +38,8 @@ export async function healthCheck(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Detaylı sağlık kontrolü
- * GET /health/detailed
  * Detailed health check
+ * GET /health/detailed
  */
 export async function detailedHealthCheck(req: Request, res: Response): Promise<void> {
   const requestId = req.requestId || 'unknown';
@@ -50,22 +47,22 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
   try {
     const startTime = Date.now();
 
-    // Cookie durumunu kontrol et / Check cookie status
+    // Check cookie status
     const activeCookieCount = await countActiveCookies();
     const hasActiveCookie = activeCookieCount > 0;
 
-    // Memory kullanımı / Memory usage
+    // Memory usage
     const memoryUsage = process.memoryUsage();
 
     const health = {
-      status: hasActiveCookie ? 'ok' : 'warning', // Aktif cookie yoksa uyarı
+      status: hasActiveCookie ? 'ok' : 'warning', // Warning if no active cookies
       timestamp: new Date().toISOString(),
       version: '1.1.4',
       uptime: process.uptime(),
       environment: config.nodeEnv,
       port: config.port,
 
-      // Detaylar / Details
+      // Details
       details: {
         cookies: {
           available: activeCookieCount,
@@ -83,14 +80,14 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
           debug: config.debug,
           rateLimitEnabled: config.requestRateLimit > 0,
           proxyConfigured: !!config.proxyUrl,
-          swaggerEnabled: config.swaggerEnable // config'den al
+          swaggerEnabled: config.swaggerEnable // Get from config
         },
 
         responseTime: Date.now() - startTime
       }
     };
 
-    log.request(requestId, 'info', `Detailed health check / Detaylı sağlık kontrolü: ${health.status}`);
+    log.request(requestId, 'info', `Detailed health check: ${health.status}`);
 
     if (health.status === 'warning') {
       res.status(503).json(health);
@@ -99,7 +96,7 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
     }
 
   } catch (error: any) {
-    log.request(requestId, 'error', `Detailed health check error / Detaylı sağlık kontrolü hatası: ${error.message}`);
+    log.request(requestId, 'error', `Detailed health check error: ${error.message}`);
     res.status(500).json({
       status: 'error',
       timestamp: new Date().toISOString(),
@@ -119,28 +116,28 @@ export async function rootEndpoint(req: Request, res: Response): Promise<void> {
     const info = {
       name: 'Sourcegraph2API - Node.js',
       version: '1.1.4',
-      description: 'Sourcegraph AI API to OpenAI API proxy server / Sourcegraph AI API\'den OpenAI API\'ye proxy sunucusu',
-      status: 'running / çalışıyor',
+      description: 'Sourcegraph AI API to OpenAI API proxy server',
+      status: 'running',
       timestamp: new Date().toISOString(),
 
       endpoints: {
-        'POST /v1/chat/completions': 'OpenAI uyumlu chat completion / OpenAI compatible chat completion',
-        'GET /v1/models': 'Desteklenen modeller listesi / List of supported models',
-        'GET /health': 'Basit sağlık kontrolü / Simple health check',
-        'GET /health/detailed': 'Detaylı sağlık kontrolü / Detailed health check'
+        'POST /v1/chat/completions': 'OpenAI compatible chat completion',
+        'GET /v1/models': 'List of supported models',
+        'GET /health': 'Simple health check',
+        'GET /health/detailed': 'Detailed health check'
       },
 
-      documentation: config.swaggerEnable ? '/swagger' : 'disabled / devre dışı',
+      documentation: config.swaggerEnable ? '/swagger' : 'disabled',
 
       // GitHub repository
       repository: 'https://github.com/hermesthecat/sourcegraph2api'
     };
 
-    log.request(requestId, 'debug', 'Root endpoint accessed / Kök uç noktasına erişildi');
+    log.request(requestId, 'debug', 'Root endpoint accessed');
     res.json(info);
 
   } catch (error: any) {
-    log.request(requestId, 'error', `Root endpoint error / Kök uç nokta hatası: ${error.message}`);
+    log.request(requestId, 'error', `Root endpoint error: ${error.message}`);
     res.status(500).json({
       status: 'error',
       message: error.message

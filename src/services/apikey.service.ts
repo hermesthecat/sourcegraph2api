@@ -1,6 +1,5 @@
 /**
- * ApiKey Service / API Anahtarı Servisi
- * Veritabanındaki API anahtarlarını yönetmek için fonksiyonlar içerir
+ * ApiKey Service
  * Contains functions for managing API keys in the database
  */
 
@@ -8,10 +7,9 @@ import { ApiKey } from '../models';
 import { log } from '../utils/logger';
 
 /**
- * Verilen bir API anahtarının veritabanında mevcut ve aktif olup olmadığını kontrol eder.
  * Checks if a given API key exists and is active in the database.
- * @param {string} key - Kontrol edilecek API anahtarı / The API key to check
- * @returns {Promise<ApiKey | null>} - Geçerliyse ApiKey nesnesini, değilse null döner.
+ * @param {string} key - The API key to check
+ * @returns {Promise<ApiKey | null>} - Returns ApiKey object if valid, null otherwise.
  */
 export async function isValidActiveApiKey(key: string): Promise<ApiKey | null> {
   if (!key) {
@@ -26,13 +24,13 @@ export async function isValidActiveApiKey(key: string): Promise<ApiKey | null> {
     });
     return apiKey;
   } catch (error) {
-    log.error('API anahtarı doğrulanırken veritabanı hatası:', error);
+    log.error('Database error while validating API key:', error);
     return null;
   }
 }
 
 /**
- * Tüm API anahtarlarını veritabanından getirir / Fetches all API keys from the database
+ * Fetches all API keys from the database
  * @returns {Promise<ApiKey[]>}
  */
 export async function getAllApiKeys(): Promise<ApiKey[]> {
@@ -42,15 +40,15 @@ export async function getAllApiKeys(): Promise<ApiKey[]> {
     });
     return apiKeys;
   } catch (error) {
-    log.error('Tüm API anahtarları alınırken hata oluştu:', error);
+    log.error('Error occurred while fetching all API keys:', error);
     throw error;
   }
 }
 
 /**
- * Yeni bir API anahtarı ekler / Adds a new API key
- * @param {string} alias - API anahtarı için takma ad / Alias for the API key
- * @param {string} key - Oluşturulan API anahtarı / The generated API key
+ * Adds a new API key
+ * @param {string} alias - Alias for the API key
+ * @param {string} key - The generated API key
  * @returns {Promise<ApiKey>}
  */
 export async function addApiKey(alias: string, key: string): Promise<ApiKey> {
@@ -60,17 +58,17 @@ export async function addApiKey(alias: string, key: string): Promise<ApiKey> {
       key,
       isActive: true,
     });
-    log.info(`Yeni API anahtarı eklendi: ${alias} (ID: ${newApiKey.id})`);
+    log.info(`New API key added: ${alias} (ID: ${newApiKey.id})`);
     return newApiKey;
   } catch (error) {
-    log.error(`API anahtarı eklenirken hata: ${alias}`, error);
+    log.error(`Error adding API key: ${alias}`, error);
     throw error;
   }
 }
 
 /**
- * Bir API anahtarını ID'sine göre siler / Deletes an API key by its ID
- * @param {number} id - Silinecek API anahtarının ID'si / The ID of the API key to delete
+ * Deletes an API key by its ID
+ * @param {number} id - The ID of the API key to delete
  * @returns {Promise<void>}
  */
 export async function deleteApiKey(id: number): Promise<void> {
@@ -79,19 +77,19 @@ export async function deleteApiKey(id: number): Promise<void> {
       where: { id },
     });
     if (result > 0) {
-      log.info(`API anahtarı silindi: (ID: ${id})`);
+      log.info(`API key deleted: (ID: ${id})`);
     } else {
-      log.warn(`Silinecek API anahtarı bulunamadı: (ID: ${id})`);
+      log.warn(`API key to delete not found: (ID: ${id})`);
     }
   } catch (error) {
-    log.error(`API anahtarı silinirken hata (ID: ${id}):`, error);
+    log.error(`Error deleting API key (ID: ${id}):`, error);
     throw error;
   }
 }
 
 /**
- * Bir API anahtarının 'isActive' durumunu tersine çevirir / Toggles the 'isActive' status of an API key
- * @param {number} id - Durumu değiştirilecek API anahtarının ID'si / The ID of the API key to toggle
+ * Toggles the 'isActive' status of an API key
+ * @param {number} id - The ID of the API key to toggle
  * @returns {Promise<ApiKey | null>}
  */
 export async function toggleApiKeyStatus(id: number): Promise<ApiKey | null> {
@@ -100,14 +98,14 @@ export async function toggleApiKeyStatus(id: number): Promise<ApiKey | null> {
     if (apiKey) {
       apiKey.isActive = !apiKey.isActive;
       await apiKey.save();
-      log.info(`API anahtarı durumu güncellendi: ${apiKey.alias} (ID: ${id}), yeni durum: ${apiKey.isActive ? 'Aktif' : 'Pasif'}`);
+      log.info(`API key status updated: ${apiKey.alias} (ID: ${id}), new status: ${apiKey.isActive ? 'Active' : 'Inactive'}`);
       return apiKey;
     } else {
-      log.warn(`Durumu güncellenecek API anahtarı bulunamadı: (ID: ${id})`);
+      log.warn(`API key to update status not found: (ID: ${id})`);
       return null;
     }
   } catch (error) {
-    log.error(`API anahtarı durumu güncellenirken hata (ID: ${id}):`, error);
+    log.error(`Error updating API key status (ID: ${id}):`, error);
     throw error;
   }
 } 

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sourcegraph API Key Yönetimi | Sourcegraph Proxy</title>
+  <title>Sourcegraph API Key Management | Sourcegraph Proxy</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -13,36 +13,36 @@
     <%- include('partials/nav') %>
       <%- include('partials/messages') %>
 
-        <h1>Sourcegraph API Key Yönetimi</h1>
+        <h1>Sourcegraph API Key Management</h1>
 
         <div class="content-grid">
           <div class="form-container">
-            <h2>Sourcegraph API Key Ekle</h2>
+            <h2>Add Sourcegraph API Key</h2>
             <form action="/admin/cookies/add" method="POST">
               <div class="form-row">
                 <div class="form-group">
-                  <label for="alias">Takma Ad (Alias)</label>
-                  <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
+                  <label for="alias">Alias</label>
+                  <input type="text" id="alias" name="alias" placeholder="Ex: My Personal Account" required>
                 </div>
                 <div class="form-group">
-                  <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
+                  <label for="cookieValue">Cookie Value (SG_COOKIE)</label>
                   <input type="text" id="cookieValue" name="cookieValue"
-                    placeholder="sg_user_id=... ile başlayan değeri yapıştırın" required>
+                    placeholder="Paste value starting with sg_user_id=..." required>
                 </div>
               </div>
               <br>
-              <button type="submit" class="btn btn-primary">Ekle</button>
+              <button type="submit" class="btn btn-primary">Add</button>
             </form>
           </div>
 
-          <h2>Mevcut Sourcegraph API Key'leri (<%= cookies.length %>)</h2>
+          <h2>Existing Sourcegraph API Keys (<%= cookies.length %>)</h2>
           <table>
             <thead>
               <tr>
-                <th>Takma Ad</th>
-                <th>Durum</th>
-                <th>Eklenme Tarihi</th>
-                <th>Eylemler</th>
+                <th>Alias</th>
+                <th>Status</th>
+                <th>Addition Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -54,31 +54,31 @@
                     </td>
                     <td>
                       <% if (cookie.isActive) { %>
-                        <span class="status status-active">Aktif</span>
+                        <span class="status status-active">Active</span>
                         <% } else { %>
-                          <span class="status status-passive">Pasif</span>
+                          <span class="status status-passive">Passive</span>
                           <% } %>
                     </td>
                     <td>
-                      <%= new Date(cookie.createdAt).toLocaleString('tr-TR') %>
+                      <%= new Date(cookie.createdAt).toLocaleString('en-US') %>
                     </td>
                     <td class="actions">
-                      <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-warning">Düzenle</a>
+                      <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-warning">Edit</a>
                       <form action=" /admin/cookies/toggle/<%=cookie.id %>" method="POST" style="display:inline;">
                         <button type="submit" class="btn <%= cookie.isActive ? 'btn-primary' : 'btn-success' %>">
-                          <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
+                          <%= cookie.isActive ? 'Deactivate' : 'Activate' %>
                         </button>
-                        </form>
-                        <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
-                          onsubmit="return confirm('Bu Sourcegraph API Key\'yi silmek istediğinizden emin misiniz?');">
-                          <button type="submit" class="btn btn-danger">Sil</button>
-                        </form>
+                      </form>
+                      <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Are you sure you want to delete this Sourcegraph API Key?');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
                     </td>
                   </tr>
                   <% }) %>
                     <% } else { %>
                       <tr>
-                        <td colspan="4" style="text-align: center;">Henüz hiç Sourcegraph API Key eklenmemiş.</td>
+                        <td colspan="4" style="text-align: center;">No Sourcegraph API Key added yet.</td>
                       </tr>
                       <% } %>
             </tbody>

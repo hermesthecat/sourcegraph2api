@@ -1,6 +1,5 @@
 /**
- * Cookie Service / Cookie Servisi
- * Veritabanındaki cookie'leri yönetmek için fonksiyonlar içerir
+ * Cookie Service
  * Contains functions for managing cookies in the database
  */
 
@@ -9,7 +8,7 @@ import { log } from '../utils/logger';
 import { Sequelize } from 'sequelize';
 
 /**
- * Tüm cookie'leri veritabanından getirir / Fetches all cookies from the database
+ * Fetches all cookies from the database
  * @returns {Promise<Cookie[]>}
  */
 export async function getAllCookies(): Promise<Cookie[]> {
@@ -19,15 +18,15 @@ export async function getAllCookies(): Promise<Cookie[]> {
     });
     return cookies;
   } catch (error) {
-    log.error('Tüm cookie\'ler alınırken hata oluştu / Error fetching all cookies:', error);
+    log.error('Error fetching all cookies:', error);
     throw error;
   }
 }
 
 /**
- * Yeni bir cookie ekler / Adds a new cookie
- * @param {string} alias - Cookie için takma ad / Alias for the cookie
- * @param {string} cookieValue - Gerçek cookie değeri / The actual cookie value
+ * Adds a new cookie
+ * @param {string} alias - Alias for the cookie
+ * @param {string} cookieValue - The actual cookie value
  * @returns {Promise<Cookie>}
  */
 export async function addCookie(alias: string, cookieValue: string): Promise<Cookie> {
@@ -37,17 +36,17 @@ export async function addCookie(alias: string, cookieValue: string): Promise<Coo
       cookieValue,
       isActive: true,
     });
-    log.info(`Yeni cookie eklendi: ${alias} (ID: ${newCookie.id})`);
+    log.info(`New cookie added: ${alias} (ID: ${newCookie.id})`);
     return newCookie;
   } catch (error) {
-    log.error(`Cookie eklenirken hata: ${alias}`, error);
+    log.error(`Error adding cookie: ${alias}`, error);
     throw error;
   }
 }
 
 /**
- * Bir cookie'yi ID'sine göre siler / Deletes a cookie by its ID
- * @param {number} id - Silinecek cookie'nin ID'si / The ID of the cookie to delete
+ * Deletes a cookie by its ID
+ * @param {number} id - The ID of the cookie to delete
  * @returns {Promise<void>}
  */
 export async function deleteCookie(id: number): Promise<void> {
@@ -56,19 +55,19 @@ export async function deleteCookie(id: number): Promise<void> {
       where: { id },
     });
     if (result > 0) {
-      log.info(`Cookie silindi: (ID: ${id})`);
+      log.info(`Cookie deleted: (ID: ${id})`);
     } else {
-      log.warn(`Silinecek cookie bulunamadı: (ID: ${id})`);
+      log.warn(`Cookie to delete not found: (ID: ${id})`);
     }
   } catch (error) {
-    log.error(`Cookie silinirken hata (ID: ${id}):`, error);
+    log.error(`Error deleting cookie (ID: ${id}):`, error);
     throw error;
   }
 }
 
 /**
- * Bir cookie'nin 'isActive' durumunu tersine çevirir / Toggles the 'isActive' status of a cookie
- * @param {number} id - Durumu değiştirilecek cookie'nin ID'si / The ID of the cookie to toggle
+ * Toggles the 'isActive' status of a cookie
+ * @param {number} id - The ID of the cookie to toggle
  * @returns {Promise<Cookie | null>}
  */
 export async function toggleCookieStatus(id: number): Promise<Cookie | null> {
@@ -77,20 +76,19 @@ export async function toggleCookieStatus(id: number): Promise<Cookie | null> {
     if (cookie) {
       cookie.isActive = !cookie.isActive;
       await cookie.save();
-      log.info(`Cookie durumu güncellendi: ${cookie.alias} (ID: ${id}), yeni durum: ${cookie.isActive ? 'Aktif' : 'Pasif'}`);
+      log.info(`Cookie status updated: ${cookie.alias} (ID: ${id}), new status: ${cookie.isActive ? 'Active' : 'Inactive'}`);
       return cookie;
     } else {
-      log.warn(`Durumu güncellenecek cookie bulunamadı: (ID: ${id})`);
+      log.warn(`Cookie to update status not found: (ID: ${id})`);
       return null;
     }
   } catch (error) {
-    log.error(`Cookie durumu güncellenirken hata (ID: ${id}):`, error);
+    log.error(`Error updating cookie status (ID: ${id}):`, error);
     throw error;
   }
 }
 
 /**
- * Veritabanından rastgele bir AKTİF cookie getirir
  * Fetches a random ACTIVE cookie from the database
  * @returns {Promise<Cookie | null>}
  */
@@ -98,24 +96,24 @@ export async function getRandomActiveCookie(): Promise<Cookie | null> {
   try {
     const activeCookie = await Cookie.findOne({
       where: { isActive: true },
-      order: Sequelize.literal('RANDOM()'), // SQLite için rastgele sıralama / Random ordering for SQLite
+      order: Sequelize.literal('RANDOM()'), // Random ordering for SQLite
     });
 
     if (activeCookie) {
-      log.debug(`Havuzdan rastgele cookie seçildi: ${activeCookie.alias} (ID: ${activeCookie.id})`);
+      log.debug(`Random cookie selected from pool: ${activeCookie.alias} (ID: ${activeCookie.id})`);
     } else {
-      log.warn('Havuzda aktif cookie bulunamadı! / No active cookies found in the pool!');
+      log.warn('No active cookies found in the pool!');
     }
 
     return activeCookie;
   } catch (error) {
-    log.error('Rastgele aktif cookie alınırken hata oluştu:', error);
-    return null; // Hata durumunda null dönerek sistemin çökmesini engelle
+    log.error('Error occurred while fetching random active cookie:', error);
+    return null; // Return null on error to prevent system crash
   }
 }
 
 /**
- * Tek bir cookie'yi ID'sine göre getirir / Fetches a single cookie by its ID
+ * Fetches a single cookie by its ID
  * @param {number} id
  * @returns {Promise<Cookie | null>}
  */
@@ -124,16 +122,16 @@ export async function getCookieById(id: number): Promise<Cookie | null> {
     const cookie = await Cookie.findByPk(id);
     return cookie;
   } catch (error) {
-    log.error(`Cookie getirilirken hata (ID: ${id}):`, error);
+    log.error(`Error fetching cookie (ID: ${id}):`, error);
     throw error;
   }
 }
 
 /**
- * Bir cookie'nin bilgilerini günceller / Updates a cookie's information
- * @param {number} id - Güncellenecek cookie'nin ID'si
- * @param {string} alias - Yeni takma ad
- * @param {string} cookieValue - Yeni cookie değeri
+ * Updates a cookie's information
+ * @param {number} id - The ID of the cookie to update
+ * @param {string} alias - New alias
+ * @param {string} cookieValue - New cookie value
  * @returns {Promise<Cookie | null>}
  */
 export async function updateCookie(id: number, alias: string, cookieValue: string): Promise<Cookie | null> {
@@ -143,20 +141,20 @@ export async function updateCookie(id: number, alias: string, cookieValue: strin
       cookie.alias = alias;
       cookie.cookieValue = cookieValue;
       await cookie.save();
-      log.info(`Cookie güncellendi: ${cookie.alias} (ID: ${id})`);
+      log.info(`Cookie updated: ${cookie.alias} (ID: ${id})`);
       return cookie;
     } else {
-      log.warn(`Güncellenecek cookie bulunamadı: (ID: ${id})`);
+      log.warn(`Cookie to update not found: (ID: ${id})`);
       return null;
     }
   } catch (error) {
-    log.error(`Cookie güncellenirken hata (ID: ${id}):`, error);
+    log.error(`Error updating cookie (ID: ${id}):`, error);
     throw error;
   }
 }
 
 /**
- * Aktif cookie sayısını döndürür / Returns the count of active cookies
+ * Returns the count of active cookies
  * @returns {Promise<number>}
  */
 export async function countActiveCookies(): Promise<number> {
@@ -166,7 +164,7 @@ export async function countActiveCookies(): Promise<number> {
     });
     return count;
   } catch (error) {
-    log.error('Aktif cookie sayısı alınırken hata oluştu:', error);
+    log.error('Error occurred while fetching active cookie count:', error);
     throw error;
   }
 }

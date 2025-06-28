@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(context) { // context objesini alacak şekilde değiştirildi
+  async up(context) { // Changed to receive context object
     const queryInterface = context.queryInterface;
     const Sequelize = context.Sequelize;
 
@@ -159,7 +159,7 @@ module.exports = {
       },
     });
 
-    // Session tablosunu da oluştur
+    // Also create the Session table
     await queryInterface.createTable('sessions', {
       sid: {
         type: Sequelize.DataTypes.STRING,
@@ -184,7 +184,7 @@ module.exports = {
     });
   },
 
-  async down(context) { // context objesini alacak şekilde değiştirildi
+  async down(context) { // Changed to receive context object
     const queryInterface = context.queryInterface;
     const Sequelize = context.Sequelize;
 

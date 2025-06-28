@@ -1,41 +1,41 @@
-# Routes Klasörü
+# Routes Folder
 
-Bu klasör, Express.js uygulamasının yönlendirme (routing) katmanını tanımlar. Gelen HTTP isteklerini belirli URL yollarına (endpoints) göre ilgili controller fonksiyonlarına yönlendirir. Ayrıca, belirli yollar için ara katmanları (middleware) uygular.
+This folder defines the routing layer of the Express.js application. It directs incoming HTTP requests to the relevant controller functions based on specific URL paths (endpoints). It also applies middleware for specific paths.
 
-## Sorumluluklar
+## Responsibilities
 
-* **URL Yollarını Tanımlama:** Uygulamanın API endpoint'lerini (örneğin, `/v1/chat/completions`, `/admin/dashboard`) ve bu yollara hangi HTTP metodları (GET, POST, vb.) ile erişilebileceğini tanımlar.
-* **Controller'ları Yönlendirme:** Gelen bir isteği, iş mantığını yürütecek olan ilgili controller fonksiyonuna bağlar.
-* **Ara Katmanları Uygulama:** Belirli yollar veya yol grupları için kimlik doğrulama (`openaiAuth`), yetkilendirme (`isAuthenticated`) gibi ara katmanları uygular.
-* **Yol Gruplama:** İlgili yolları `Express.Router` kullanarak modüler gruplar halinde organize eder (örneğin, `adminRouter`, `v1Router`).
+* **Defining URL Paths:** Defines the application's API endpoints (e.g., `/v1/chat/completions`, `/admin/dashboard`) and which HTTP methods (GET, POST, etc.) can be used to access these paths.
+* **Directing Controllers:** Connects an incoming request to the relevant controller function that will execute the business logic.
+* **Applying Middleware:** Applies middleware such as authentication (`openaiAuth`) and authorization (`isAuthenticated`) for specific paths or groups of paths.
+* **Path Grouping:** Organizes related paths into modular groups using `Express.Router` (e.g., `adminRouter`, `v1Router`).
 
-## Dosyalar
+## Files
 
 ### `main.ts`
 
-Uygulamanın ana yönlendiricisini (`Router`) oluşturan ve yapılandıran dosyadır.
+This file creates and configures the application's main router.
 
-* `createApiRouter`: Ana router nesnesini oluşturur ve tüm alt rotaları (API, yönetim, sağlık kontrolü vb.) buna bağlar.
-  * **Kök (`/`) ve Sağlık Kontrolü (`/health`) Rotaları:** Uygulama hakkında genel bilgi ve sağlık durumu endpoint'lerini tanımlar.
-  * **Kimlik Doğrulama Rotaları (`/login`, `/logout`):** Yönetim paneli için kullanıcı giriş ve çıkış işlemlerini yönetir. `passport.js` ile entegredir.
-  * **Yönetim Paneli (`/admin`):** `/admin` ön eki ile gelen tüm istekleri `admin.routes.ts` içinde tanımlanan `adminRouter`'a yönlendirir.
-  * **V1 API Rotaları (`/v1`):** `/v1` ön eki ile gelen ve OpenAI uyumlu olan ana API rotalarını (`/chat/completions`, `/models`) tanımlar. Bu rotalar `openaiAuth` ara katmanı ile korunur.
-  * **Metrik Rotaları (`/metrics`):** Uygulama performansı ve istatistikleri hakkında bilgi veren endpoint'leri içerir.
-* `setupRoutes`: `createApiRouter` tarafından oluşturulan ana router'ı ana Express `app` nesnesine bağlar.
-* `processRoutePrefix`: `config`'den (artık veritabanından dinamik olarak yüklenen) gelen `routePrefix` değerini işleyerek API rotalarının özel bir ön ek altında sunulmasına olanak tanır.
+* `createApiRouter`: Creates the main router object and connects all sub-routes (API, admin, health check, etc.) to it.
+  * **Root (`/`) and Health Check (`/health`) Routes:** Defines general information about the application and health status endpoints.
+  * **Authentication Routes (`/login`, `/logout`):** Manages user login and logout operations for the admin panel. Integrated with `passport.js`.
+  * **Admin Panel (`/admin`):** Redirects all requests with the `/admin` prefix to the `adminRouter` defined in `admin.routes.ts`.
+  * **V1 API Routes (`/v1`):** Defines the main OpenAI-compatible API routes (`/chat/completions`, `/models`) with the `/v1` prefix. These routes are protected by the `openaiAuth` middleware.
+  * **Metric Routes (`/metrics`):** Contains endpoints that provide information about application performance and statistics.
+* `setupRoutes`: Connects the main router created by `createApiRouter` to the main Express `app` object.
+* `processRoutePrefix`: Processes the `routePrefix` value from `config` (now dynamically loaded from the database) to allow API routes to be served under a custom prefix.
 
 ### `admin.routes.ts`
 
-Yönetim paneli arayüzü için gerekli olan tüm rotaları içerir. Bu rotaların tamamı, kullanıcının oturum açmasını gerektiren bir ara katman tarafından korunmaktadır.
+Contains all routes required for the admin panel interface. All of these routes are protected by middleware that requires the user to be logged in.
 
-* **Dashboard (`/dashboard`):** Genel istatistikleri, kullanım grafiklerini ve model kullanım oranlarını gösteren ana panel sayfasını render eder.
-* **Cookie Yönetimi (`/cookies`):** Cookie'leri listelemek, eklemek, düzenlemek, silmek ve aktif/pasif durumunu değiştirmek için CRUD (Oluştur, Oku, Güncelle, Sil) operasyonlarını yöneten rotaları içerir.
-* **API Anahtarı Yönetimi (`/apikeys`):** API anahtarlarını listelemek, oluşturmak, silmek ve durumunu değiştirmek için CRUD rotalarını içerir.
-* **Kullanıcı Yönetimi (`/users`):** Yönetim paneline erişebilen kullanıcıları listelemek, eklemek, güncellemek ve silmek için rotaları içerir.
-* **Kullanım Metrikleri (`/metrics`):** API kullanım loglarını sayfalama (pagination) yaparak gösteren bir sayfa sunar.
-* **Ayarlar (`/settings`):** Uygulamanın dinamik ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`) görüntülemek ve güncellemek için bir arayüz sağlar.
-* **Flash Mesajları:** Kullanıcı işlemlerinden sonra (örneğin, "Cookie başarıyla eklendi") bilgilendirme mesajları göstermek için `connect-flash` ve session tabanlı bir ara katman kullanır.
+* **Dashboard (`/dashboard`):** Renders the main panel page showing general statistics, usage graphs, and model usage rates.
+* **Cookie Management (`/cookies`):** Includes routes that manage CRUD (Create, Read, Update, Delete) operations for listing, adding, editing, deleting, and changing the active/inactive status of cookies.
+* **API Key Management (`/apikeys`):** Includes CRUD routes for listing, creating, deleting, and changing the status of API keys.
+* **User Management (`/users`):** Includes routes for listing, adding, updating, and deleting users who can access the admin panel.
+* **Usage Metrics (`/metrics`):** Provides a page displaying API usage logs with pagination.
+* **Settings (`/settings`):** Provides an interface for viewing and updating the application's dynamic settings (e.g., `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`).
+* **Flash Messages:** Uses `connect-flash` and session-based middleware to display informational messages after user operations (e.g., "Cookie added successfully").
 
 ### `index.ts`
 
-`main.ts` dosyasındaki `createApiRouter` ve `setupRoutes` fonksiyonlarını dışa aktararak `app.ts` gibi üst katman modüllerinin bu fonksiyonlara temiz bir şekilde erişmesini sağlar.
+Exports the `createApiRouter` and `setupRoutes` functions from `main.ts`, allowing higher-level modules like `app.ts` to access these functions cleanly.

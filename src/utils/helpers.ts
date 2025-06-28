@@ -1,28 +1,28 @@
 /**
- * Helper Utilities / Yardımcı Araçlar
- * Yardımcı fonksiyonlar ve utilities / Helper functions and utilities
+ * Helper Utilities
+ * Helper functions and utilities
  */
 
 import { OpenAIChatMessage } from '../types';
 
 /**
- * Retry logic için delay fonksiyonu / Delay function for retry logic
+ * Delay function for retry logic
  */
 export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
- * Exponential backoff hesaplama / Calculate exponential backoff
+ * Calculate exponential backoff
  */
 export function calculateBackoff(attempt: number, baseDelay: number = 1000, maxDelay: number = 30000): number {
   const exponentialDelay = baseDelay * Math.pow(2, attempt);
-  const jitter = Math.random() * 0.1 * exponentialDelay; // %10 jitter / 10% jitter
+  const jitter = Math.random() * 0.1 * exponentialDelay; // 10% jitter
   return Math.min(exponentialDelay + jitter, maxDelay);
 }
 
 /**
- * Safe JSON parse / Güvenli JSON ayrıştırma
+ * Safe JSON parse
  */
 export function safeJsonParse(text: string): any {
   try {
@@ -33,17 +33,17 @@ export function safeJsonParse(text: string): any {
 }
 
 /**
- * String'den zararlı karakterleri temizle / Sanitize harmful characters from a string
+ * Sanitize harmful characters from a string
  */
 export function sanitizeString(str: string): string {
   return str
-    .replace(/[\x00-\x1F\x7F]/g, '') // Control karakterleri / Control characters
-    .replace(/[\u2028\u2029]/g, '') // Line/paragraph separator / Satır/paragraf ayırıcı
+    .replace(/[\x00-\x1F\x7F]/g, '') // Control characters
+    .replace(/[\u2028\u2029]/g, '') // Line/paragraph separator
     .trim();
 }
 
 /**
- * Text chunk'ları birleştir / Merge text chunks
+ * Merge text chunks
  */
 export function mergeTextChunks(chunks: string[]): string {
   return chunks
@@ -53,7 +53,7 @@ export function mergeTextChunks(chunks: string[]): string {
 }
 
 /**
- * Messages'ları text'e çevir / Convert messages to text
+ * Convert messages to text
  */
 export function messagesToText(messages: OpenAIChatMessage[]): string {
   return messages.map(message => {
@@ -67,7 +67,7 @@ export function messagesToText(messages: OpenAIChatMessage[]): string {
 }
 
 /**
- * Rate limit header'larını parse et / Parse rate limit headers
+ * Parse rate limit headers
  */
 export function parseRateLimitHeaders(headers: Record<string, string>): {
   limit?: number;
@@ -82,7 +82,7 @@ export function parseRateLimitHeaders(headers: Record<string, string>): {
 }
 
 /**
- * URL validation / URL doğrulama
+ * URL validation
  */
 export function isValidUrl(url: string): boolean {
   try {
@@ -94,15 +94,15 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Cookie format validation / Cookie formatı doğrulama
+ * Cookie format validation
  */
 export function isValidCookie(cookie: string): boolean {
-  // Basit cookie format kontrolü / Simple cookie format check
+  // Simple cookie format check
   return cookie.length > 10 && !cookie.includes(' ') && cookie.includes('=');
 }
 
 /**
- * Error'dan status code çıkar / Extract status code from error
+ * Extract status code from error
  */
 export function extractStatusCode(error: any): number {
   if (error.response?.status) return error.response.status;
@@ -113,7 +113,7 @@ export function extractStatusCode(error: any): number {
 }
 
 /**
- * Memory usage formatla / Format memory usage
+ * Format memory usage
  */
 export function formatMemoryUsage(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
@@ -129,7 +129,7 @@ export function formatMemoryUsage(bytes: number): string {
 }
 
 /**
- * Duration formatla (milisaniye) / Format duration (milliseconds)
+ * Format duration (milliseconds)
  */
 export function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -139,7 +139,7 @@ export function formatDuration(ms: number): string {
 }
 
 /**
- * Truncate text / Metni kısalt
+ * Truncate text
  */
 export function truncateText(text: string, maxLength: number = 100): string {
   if (text.length <= maxLength) return text;
@@ -147,7 +147,7 @@ export function truncateText(text: string, maxLength: number = 100): string {
 }
 
 /**
- * Generate random string / Rastgele dize oluştur
+ * Generate random string
  */
 export function generateRandomString(length: number = 16): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -159,32 +159,32 @@ export function generateRandomString(length: number = 16): string {
 }
 
 /**
- * Deep clone object / Nesneyi derinlemesine kopyala
+ * Deep clone object
  */
 export function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
 /**
- * Check if running in production / Üretim ortamında çalışıp çalışmadığını kontrol et
+ * Check if running in production
  */
 export function isProduction(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
 /**
- * Get current timestamp / Geçerli zaman damgasını al
+ * Get current timestamp
  */
 export function getCurrentTimestamp(): number {
   return Math.floor(Date.now() / 1000);
 }
 
 /**
- * Validate environment variable / Ortam değişkenini doğrula
+ * Validate environment variable
  */
 export function validateEnvVar(name: string, value: string | undefined, required: boolean = false): string {
   if (required && !value) {
-    throw new Error(`Required environment variable ${name} is not set / Gerekli ortam değişkeni ${name} ayarlanmadı`);
+    throw new Error(`Required environment variable ${name} is not set`);
   }
   return value || '';
 } 

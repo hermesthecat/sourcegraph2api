@@ -1,6 +1,5 @@
 /**
- * ApiKey Model / API Anahtarı Modeli
- * Veritabanındaki 'api_keys' tablosunun yapısını tanımlar
+ * ApiKey Model
  * Defines the structure of the 'api_keys' table in the database
  */
 
@@ -37,25 +36,25 @@ ApiKey.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-      comment: 'Uygulamaya erişim için kullanılacak API anahtarı / The API key to access the application',
+      comment: 'The API key to access the application',
     },
     alias: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'API anahtarı için kolay hatırlanabilir bir isim / An easy-to-remember name for the API key',
+      comment: 'An easy-to-remember name for the API key',
     },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment: 'API anahtarı aktif mi? / Is the API key active?',
+      comment: 'Is the API key active?',
     },
   },
   {
     tableName: 'api_keys',
     sequelize,
     timestamps: true,
-    comment: 'Proxy erişimi için API anahtarlarını saklar / Stores API keys for proxy access',
+    comment: 'Stores API keys for proxy access',
   }
 );
 

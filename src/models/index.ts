@@ -1,6 +1,5 @@
 /**
- * Models Index / Modeller Dizini
- * Tüm modelleri ve aralarındaki ilişkileri tanımlar
+ * Models Index
  * Defines all models and their relationships
  */
 
@@ -10,8 +9,8 @@ import { UsageMetric } from './usage.model';
 import { User } from './user.model';
 import { Setting } from './setting.model';
 
-// ApiKey ve UsageMetric arasındaki ilişki (One-to-Many)
-// Bir ApiKey'in birden çok kullanım metriği olabilir
+// One-to-Many relationship between ApiKey and UsageMetric
+// An ApiKey can have multiple usage metrics
 ApiKey.hasMany(UsageMetric, {
   foreignKey: 'apiKeyId',
   as: 'usageMetrics',
@@ -21,8 +20,8 @@ UsageMetric.belongsTo(ApiKey, {
   as: 'apiKey',
 });
 
-// Cookie ve UsageMetric arasındaki ilişki (One-to-Many)
-// Bir Cookie'nin birden çok kullanım metriği olabilir
+// One-to-Many relationship between Cookie and UsageMetric
+// A Cookie can have multiple usage metrics
 Cookie.hasMany(UsageMetric, {
   foreignKey: 'cookieId',
   as: 'usageMetrics',
@@ -32,7 +31,7 @@ UsageMetric.belongsTo(Cookie, {
   as: 'cookie',
 });
 
-// Tüm modelleri tek bir yerden export et
+// Export all models from a single point
 export * from './apikey.model';
 export * from './cookie.model';
 export * from './usage.model';

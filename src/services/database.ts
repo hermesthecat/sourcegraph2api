@@ -1,6 +1,6 @@
 /**
- * Database Service / Veritabanı Servisi
- * Sequelize ile veritabanı bağlantısını yönetir / Manages the database connection with Sequelize
+ * Database Service
+ * Manages the database connection with Sequelize
  */
 
 import { Sequelize } from 'sequelize';
@@ -8,22 +8,22 @@ import { log } from '../utils/logger';
 import path from 'path';
 import session from 'express-session';
 import ConnectSessionSequelize from 'connect-session-sequelize';
-import { Umzug, SequelizeStorage } from 'umzug'; // Umzug'u import et
-import winston from 'winston'; // Winston'ı doğrudan import et
+import { Umzug, SequelizeStorage } from 'umzug'; // Import Umzug
+import winston from 'winston'; // Import Winston directly
 
-// Veritabanı dosyasının yolu (proje kök dizininde)
+// Path to the database file (in the project root directory)
 const storage = path.join(process.cwd(), 'database.sqlite');
 
-// Sequelize instance'ı oluştur (Umzug'dan önce tanımlanmalı)
+// Create Sequelize instance (must be defined before Umzug)
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: storage,
-  logging: (msg) => log.debug(msg), // SQL sorgularını debug seviyesinde logla
+  logging: (msg) => log.debug(msg), // Log SQL queries at debug level
 });
 
-// Umzug için geçici bir logger oluştur
+// Create a temporary logger for Umzug
 const umzugLogger = winston.createLogger({
-  level: 'info', // Başlangıçta info seviyesinde logla
+  level: 'info', // Log at info level initially
   format: winston.format.combine(
     winston.format.colorize(),
     winston.format.simple()
@@ -34,74 +34,74 @@ const umzugLogger = winston.createLogger({
 });
 
 
-// Umzug instance'ı oluştur
+// Create Umzug instance
 const umzug = new Umzug({
   migrations: {
-    glob: 'migrations/*.js', // Migration dosyalarının yolu
-    resolve: ({ name, path: migrationPath, context }) => { // context'i de al
+    glob: 'migrations/*.js', // Path to migration files
+    resolve: ({ name, path: migrationPath, context }) => { // Also get context
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const migration = require(migrationPath as string); // Tip kontrolünü atla
+      const migration = require(migrationPath as string); // Skip type check
       return {
         name,
-        // Migration dosyaları context objesi alacak şekilde güncellenecek.
-        // Bu context objesi queryInterface ve Sequelize'yi içerecek.
+        // Migration files will be updated to receive a context object.
+        // This context object will include queryInterface and Sequelize.
         up: async () => migration.up(context),
         down: async () => migration.down(context),
       };
     },
   },
-  context: { queryInterface: sequelize.getQueryInterface(), Sequelize: Sequelize }, // Context'i burada tanımla
+  context: { queryInterface: sequelize.getQueryInterface(), Sequelize: Sequelize }, // Define context here
   storage: new SequelizeStorage({ sequelize }),
-  logger: umzugLogger, // Umzug için özel logger kullan
+  logger: umzugLogger, // Use custom logger for Umzug
 });
 
-log.info(`Veritabanı yolu: ${storage} / Database path: ${storage}`);
+log.info(`Database path: ${storage}`);
 
-// Sequelize-tabanlı session store oluştur
+// Create Sequelize-based session store
 const SequelizeStore = ConnectSessionSequelize(session.Store);
 export const sessionStore = new SequelizeStore({
   db: sequelize,
   tableName: 'sessions',
-  checkExpirationInterval: 15 * 60 * 1000, // 15 dakikada bir süresi dolanları temizle
-  expiration: 24 * 60 * 60 * 1000  // 24 saat
+  checkExpirationInterval: 15 * 60 * 1000, // Clean up expired sessions every 15 minutes
+  expiration: 24 * 60 * 60 * 1000  // 24 hours
 });
 
 /**
- * Veritabanı bağlantısını test et ve senkronize et / Test and synchronize the database connection
+ * Test and synchronize the database connection
  */
 export async function initializeDatabase(): Promise<void> {
-  // Döngüsel bağımlılığı kırmak için modelleri ve config'i burada import et
+  // Import models and config here to break circular dependency
   const { User } = await import('../models/user.model');
   const { config } = await import('../config');
 
   try {
     await sequelize.authenticate();
-    log.info('Veritabanı bağlantısı başarıyla kuruldu. / Database connection has been established successfully.');
+    log.info('Database connection has been established successfully.');
 
-    // Migration'ları çalıştır
-    log.info('🚀 Veritabanı migrationları çalıştırılıyor... / Running database migrations...');
-    // umzug.up() metoduna herhangi bir parametre geçirmeye gerek yok,
-    // çünkü context constructor'da zaten tanımlandı.
+    // Run migrations
+    log.info('🚀 Running database migrations...');
+    // No need to pass any parameters to umzug.up() method,
+    // because context is already defined in the constructor.
     await umzug.up();
-    log.info('✅ Veritabanı migrationları başarıyla tamamlandı. / Database migrations completed successfully.');
+    log.info('✅ Database migrations completed successfully.');
 
-    await sessionStore.sync(); // Session tablosunun da migration ile yönetilmesi gerekecek, şimdilik burada kalsın.
+    await sessionStore.sync(); // Session table will also need to be managed by migration, for now keep it here.
 
-    // Başlangıçta admin kullanıcısı yoksa oluştur
-    // Bu kısım artık migration'a taşınabilir veya seed'e taşınabilir.
-    // Ancak şimdilik burada kalabilir, çünkü migration'lar çalıştıysa tablo vardır.
+    // Create admin user if not exists at startup
+    // This part can now be moved to migration or seed.
+    // But for now it can stay here, because if migrations have run, the table exists.
     const userCount = await User.count();
     if (userCount === 0) {
       await User.create({
         username: 'admin',
-        password: 'admin', // Parola modeldeki hook ile otomatik hash'lenecek
+        password: 'admin', // Password will be automatically hashed by the hook in the model
       });
-      log.info('👤 Varsayılan admin kullanıcısı oluşturuldu (admin/admin). Lütfen ilk girişte şifrenizi değiştirin.');
+      log.info('👤 Default admin user created (admin/admin). Please change your password on first login.');
     }
 
   } catch (error) {
-    log.error('❌ Veritabanı senkronizasyon hatası: / Database synchronization error:', error);
-    // Hata durumunda uygulamayı sonlandır / Terminate the application on error
+    log.error('❌ Database synchronization error:', error);
+    // Terminate the application on error
     process.exit(1);
   }
 }

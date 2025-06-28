@@ -1,6 +1,6 @@
 /**
- * Sourcegraph API Service / Sourcegraph API Servisi
- * Sourcegraph API ile iletişimi sağlar / Manages communication with the Sourcegraph API
+ * Sourcegraph API Service
+ * Manages communication with the Sourcegraph API
  */
 
 import axios from 'axios';
@@ -14,13 +14,13 @@ import {
 } from '../utils/helpers';
 import { PassThrough } from 'stream';
 import https from 'https';
-import { getRandomActiveCookie } from './cookie.service'; // Cookie servisini import et
-import { recordUsage } from './metric.service'; // Metrik servisini import et
+import { getRandomActiveCookie } from './cookie.service'; // Import cookie service
+import { recordUsage } from './metric.service'; // Import metric service
 
-// Sourcegraph API sabitleri / Sourcegraph API constants
-// Bu değerler artık config'den dinamik olarak alınacak
+// Sourcegraph API constants
+// These values will now be dynamically obtained from the config
 
-// Modelleri OpenAI formatından Sourcegraph formatına çevir / Convert models from OpenAI format to Sourcegraph format
+// Convert models from OpenAI format to Sourcegraph format
 const MODEL_MAP: Record<string, string> = {
   'claude-3-haiku-20240307': 'anthropic/claude-3-haiku-20240307',
   'claude-3-sonnet-20240229': 'anthropic/claude-3-sonnet-20240229',
@@ -28,7 +28,7 @@ const MODEL_MAP: Record<string, string> = {
 };
 
 /**
- * Gelen isteği Sourcegraph API formatına dönüştürür. / Converts the incoming request to the Sourcegraph API format.
+ * Converts the incoming request to the Sourcegraph API format.
  * @param request OpenAIChatCompletionRequest
  * @param modelRef string
  * @returns SourcegraphChatCompletionRequest
@@ -46,31 +46,31 @@ function convertToSourcegraphFormat(
     model: modelRef,
     messages: messages,
     maxTokensToSample: request.max_tokens || 4000,
-    temperature: request.temperature ?? 0, // Go versiyonuyla uyumlu / Compatible with Go version
-    topP: -1, // Go versiyonuyla uyumlu / Compatible with Go version
-    topK: -1, // Go versiyonuyla uyumlu / Compatible with Go version
+    temperature: request.temperature ?? 0, // Compatible with Go version
+    topP: -1, // Compatible with Go version
+    topK: -1, // Compatible with Go version
   };
 }
 
 class SourcegraphClient {
-  private async getAuthHeaders(requestId: string) { // Fonksiyonu async yap
+  private async getAuthHeaders(requestId: string) { // Make function async
     const traceParent = `00-${uuidv4().replace(/-/g, '').slice(0, 32)}-${uuidv4().replace(/-/g, '').slice(0, 16)}-01`;
 
-    // Havuzdan rastgele bir aktif cookie al / Get a random active cookie from the pool
+    // Get a random active cookie from the pool
     const activeCookie = await getRandomActiveCookie();
 
     if (!activeCookie) {
-      log.request(requestId, 'error', 'Havuzda kullanılabilir aktif cookie bulunamadı. İstek reddedildi.');
+      log.request(requestId, 'error', 'No active cookies available in the pool. Request rejected.');
       throw new Error('No active cookies available in the pool.');
     }
 
     const cookieValue = activeCookie.cookieValue;
 
-    // Metrik kaydı için cookie ID'sini request'e ekle
+    // Add cookie ID to request for metric recording
     // @ts-ignore
     this.cookieId = activeCookie.id;
 
-    // Go versiyonunda olduğu gibi, SG_COOKIE'yi alıp "token " önekiyle kullan. / As in the Go version, get SG_COOKIE and use it with the "token " prefix.
+    // As in the Go version, get SG_COOKIE and use it with the "token " prefix.
     const authorization = `token ${cookieValue}`;
 
     return {
@@ -79,14 +79,14 @@ class SourcegraphClient {
       'traceparent': traceParent,
       'x-sourcegraph-interaction-id': uuidv4(),
       'content-type': 'application/json',
-      'user-agent': config.userAgent, // Dinamik config'den al
+      'user-agent': config.userAgent, // Get from dynamic config
     };
   }
 
   async makeStreamRequest(
     request: OpenAIChatCompletionRequest,
     requestId: string,
-    // Express Request nesnesini de alalım
+    // Let's also get the Express Request object
     expressRequest: import('express').Request
   ): Promise<AsyncIterable<string>> {
     let activeCookieId: number | null = null;
@@ -96,14 +96,14 @@ class SourcegraphClient {
       // @ts-ignore
       const headers = await this.getAuthHeaders(requestId);
       // @ts-ignore
-      activeCookieId = this.cookieId; // Cookie ID'sini al
+      activeCookieId = this.cookieId; // Get cookie ID
 
       const stream = new PassThrough();
 
-      // Proxy agent'ını yapılandır / Configure the proxy agent
+      // Configure the proxy agent
       const httpsAgent = config.proxyUrl
         ? new (require('https-proxy-agent'))(config.proxyUrl)
-        : new https.Agent({ rejectUnauthorized: false }); // Veya varsayılan agent / Or the default agent
+        : new https.Agent({ rejectUnauthorized: false }); // Or the default agent
 
       axios({
         method: 'post',
@@ -140,7 +140,7 @@ class SourcegraphClient {
               return;
             }
 
-            // Sadece 'completion' olayından gelen veriyi işle ve gönder. / Process and send only the data from the 'completion' event.
+            // Process and send only the data from the 'completion' event.
             if (eventType === 'completion' && eventData) {
               stream.write(eventData);
             }
@@ -155,58 +155,58 @@ class SourcegraphClient {
             model: request.model,
             wasSuccess: true,
           });
-          log.request(requestId, 'debug', 'Sourcegraph stream ended. / Sourcegraph akışı sona erdi.');
+          log.request(requestId, 'debug', 'Sourcegraph stream ended.');
           if (!stream.writableEnded) {
             stream.end();
           }
         });
 
         response.data.on('error', (err: Error) => {
-          log.request(requestId, 'error', `Sourcegraph stream error: ${err.message} / Sourcegraph akış hatası: ${err.message}`);
+          log.request(requestId, 'error', `Sourcegraph stream error: ${err.message}`);
           stream.emit('error', err);
           stream.end();
         });
       }).catch(error => {
-        // GÜVENLİ HATA YÖNETİMİ / SAFE ERROR HANDLING
-        // Axios'tan gelen error nesnesini ASLA doğrudan loglama veya JSON.stringify yapma. / NEVER log or JSON.stringify the error object from Axios directly.
+        // SAFE ERROR HANDLING
+        // NEVER log or JSON.stringify the error object from Axios directly.
         const statusCode = error.response?.status || 'unknown';
         let errorMessage = 'Axios request failed';
 
         if (error.response?.data) {
-          // error.response.data bir stream veya buffer olabilir, güvenli bir şekilde metne çevir. / error.response.data could be a stream or buffer, convert it to text safely.
+          // error.response.data could be a stream or buffer, convert it to text safely.
           try {
-            // Eğer data bir Buffer ise / If data is a Buffer
+            // If data is a Buffer
             if (Buffer.isBuffer(error.response.data)) {
               errorMessage = error.response.data.toString('utf8');
             }
-            // Eğer data bir stream ise, bu asenkron olur ve burada işlemek karmaşıktır. / If data is a stream, this would be asynchronous and complex to handle here.
-            // Şimdilik sadece status kodunu ve genel bir mesajı loglayalım. / For now, let's just log the status code and a generic message.
+            // If data is a stream, this would be asynchronous and complex to handle here.
+            // For now, let's just log the status code and a generic message.
             else if (typeof error.response.data.pipe === 'function') {
-              errorMessage = 'Received a stream as error data. / Hata verisi olarak bir akış alındı.';
+              errorMessage = 'Received a stream as error data.';
             }
-            // Diğer durumlar (JSON veya string olabilir) / Other cases (could be JSON or string)
+            // Other cases (could be JSON or string)
             else {
               errorMessage = JSON.stringify(error.response.data);
             }
           } catch (e) {
-            errorMessage = 'Failed to stringify error data. / Hata verisi metne dönüştürülemedi.';
+            errorMessage = 'Failed to stringify error data.';
           }
         } else if (error.message) {
           errorMessage = error.message;
         }
 
-        // Başarısız metrik kaydı yap
+        // Record failed metric
         recordUsage({
           ipAddress: expressRequest.ip || 'unknown',
           apiKeyId: expressRequest.apiKeyId || null,
-          cookieId: activeCookieId, // Hata olsa bile hangi cookie ile denendiğini kaydet
+          cookieId: activeCookieId, // Record which cookie was attempted even if it failed
           model: request.model,
           wasSuccess: false,
           errorMessage: `Status ${statusCode}: ${errorMessage}`
         });
 
-        log.request(requestId, 'error', `Axios request failed with status ${statusCode}. Data: ${errorMessage} / Axios isteği ${statusCode} durumuyla başarısız oldu. Veri: ${errorMessage}`);
-        stream.emit('error', new Error(`Request failed with status ${statusCode} / İstek ${statusCode} durumuyla başarısız oldu`));
+        log.request(requestId, 'error', `Axios request failed with status ${statusCode}. Data: ${errorMessage}`);
+        stream.emit('error', new Error(`Request failed with status ${statusCode}`));
         stream.end();
       });
 
@@ -218,12 +218,12 @@ class SourcegraphClient {
 
       return streamGenerator();
     } catch (error: any) {
-      // Bu catch bloğu genellikle cookie bulunamadığında tetiklenir
+      // This catch block is usually triggered when a cookie is not found
       recordUsage({
         ipAddress: expressRequest.ip || 'unknown',
         apiKeyId: expressRequest.apiKeyId || null,
-        cookieId: null, // Cookie bulunamadığı için null
-        model: request.model, // Hata olsa bile modeli kaydetmeye çalış
+        cookieId: null, // Null because no cookie was found
+        model: request.model, // Attempt to record model even if error
         wasSuccess: false,
         errorMessage: error.message
       });
@@ -235,9 +235,9 @@ class SourcegraphClient {
     request: OpenAIChatCompletionRequest,
     requestId: string
   ) {
-    // Bu fonksiyon şimdilik stream versiyonuyla benzer şekilde bırakılabilir / This function can be left similar to the stream version for now
-    // veya özel bir non-stream implementasyonu yapılabilir. / or a custom non-stream implementation can be made.
-    throw new Error('Non-streaming requests not implemented yet. / Akış olmayan istekler henüz uygulanmadı.');
+    // This function can be left similar to the stream version for now
+    // or a custom non-stream implementation can be made.
+    throw new Error('Non-streaming requests not implemented yet.');
   }
 }
 

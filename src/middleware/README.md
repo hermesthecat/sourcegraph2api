@@ -1,35 +1,35 @@
-# Middleware Klasörü
+# Middleware Folder
 
-Bu klasör, Express.js uygulamasının "ara katman" (middleware) fonksiyonlarını içerir. Ara katmanlar, gelen istek (`request`) ve giden yanıt (`response`) nesneleri üzerinde işlem yapan, istek/yanıt döngüsünün ortasında yer alan fonksiyonlardır. Bu katman, kimlik doğrulama, loglama, güvenlik, hata yönetimi gibi "çapraz kesen ilgileri" (cross-cutting concerns) yönetmek için kritik bir rol oynar.
+This folder contains the "middleware" functions of the Express.js application. Middleware functions operate on the incoming request (`request`) and outgoing response (`response`) objects, sitting in the middle of the request/response cycle. This layer plays a critical role in managing "cross-cutting concerns" such as authentication, logging, security, and error handling.
 
-## Sorumluluklar
+## Responsibilities
 
-* **Kimlik Doğrulama ve Yetkilendirme:** Gelen isteklerin geçerli kimlik bilgileri (API anahtarı, session token vb.) içerip içermediğini kontrol eder.
-* **İstek İşleme:** Her isteğe benzersiz bir ID atama, istek detaylarını loglama gibi işlemleri gerçekleştirir.
-* **Güvenlik:** CORS (Cross-Origin Resource Sharing) politikalarını uygulama, güvenlik başlıkları ekleme (Helmet.js), istek oranını sınırlama (rate limiting) ve belirli IP adreslerini engelleme gibi görevleri yerine getirir. Bu ayarlar artık veritabanından dinamik olarak yönetilmektedir.
-* **Performans:** Yanıtları sıkıştırarak (`compression`) ağ trafiğini azaltır.
-* **Hata Yönetimi:** Uygulama genelinde oluşan hataları merkezi bir şekilde yakalar, loglar ve istemciye standart bir formatta hata yanıtı döner.
+* **Authentication and Authorization:** Checks whether incoming requests contain valid credentials (API key, session token, etc.).
+* **Request Processing:** Performs operations such as assigning a unique ID to each request and logging request details.
+* **Security:** Handles tasks like enforcing CORS (Cross-Origin Resource Sharing) policies, adding security headers (Helmet.js), limiting request rates, and blocking specific IP addresses. These settings are now dynamically managed from the database.
+* **Performance:** Reduces network traffic by compressing responses (`compression`).
+* **Error Handling:** Catches, logs, and returns error responses in a standard format to the client for errors occurring throughout the application.
 
-## Dosyalar
+## Files
 
 ### `auth.ts`
 
-Kimlik doğrulama ile ilgili tüm ara katmanları içerir.
+Contains all authentication-related middleware.
 
-* `openaiAuth`: OpenAI API'si ile uyumlu `Bearer <token>` formatındaki `Authorization` başlığını kontrol eder. Gelen API anahtarının veritabanında aktif olup olmadığını `apikey.service` üzerinden doğrular. Başarılı olursa, `apiKey` ve `apiKeyId` bilgilerini istek nesnesine (`req`) ekler.
-* `isAuthenticated`: Yönetim paneli gibi web arayüzü rotalarını korumak için kullanılır. Passport.js'in `req.isAuthenticated()` metodunu kullanarak kullanıcının oturum açıp açmadığını kontrol eder. Oturum açmamış kullanıcıları giriş sayfasına yönlendirir.
-* `apiAuth` (`@deprecated`): Eski `proxy-secret` başlığını kullanan ve artık geliştirilmesi düşünülmeyen bir kimlik doğrulama yöntemidir.
+* `openaiAuth`: Checks the `Authorization` header in `Bearer <token>` format, compatible with the OpenAI API. It verifies whether the incoming API key is active via `apikey.service`. If successful, it adds `apiKey` and `apiKeyId` information to the request object (`req`).
+* `isAuthenticated`: Used to protect web interface routes such as the admin panel. It checks if the user is logged in using Passport.js's `req.isAuthenticated()` method. Redirects unauthenticated users to the login page.
+* `apiAuth` (`@deprecated`): An old authentication method that uses the `proxy-secret` header and is no longer intended for development.
 
 ### `index.ts`
 
-Uygulamanın genelinde kullanılan çeşitli ara katmanları tanımlar ve dışa aktarır.
+Defines and exports various middleware used throughout the application.
 
-* `requestId`: Her isteğe bir UUID atayarak loglama ve takip işlemlerini kolaylaştırır.
-* `requestLogger`: Gelen istekleri ve tamamlanan yanıtların durum kodunu, süresini vb. loglar.
-* `corsMiddleware`: Tarayıcıların farklı domain'lerden gelen isteklere izin vermesini sağlayan CORS ayarlarını yapar.
-* `securityMiddleware`: `helmet` kütüphanesini kullanarak uygulamayı bilinen web zafiyetlerine karşı korumak için çeşitli HTTP güvenlik başlıkları ekler.
-* `compressionMiddleware`: Yanıt gövdelerini (JSON, HTML vb.) sıkıştırarak istemciye daha hızlı gönderilmesini sağlar. SSE (Server-Sent Events) akışları için sıkıştırmayı atlar.
-* `rateLimitMiddleware`: Belirli bir zaman aralığında bir IP adresinden gelebilecek istek sayısını `config`'den (veritabanından) aldığı `requestRateLimit` değerine göre sınırlar.
-* `ipBlacklistMiddleware`: `config`'den (veritabanından) aldığı `ipBlacklist` dizisinde bulunan IP adreslerinden gelen istekleri engeller.
-* `errorHandler`: Uygulamanın herhangi bir yerinde `next(error)` ile tetiklenen veya yakalanamayan hatalar için son çare (catch-all) mekanizmasıdır. Hataları loglar ve 500 Internal Server Error yanıtı döner.
-* `notFoundHandler`: Tanımlı rotalardan hiçbiriyle eşleşmeyen istekler için 404 Not Found yanıtı döner.
+* `requestId`: Assigns a unique UUID to each request, facilitating logging and tracking.
+* `requestLogger`: Logs incoming requests and the status code, duration, etc., of completed responses.
+* `corsMiddleware`: Sets up CORS settings that allow browsers to accept requests from different domains.
+* `securityMiddleware`: Uses the `helmet` library to add various HTTP security headers to protect the application against known web vulnerabilities.
+* `compressionMiddleware`: Compresses response bodies (JSON, HTML, etc.) for faster delivery to the client. It skips compression for SSE (Server-Sent Events) streams.
+* `rateLimitMiddleware`: Limits the number of requests that can come from an IP address within a certain time interval, based on the `requestRateLimit` value obtained from `config` (database).
+* `ipBlacklistMiddleware`: Blocks requests from IP addresses found in the `ipBlacklist` array obtained from `config` (database).
+* `errorHandler`: This is the catch-all mechanism for errors that are triggered by `next(error)` or are uncaught anywhere in the application. It logs errors and returns a 500 Internal Server Error response.
+* `notFoundHandler`: Returns a 404 Not Found response for requests that do not match any defined routes.

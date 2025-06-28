@@ -110,8 +110,10 @@ textarea {
 }
 
 input:read-only {
-  background-color: #e9ecef; /* Alanın değiştirilemez olduğunu belirten hafif gri bir arka plan */
-  cursor: not-allowed; /* İmlecin değiştirilemez olduğunu gösterir */
+  background-color: #e9ecef;
+  /* Light gray background indicating the field is unchangeable */
+  cursor: not-allowed;
+  /* Indicates that the cursor is unchangeable */
 }
 
 textarea {
@@ -186,12 +188,12 @@ form {
 
 .status-active {
   background-color: #27ae60;
-  /* Yeşil */
+  /* Green */
 }
 
 .status-passive {
   background-color: #e74c3c;
-  /* Kırmızı */
+  /* Red */
 }
 
 .table-container .actions form {
