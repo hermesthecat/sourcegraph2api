@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - S2A Panel</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <div class="container">
+        <h1>Kullanıcı Yönetimi</h1>
+        <p>Yeni kullanıcılar ekleyin veya mevcutları silin.</p>
+
+        <%- include('partials/messages') %>
+
+        <div class="content-grid">
+            <!-- Yeni Kullanıcı Ekle -->
+            <div class="card">
+                <h2>Yeni Kullanıcı Ekle</h2>
+                <form action="/admin/users/add" method="post">
+                    <div class="form-group">
+                        <label for="username">Kullanıcı Adı:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Şifre:</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn">Kullanıcı Ekle</button>
+                </form>
+            </div>
+
+            <!-- Mevcut Kullanıcılar -->
+            <div class="card">
+                <h2>Mevcut Kullanıcılar</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı Adı</th>
+                            <th>Oluşturulma</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><%= user.username %></td>
+                                <td><%= new Date(user.createdAt).toLocaleDateString('tr-TR') %></td>
+                                <td>
+                                    <% if (user.username !== 'admin') { %>
+                                        <form action="/admin/users/delete/<%= user.id %>" method="post" onsubmit="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">
+                                            <button type="submit" class="btn btn-danger">Sil</button>
+                                        </form>
+                                    <% } else { %>
+                                        <span>-</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

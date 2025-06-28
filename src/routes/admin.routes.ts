@@ -4,15 +4,43 @@
  * Defines routes for the cookie and API key management interface
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getAllCookies, addCookie, deleteCookie, toggleCookieStatus, getCookieById, updateCookie } from '../services/cookie.service';
 import { getAllApiKeys, addApiKey, deleteApiKey, toggleApiKeyStatus } from '../services/apikey.service';
 import { getUsageMetrics } from '../services/metric.service';
 import * as statsService from '../services/statistics.service'; // İstatistik servisini import et
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
+import { getAllUsers, addUser, deleteUser } from '../services/user.service'; // Kullanıcı servisini import et
 
 const router = Router();
+
+// ============================
+// Authentication Middleware
+// ============================
+// Bu middleware, aşağıdaki tüm admin rotalarının sadece giriş yapmış kullanıcılar tarafından
+// erişilebilir olmasını sağlar.
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // === SORUN TEŞHİS LOGLARI / DIAGNOSTIC LOGS ===
+  log.debug('----------------- AUTH CHECK -----------------');
+  // @ts-ignore
+  log.debug(`[AuthCheck] Session ID: ${req.sessionID}`);
+  // @ts-ignore
+  log.debug('[AuthCheck] Tüm Session içeriği: ', req.session);
+  log.debug(`[AuthCheck] req.user mevcut mu?: ${!!req.user}`);
+  log.debug(`[AuthCheck] req.isAuthenticated fonksiyonu var mı?: ${typeof req.isAuthenticated}`);
+  log.debug('----------------------------------------------');
+  // ===============================================
+
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  log.warn('[AuthCheck] Kullanıcı doğrulanmamış. /login sayfasına yönlendiriliyor.');
+  res.redirect('/login');
+};
+
+// Tüm admin rotalarını bu middleware ile koru
+router.use(isAuthenticated);
 
 // ============================
 // Flash Message Middleware
@@ -296,6 +324,60 @@ router.get('/metrics', async (req: Request, res: Response) => {
     req.session.error = 'Metrikler yüklenirken bir hata oluştu.';
     res.redirect('/admin/dashboard');
   }
+});
+
+// ============================
+// User Management Routes
+// ============================
+
+// Kullanıcı listesi sayfasını göster
+router.get('/users', async (req: Request, res: Response) => {
+  try {
+    const users = await getAllUsers();
+    res.render('users', {
+      title: 'Kullanıcı Yönetimi',
+      users,
+    });
+  } catch (error) {
+    log.error('Kullanıcı yönetim sayfası yüklenirken hata:', error);
+    // @ts-ignore
+    req.session.error = 'Sayfa yüklenirken bir hata oluştu.';
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Yeni kullanıcı ekle
+router.post('/users/add', async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  try {
+    await addUser(username, password);
+    // @ts-ignore
+    req.session.message = 'Kullanıcı başarıyla eklendi.';
+  } catch (error: any) {
+    log.error('Kullanıcı eklenirken hata:', error);
+    // @ts-ignore
+    req.session.error = error.message || 'Kullanıcı eklenirken bir hata oluştu.';
+  }
+  res.redirect('/admin/users');
+});
+
+// Kullanıcı sil
+router.post('/users/delete/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.params.id);
+    // @ts-ignore
+    if (req.user.id === userId) {
+      throw new Error('Kendinizi silemezsiniz.');
+    }
+    await deleteUser(userId);
+    // @ts-ignore
+    req.session.message = 'Kullanıcı başarıyla silindi.';
+  } catch (error: any) {
+    log.error('Kullanıcı silinirken hata:', error);
+    // @ts-ignore
+    req.session.error = error.message || 'Kullanıcı silinirken bir hata oluştu.';
+  }
+  res.redirect('/admin/users');
 });
 
 export { router as adminRouter }; 

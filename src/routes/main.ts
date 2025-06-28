@@ -5,6 +5,7 @@
 
 import { Router, Application } from 'express';
 import { config } from '../config';
+import passport from '../services/auth.service';
 
 // Controllers
 import {
@@ -65,6 +66,29 @@ export function createApiRouter(): Router {
   router.get('/health', healthCheck);
   // @ts-ignore - Express middleware type conflict
   router.get('/health/detailed', detailedHealthCheck);
+
+  // ======================
+  // Authentication Routes
+  // ======================
+  // Login sayfasını göster
+  router.get('/login', (req, res) => {
+    res.render('login', { message: req.flash('error') });
+  });
+
+  // Login işlemini yap
+  router.post('/login', passport.authenticate('local', {
+    successRedirect: '/admin/dashboard', // Başarılı olursa admin paneline yönlendir
+    failureRedirect: '/login', // Başarısız olursa tekrar login sayfasına yönlendir
+    failureFlash: true // Hata mesajını connect-flash'a yaz
+  }));
+
+  // Logout işlemi
+  router.get('/logout', (req, res, next) => {
+    req.logout((err) => {
+      if (err) { return next(err); }
+      res.redirect('/login');
+    });
+  });
 
   // ======================
   // Admin Routes / Yönetim Rotaları

@@ -6,6 +6,7 @@
 import { Sequelize } from 'sequelize';
 import { log } from '../utils/logger';
 import path from 'path';
+import { ApiKey, Cookie, UsageMetric, User } from '../models'; // User modelini import et
 
 // Veritabanı dosyasının yolu (proje kök dizininde) / Path to the database file (in project root)
 const storage = path.join(process.cwd(), 'database.sqlite');
@@ -27,13 +28,22 @@ export async function initializeDatabase(): Promise<void> {
     await sequelize.authenticate();
     log.info('Veritabanı bağlantısı başarıyla kuruldu. / Database connection has been established successfully.');
 
-    // Modelleri veritabanı ile senkronize et (tabloları oluştur/güncelle)
-    // Synchronize models with the database (create/update tables)
+    // Tüm modelleri veritabanı ile senkronize et
     await sequelize.sync({ alter: true });
-    log.info('Tüm modeller başarıyla senkronize edildi. / All models were synchronized successfully.');
+    log.info('🔄 Veritabanı başarıyla senkronize edildi. / Database synchronized successfully.');
+
+    // Başlangıçta admin kullanıcısı yoksa oluştur
+    const userCount = await User.count();
+    if (userCount === 0) {
+      await User.create({
+        username: 'admin',
+        password: 'admin', // Parola modeldeki hook ile otomatik hash'lenecek
+      });
+      log.info('👤 Varsayılan admin kullanıcısı oluşturuldu (admin/admin). / Default admin user created.');
+    }
 
   } catch (error) {
-    log.error('Veritabanına bağlanılamadı: / Unable to connect to the database:', error);
+    log.error('❌ Veritabanı senkronizasyon hatası: / Database synchronization error:', error);
     // Hata durumunda uygulamayı sonlandır / Terminate the application on error
     process.exit(1);
   }

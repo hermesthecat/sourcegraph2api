@@ -105,6 +105,33 @@ export interface AppConfig {
   rateLimitCookieLockDuration?: number;
 }
 
+// =================================================================
+// Express & PassportJS Tip Genişletmeleri
+// Bu bölüm, Express'in Request tipine Passport.js'in eklediği
+// .user, .isAuthenticated(), .login(), .logout() gibi özellikleri
+// TypeScript'e tanıtmak için gereklidir.
+// =================================================================
+declare global {
+  namespace Express {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface User extends AppUser {}
+
+    interface Request {
+      user?: User;
+      login(user: User, done: (err: any) => void): void;
+      logout(done: (err: any) => void): void;
+      isAuthenticated(): boolean;
+      isUnauthenticated(): boolean;
+    }
+  }
+}
+
+// Uygulamamızdaki Kullanıcı modelinin temel alanlarını tanımlar
+export interface AppUser {
+  id: number;
+  username: string;
+}
+
 // Cookie yönetimi tipleri / Cookie management types
 export interface CookieManager {
   cookies: string[];

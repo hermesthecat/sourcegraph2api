@@ -10,6 +10,8 @@ import { setupRoutes } from './routes';
 import path from 'path'; // path modülünü import et
 import cookieParser from 'cookie-parser'; // cookie-parser'ı import et
 import session from 'express-session'; // express-session'ı import et
+import passport from './services/auth.service'; // Passport yapılandırmamızı import et
+import flash from 'connect-flash'; // connect-flash'ı import et
 
 // Middleware imports
 import {
@@ -42,15 +44,22 @@ export function createApp(): Application {
   app.use(express.static(path.join(process.cwd(), 'public')));
 
   // ======================
-  // Session & Cookie Parser
+  // Session & Auth Middleware
+  // Sıralama çok önemlidir: session -> passport.initialize -> passport.session -> flash
   // ======================
-  app.use(cookieParser());
   app.use(session({
-    secret: config.sessionSecret || 'your-super-secret-key-change-it', // Güvenli bir anahtar ile değiştirin
+    secret: config.sessionSecret || 'a-super-secret-key-that-is-long-enough',
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: config.nodeEnv === 'production' } // Production'da sadece HTTPS üzerinden
+    saveUninitialized: false, // Oturum açılana kadar cookie oluşturma
+    cookie: { 
+      secure: config.nodeEnv === 'production',
+      maxAge: 1000 * 60 * 60 * 24 // 1 gün
+    }
   }));
+  
+  app.use(passport.initialize());
+  app.use(passport.session());
+  app.use(flash());
 
   // ======================
   // Trust proxy (production için) / Proxy'e güven (üretim için)
