@@ -3,13 +3,14 @@
 
 # Sourcegraph2API - Node.js
 
-🚀 **A high-performance, production-ready proxy server to use Sourcegraph's AI API in the OpenAI API format.**
+🚀 **A high-performance, production-ready proxy server to use Sourcegraph's AI API in the OpenAI API format, complete with a full-featured Admin Panel.**
 
-This project allows you to use Sourcegraph's powerful AI capabilities (including over 35 models like Claude, Gemini, and GPT series) through the standard OpenAI API format. This means you can connect your existing OpenAI integrations and libraries directly to Sourcegraph AI without any modifications.
+This project allows you to use Sourcegraph's powerful AI capabilities (including over 35 models like Claude, Gemini, and GPT series) through the standard OpenAI API format. It comes with a built-in admin panel to manage API keys, cookies, users, and monitor usage statistics.
 
 ## 📋 Table of Contents
 
 - [Features](#-features)
+- [Admin Panel](#-admin-panel)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Usage](#-usage)
@@ -21,12 +22,36 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 
 ## ⚡ Features
 
-- **Full OpenAI Compatibility**: Works seamlessly with existing OpenAI libraries and tools by calling models like `gpt-4`, `claude-3-opus`, etc.
-- **Broad Model Support**: Access to over 35 of the latest AI models from Anthropic, Google, OpenAI, Mistral, and more.
-- **Streaming Support**: Full `stream: true` support for real-time, uninterrupted response streaming.
-- **Production-Ready**: Developed with TypeScript for robust error handling, performance optimization, and stability.
-- **Enterprise Security**: Rate limiting, IP blacklisting, and API key authentication.
-- **Performance**: Optimized for low latency and efficient resource usage.
+- **Full OpenAI Compatibility**: Works seamlessly with existing OpenAI libraries and tools.
+- **Built-in Admin Panel**: A comprehensive web interface to manage the entire proxy.
+- **Dynamic Cookie & API Key Pools**: Manage multiple Sourcegraph cookies and generate API keys for your users, all from the UI.
+- **Usage Statistics & Metrics**: Detailed dashboard with charts for requests, errors, and model usage.
+- **Broad Model Support**: Access to over 35 of the latest AI models from Anthropic, Google, OpenAI, etc.
+- **Streaming Support**: Full `stream: true` support for real-time responses.
+- **Enterprise Security**: Rate limiting, IP blacklisting, and a robust user/API key authentication system.
+- **Production-Ready**: Developed with TypeScript for stability and performance.
+
+## 👑 Admin Panel
+
+This project includes a powerful admin panel to manage and monitor your proxy server.
+
+**How to Access:**
+
+1. Start the server.
+2. Open your browser and go to `http://localhost:7033/login`.
+3. Log in with the default credentials:
+    - **Username:** `admin`
+    - **Password:** `admin`
+
+**(Security Note: It is highly recommended to change the default admin password immediately after your first login.)**
+
+**Panel Features:**
+
+- **Dashboard**: View real-time statistics, including total requests, error rates, and usage charts for models, cookies, and API keys.
+- **Cookie Management**: Add, delete, and toggle multiple Sourcegraph cookies to create a resilient request pool.
+- **API Key Management**: Create, delete, and manage API keys for your users.
+- **User Management**: Add or remove admin users who can access the panel.
+- **Usage Metrics**: Browse through a detailed, paginated log of all API requests.
 
 ## 🚀 Installation
 
@@ -51,7 +76,7 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
     ```
 
 3. **Set Up Environment Variables:**
-    Create a new file named `.env` by copying `.env.example` and edit the values within it.
+    Create a new file named `.env` by copying `env.example` and edit the values within it. **It is crucial to set a secure `SESSION_SECRET`**.
 
     ```bash
     cp env.example .env
@@ -75,41 +100,20 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 
 The server is configured via environment variables in the `.env` file.
 
-| Variable             | Description                                                                              | Default      | Required |
-| -------------------- | ---------------------------------------------------------------------------------------- | ------------ | -------- |
-| `PORT`               | The port the server will run on.                                                         | `7033`       | ❌       |
-| `NODE_ENV`           | The operating environment (`development` or `production`).                               | `production` | ❌       |
-| `DEBUG`              | Enables detailed debug logging.                                                          | `false`      | ❌       |
-| `REQUEST_RATE_LIMIT` | The maximum number of requests allowed per minute.                                       | `60`         | ❌       |
-| `ROUTE_PREFIX`       | A global prefix to be added to all API routes (e.g., `/api`).                            | -            | ❌       |
-| `PROXY_URL`          | An HTTP/HTTPS proxy address to be used for requests to Sourcegraph.                      | -            | ❌       |
-| `IP_BLACK_LIST`      | Comma-separated IP addresses to be blocked from accessing the server.                    | -            | ❌       |
-
-### Example `.env` File
-
-```env
-# Server Settings
-PORT=7033
-NODE_ENV=production
-DEBUG=false
-
-# ===== Optional Settings =====
-# Request Limit (per minute)
-REQUEST_RATE_LIMIT=100
-
-# Route Prefix
-ROUTE_PREFIX=/v1
-
-# Proxy
-# PROXY_URL=http://user:pass@host:port
-
-# Blocked IPs
-# IP_BLACK_LIST=1.1.1.1,2.2.2.2
-```
+| Variable | Description | Default | Required |
+| :--- | :--- | :--- | :--- |
+| `PORT` | The port the server will run on. | `7033` | ❌ No |
+| `SESSION_SECRET` | A long, random string for securing user sessions. | - | ✅ **Yes** |
+| `NODE_ENV` | The operating environment (`development` or `production`). | `production` | ❌ No |
+| `DEBUG` | Enables detailed debug logging. | `false` | ❌ No |
+| `REQUEST_RATE_LIMIT` | The maximum number of requests allowed per minute per IP. | `60` | ❌ No |
+| `ROUTE_PREFIX` | A global prefix for all API routes (e.g., `/api`). | - | ❌ No |
+| `PROXY_URL` | An HTTP/HTTPS proxy address for requests to Sourcegraph. | - | ❌ No |
+| `IP_BLACK_LIST` | Comma-separated IP addresses to be blocked. | - | ❌ No |
 
 ## 🎯 Usage
 
-Once the server is running, you can make requests using standard OpenAI libraries.
+Once the server is running, first **create an API key in the [Admin Panel](#-admin-panel)**. Then, use that key to make requests with standard OpenAI libraries.
 
 ### With OpenAI Library (Node.js/TypeScript)
 
@@ -117,8 +121,8 @@ Once the server is running, you can make requests using standard OpenAI librarie
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "http://localhost:7033/v1", // Also include your ROUTE_PREFIX
-  apiKey: "a_super_secure_password", // Your API_SECRET value from .env
+  baseURL: "http://localhost:7033/v1", // If you set a ROUTE_PREFIX, include it here
+  apiKey: "s2a-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // Your API key generated from the admin panel
 });
 
 async function main() {
@@ -144,9 +148,12 @@ main();
 ### Test with cURL
 
 ```bash
+# Replace with your API key from the admin panel
+API_KEY="s2a-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 curl http://localhost:7033/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer a_super_secure_password" \
+  -H "Authorization: Bearer $API_KEY" \
   -d '{
     "model": "gpt-4o",
     "messages": [{"role": "user", "content": "Hello!"}],
@@ -156,27 +163,22 @@ curl http://localhost:7033/v1/chat/completions \
 
 ## 📡 API Endpoints
 
-This proxy supports standard OpenAI API routes:
-
-- `POST /v1/chat/completions`: The main endpoint for chat completion requests. Supports both `stream: true` and `stream: false` modes.
+- `POST /v1/chat/completions`: The main endpoint for chat completion requests.
 - `GET /v1/models`: Returns a list of all supported models.
-
-Additionally, the following endpoint is available for system status:
-
-- `GET /health`: A simple health check to see if the server is running.
+- `GET /health`: A simple health check.
+- `GET /login`: The login page for the admin panel.
+- `GET /admin/dashboard`: The main dashboard for the admin panel.
 
 ## 🐳 Docker
-
-You can easily run the project with Docker.
 
 1. **Build the Docker image:**
 
     ```bash
-    # Build the image
     docker build -t sourcegraph2api-nodejs .
     ```
 
 2. **Run the container:**
+    Make sure your `.env` file is created and configured.
 
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
@@ -188,12 +190,12 @@ This proxy provides a wide variety of models supported by Sourcegraph in the Ope
 
 ### Main Models
 
-| Brand                  | Popular Models                                                |
-| ---------------------- | ------------------------------------------------------------- |
+| Brand | Popular Models |
+| :--- | :--- |
 | **Claude** (Anthropic) | `claude-3-opus`, `claude-3.5-sonnet-latest`, `claude-3-haiku` |
-| **Gemini** (Google)    | `gemini-1.5-pro`, `gemini-2.0-flash`                          |
-| **GPT** (OpenAI)       | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                        |
-| **Other**              | `mixtral-8x22b-instruct`, `deepseek-v3`                       |
+| **Gemini** (Google) | `gemini-1.5-pro`, `gemini-2.0-flash` |
+| **GPT** (OpenAI) | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
+| **Other** | `mixtral-8x22b-instruct`, `deepseek-v3` |
 
 ### Full Model List
 
@@ -209,15 +211,17 @@ nodejs/
 │   ├── config/          # Configuration, environment variables, and model list
 │   ├── controllers/     # Logic for handling incoming HTTP requests
 │   ├── middleware/      # Middleware for authentication, logging, etc.
-│   ├── routes/          # Where API routes (endpoints) are defined
-│   ├── services/        # Core business logic (Sourcegraph client, cache, etc.)
+│   ├── models/          # Sequelize database models and relationships
+│   ├── routes/          # API and web routes (endpoints)
+│   ├── services/        # Core business logic (DB, Sourcegraph client, etc.)
 │   ├── types/           # TypeScript type definitions
 │   ├── utils/           # Helper functions and logger
 │   ├── app.ts           # Main setup for the Express application
 │   └── index.ts         # The application's entry point
-├── dist/                # Compiled JavaScript files
+├── views/               # EJS templates for the Admin Panel
+├── public/              # Static files (CSS, JS) for the Admin Panel
+├── database.sqlite      # SQLite database file
 ├── package.json
-├── tsconfig.json
 └── .env.example
 ```
 
@@ -231,30 +235,55 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 # Sourcegraph2API - Node.js
 
-🚀 **Sourcegraph AI API'sini OpenAI API formatına dönüştüren, yüksek performanslı ve üretime hazır proxy sunucusu.**
+🚀 **Sourcegraph AI API'sini OpenAI API formatına dönüştüren, tam özellikli bir Yönetim Paneli ile birlikte gelen, yüksek performanslı ve üretime hazır proxy sunucusu.**
 
-Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT serisi dahil 35'ten fazla model) standart OpenAI API formatı üzerinden kullanmanızı sağlar. Bu sayede mevcut OpenAI entegrasyonlarınızı ve kütüphanelerinizi hiçbir değişiklik yapmadan doğrudan Sourcegraph AI ile konuşturabilirsiniz.
+Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT serisi dahil 35'ten fazla model) standart OpenAI API formatı üzerinden kullanmanızı sağlar. API anahtarlarını, cookie'leri, kullanıcıları yönetmek ve kullanım istatistiklerini izlemek için dahili bir yönetim paneli ile birlikte gelir.
 
 ## 📋 İçindekiler
 
 - [Özellikler](#-özellikler)
+- [Yönetim Paneli](#-yönetim-paneli)
 - [Kurulum](#-kurulum)
 - [Konfigürasyon](#-konfigürasyon)
 - [Kullanım](#-kullanım)
 - [API Endpoints](#-api-endpoints)
-- [Geliştirme](#-geliştirme)
 - [Docker](#-docker)
 - [Desteklenen Modeller](#-desteklenen-modeller)
+- [Geliştirme](#-geliştirme)
 - [Lisans](#-lisans)
 
 ## ⚡ Özellikler
 
-- **Tam OpenAI Uyumluluğu**: Mevcut OpenAI kütüphaneleri ve araçlarıyla (`gpt-4`, `claude-3-opus` vb. modelleri çağırarak) sorunsuz çalışır.
-- **Geniş Model Desteği**: Anthropic, Google, OpenAI, Mistral ve daha fazlasından 35'ten fazla en güncel yapay zeka modeline erişim.
-- **Akış Desteği (Streaming)**: Gerçek zamanlı ve kesintisiz yanıt akışı için tam `stream: true` desteği.
-- **Üretime Hazır**: Hata yönetimi, performans optimizasyonları ve stabilite için TypeScript ile geliştirilmiştir.
-- **Kurumsal Güvenlik**: İstek sınırlama (Rate Limiting), IP kara listesi ve API anahtarı ile kimlik doğrulama.
-- **Performans**: Düşük gecikme süresi ve verimli kaynak kullanımı için optimize edilmiştir.
+- **Tam OpenAI Uyumluluğu**: Mevcut OpenAI kütüphaneleri ve araçlarıyla sorunsuz çalışır.
+- **Dahili Yönetim Paneli**: Tüm proxy sunucusunu yönetmek için kapsamlı bir web arayüzü.
+- **Dinamik Cookie ve API Anahtarı Havuzları**: UI üzerinden birden fazla Sourcegraph cookie'sini ve kullanıcılarınız için API anahtarlarını yönetin.
+- **Kullanım İstatistikleri ve Metrikler**: İstekler, hatalar ve model kullanımı için grafikler içeren ayrıntılı bir dashboard.
+- **Geniş Model Desteği**: Anthropic, Google, OpenAI vb. 35'ten fazla en güncel yapay zeka modeline erişim.
+- **Akış Desteği (Streaming)**: Gerçek zamanlı yanıtlar için tam `stream: true` desteği.
+- **Kurumsal Güvenlik**: İstek sınırlama, IP kara listesi ve sağlam bir kullanıcı/API anahtarı kimlik doğrulama sistemi.
+- **Üretime Hazır**: Stabilite ve performans için TypeScript ile geliştirilmiştir.
+
+## 👑 Yönetim Paneli
+
+Bu proje, proxy sunucunuzu yönetmek ve izlemek için güçlü bir yönetim paneli içerir.
+
+**Nasıl Erişilir:**
+
+1. Sunucuyu başlatın.
+2. Tarayıcınızı açın ve `http://localhost:7033/login` adresine gidin.
+3. Varsayılan kimlik bilgileriyle giriş yapın:
+    - **Kullanıcı Adı:** `admin`
+    - **Parola:** `admin`
+
+**(Güvenlik Notu: İlk girişinizden hemen sonra varsayılan yönetici şifresini değiştirmeniz önemle tavsiye edilir.)**
+
+**Panel Özellikleri:**
+
+- **Dashboard**: Toplam istekler, hata oranları ve modeller, cookie'ler ve API anahtarları için kullanım grafikleri gibi gerçek zamanlı istatistikleri görüntüleyin.
+- **Cookie Yönetimi**: Dayanıklı bir istek havuzu oluşturmak için birden fazla Sourcegraph cookie'si ekleyin, silin ve durumlarını değiştirin.
+- **API Anahtarı Yönetimi**: Kullanıcılarınız için API anahtarları oluşturun, silin ve yönetin.
+- **Kullanıcı Yönetimi**: Panele erişebilen yönetici kullanıcıları ekleyin veya kaldırın.
+- **Kullanım Metrikleri**: Tüm API isteklerinin ayrıntılı, sayfalanmış bir günlüğüne göz atın.
 
 ## 🚀 Kurulum
 
@@ -279,7 +308,7 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
     ```
 
 3. **Ortam Değişkenlerini Ayarlayın:**
-    `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri kendinize göre düzenleyin.
+    `.env.example` dosyasını kopyalayarak `.env` adında yeni bir dosya oluşturun ve içindeki değerleri düzenleyin. **Güvenli bir `SESSION_SECRET` ayarlamak kritik öneme sahiptir.**
 
     ```bash
     cp env.example .env
@@ -303,41 +332,20 @@ Bu proje, Sourcegraph'ın güçlü yapay zeka yeteneklerini (Claude, Gemini, GPT
 
 Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
 
-| Değişken             | Açıklama                                                                                                   | Varsayılan   | Gerekli |
-| -------------------- | ---------------------------------------------------------------------------------------------------------- | ------------ | ------- |
-| `PORT`               | Sunucunun çalışacağı port.                                                                                 | `7033`       | ❌      |
-| `NODE_ENV`           | Çalışma ortamı (`development` veya `production`).                                                          | `production` | ❌      |
-| `DEBUG`              | Detaylı hata ayıklama loglarını aktif eder.                                                                | `false`      | ❌      |
-| `REQUEST_RATE_LIMIT` | Dakika başına izin verilen maksimum istek sayısı.                                                          | `60`         | ❌      |
-| `ROUTE_PREFIX`       | Tüm API yollarının önüne eklenecek genel önek (örn: `/api`).                                               | -            | ❌      |
-| `PROXY_URL`          | Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy adresi.                                  | -            | ❌      |
-| `IP_BLACK_LIST`      | Sunucuya erişimi engellenecek IP adresleri (virgülle ayrılmış).                                            | -            | ❌      |
-
-### Örnek `.env` Dosyası
-
-```env
-# Sunucu Ayarları
-PORT=7033
-NODE_ENV=production
-DEBUG=false
-
-# ===== Opsiyonel Ayarlar =====
-# İstek Limiti (dakikada)
-REQUEST_RATE_LIMIT=100
-
-# Rota Öneki
-ROUTE_PREFIX=/v1
-
-# Proxy
-# PROXY_URL=http://user:pass@host:port
-
-# Engelli IP'ler
-# IP_BLACK_LIST=1.1.1.1,2.2.2.2
-```
+| Değişken | Açıklama | Varsayılan | Gerekli |
+| :--- | :--- | :--- | :--- |
+| `PORT` | Sunucunun çalışacağı port. | `7033` | ❌ Hayır |
+| `SESSION_SECRET` | Kullanıcı oturumlarını güvence altına almak için uzun, rastgele bir dize. | - | ✅ **Evet** |
+| `NODE_ENV` | Çalışma ortamı (`development` veya `production`). | `production` | ❌ Hayır |
+| `DEBUG` | Detaylı hata ayıklama loglarını aktif eder. | `false` | ❌ Hayır |
+| `REQUEST_RATE_LIMIT` | IP başına dakika başına izin verilen maksimum istek sayısı. | `60` | ❌ Hayır |
+| `ROUTE_PREFIX` | Tüm API yollarına eklenecek genel önek (örn: `/api`). | - | ❌ Hayır |
+| `PROXY_URL` | Sourcegraph'a yapılan istekler için HTTP/HTTPS proxy adresi. | - | ❌ Hayır |
+| `IP_BLACK_LIST` | Erişimi engellenecek IP adresleri (virgülle ayrılmış). | - | ❌ Hayır |
 
 ## 🎯 Kullanım
 
-Sunucuyu başlattıktan sonra, standart OpenAI kütüphanelerini kullanarak istek yapabilirsiniz.
+Sunucu çalıştıktan sonra, önce **[Yönetim Paneli](#-yönetim-paneli)'nden bir API anahtarı oluşturun**. Ardından, bu anahtarı standart OpenAI kütüphaneleri ile istek yapmak için kullanın.
 
 ### OpenAI Kütüphanesi ile (Node.js/TypeScript)
 
@@ -345,8 +353,8 @@ Sunucuyu başlattıktan sonra, standart OpenAI kütüphanelerini kullanarak iste
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "http://localhost:7033/v1", // ROUTE_PREFIX'i de ekleyin
-  apiKey: "super_guvenli_bir_parola", // .env dosyasındaki API_SECRET değeriniz
+  baseURL: "http://localhost:7033/v1", // Bir ROUTE_PREFIX ayarladıysanız, buraya ekleyin
+  apiKey: "s2a-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // Yönetim panelinden oluşturduğunuz API anahtarınız
 });
 
 async function main() {
@@ -372,9 +380,12 @@ main();
 ### cURL ile Test
 
 ```bash
+# Yönetim panelinden aldığınız API anahtarınızla değiştirin
+API_KEY="s2a-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 curl http://localhost:7033/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer super_guvenli_bir_parola" \
+  -H "Authorization: Bearer $API_KEY" \
   -d '{
     "model": "gpt-4o",
     "messages": [{"role": "user", "content": "Merhaba!"}],
@@ -384,28 +395,22 @@ curl http://localhost:7033/v1/chat/completions \
 
 ## 📡 API Endpoints
 
-Bu proxy, standart OpenAI API yollarını destekler:
-
-- `POST /v1/chat/completions`: Chat tamamlama istekleri için ana endpoint. `stream: true` ve `stream: false` modlarını destekler.
+- `POST /v1/chat/completions`: Chat tamamlama istekleri için ana endpoint.
 - `GET /v1/models`: Desteklenen tüm modellerin listesini döndürür.
-
-Ek olarak, sistem durumu için aşağıdaki endpoint mevcuttur:
-
-- `GET /health`: Sunucunun çalışıp çalışmadığını kontrol etmek için basit sağlık kontrolü.
+- `GET /health`: Basit sağlık kontrolü.
+- `GET /login`: Yönetim paneli için giriş sayfası.
+- `GET /admin/dashboard`: Yönetim panelinin ana dashboard'u.
 
 ## 🐳 Docker
-
-Projeyi Docker ile kolayca çalıştırabilirsiniz.
 
 1. **Docker imajını oluşturun:**
 
     ```bash
-
-    # İmajı oluşturun
     docker build -t sourcegraph2api-nodejs .
     ```
 
 2. **Container'ı çalıştırın:**
+    `.env` dosyanızın oluşturulduğundan ve yapılandırıldığından emin olun.
 
     ```bash
     docker run -p 7033:7033 --env-file .env sourcegraph2api-nodejs
@@ -417,12 +422,12 @@ Bu proxy, Sourcegraph tarafından desteklenen çok çeşitli modelleri OpenAI fo
 
 ### Ana Modeller
 
-| Marka                  | Popüler Modeller                                              |
-| ---------------------- | ------------------------------------------------------------- |
+| Marka | Popüler Modeller |
+| :--- | :--- |
 | **Claude** (Anthropic) | `claude-3-opus`, `claude-3.5-sonnet-latest`, `claude-3-haiku` |
-| **Gemini** (Google)    | `gemini-1.5-pro`, `gemini-2.0-flash`                          |
-| **GPT** (OpenAI)       | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                        |
-| **Diğer**              | `mixtral-8x22b-instruct`, `deepseek-v3`                       |
+| **Gemini** (Google) | `gemini-1.5-pro`, `gemini-2.0-flash` |
+| **GPT** (OpenAI) | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
+| **Diğer** | `mixtral-8x22b-instruct`, `deepseek-v3` |
 
 ### Tam Model Listesi
 
@@ -438,27 +443,20 @@ nodejs/
 │   ├── config/          # Konfigürasyon, ortam değişkenleri ve model listesi
 │   ├── controllers/     # Gelen HTTP isteklerini yöneten mantık
 │   ├── middleware/      # Kimlik doğrulama, loglama gibi ara katman yazılımları
-│   ├── routes/          # API yollarının (endpoints) tanımlandığı yer
-│   ├── services/        # Ana iş mantığı (Sourcegraph istemcisi, cache vb.)
+│   ├── models/          # Sequelize veritabanı modelleri ve ilişkileri
+│   ├── routes/          # API ve web yolları (endpoints)
+│   ├── services/        # Ana iş mantığı (VT, Sourcegraph istemcisi vb.)
 │   ├── types/           # TypeScript tip tanımlamaları
 │   ├── utils/           # Yardımcı fonksiyonlar ve logger
 │   ├── app.ts           # Express uygulamasının ana kurulumu
 │   └── index.ts         # Uygulamanın giriş noktası
-├── dist/                # Derlenmiş JavaScript dosyaları
+├── views/               # Yönetim Paneli için EJS şablonları
+├── public/              # Yönetim Paneli için statik dosyalar (CSS, JS)
+├── database.sqlite      # SQLite veritabanı dosyası
 ├── package.json
-├── tsconfig.json
 └── .env.example
 ```
 
 ## 📄 Lisans
 
 Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
-
-## 🔗 Bağlantılar
-
-- **Documentation**: [API Docs](https://github.com/hermesthecat/sourcegraph2api/docs)
-- **Issues**: [GitHub Issues](https://github.com/hermesthecat/sourcegraph2api/issues)
-
----
-
-**Made with ❤️ by [hermesthecat](https://github.com/hermesthecat)**
