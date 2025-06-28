@@ -63,17 +63,16 @@
                       <%= new Date(cookie.createdAt).toLocaleString('tr-TR') %>
                     </td>
                     <td class="actions">
-                      <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-primary"
-                        style="background-color:#f39c12;">Düzenle</a>
-                      <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST" style="display:inline;">
-                        <button type="submit" class="btn <%= cookie.isActive ? 'btn-secondary' : 'btn-success' %>">
+                      <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-warning">Düzenle</a>
+                      <form action=" /admin/cookies/toggle/<%=cookie.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn <%= cookie.isActive ? 'btn-primary' : 'btn-success' %>">
                           <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
                         </button>
-                      </form>
-                      <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
-                        onsubmit="return confirm('Bu Sourcegraph API Key\'yi silmek istediğinizden emin misiniz?');">
-                        <button type="submit" class="btn btn-danger">Sil</button>
-                      </form>
+                        </form>
+                        <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
+                          onsubmit="return confirm('Bu Sourcegraph API Key\'yi silmek istediğinizden emin misiniz?');">
+                          <button type="submit" class="btn btn-danger">Sil</button>
+                        </form>
                     </td>
                   </tr>
                   <% }) %>

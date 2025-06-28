@@ -56,8 +56,8 @@
                                                     <%= new Date(user.createdAt).toLocaleString() %>
                                                 </td>
                                                 <td class="actions">
-                                                    <button class="btn btn-secondary open-edit-modal-btn"
-                                                        style="background-color:#f39c12;" data-userid="<%= user.id %>"
+                                                    <button class="btn btn-warning open-edit-modal-btn"
+                                                        data-userid="<%= user.id %>"
                                                         data-username="<%= user.username %>">Düzenle</button>
                                                     <form action="/admin/users/delete/<%= user.id %>" method="POST"
                                                         style="display:inline;">
@@ -101,7 +101,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" id="cancelEditBtn">İptal</button>
-                                <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
+                                <button type="submit" class="btn btn-primary">Kaydet</button>
                             </div>
                         </form>
                     </div>

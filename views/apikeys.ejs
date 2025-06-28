@@ -58,7 +58,7 @@
                     </td>
                     <td class="actions">
                       <form action="/admin/apikeys/toggle/<%= apiKey.id %>" method="POST">
-                        <button type="submit" class="btn <%= apiKey.isActive ? 'btn-secondary' : 'btn-success' %>">
+                        <button type="submit" class="btn <%= apiKey.isActive ? 'btn-primary' : 'btn-success' %>">
                           <%= apiKey.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
                         </button>
                       </form>
