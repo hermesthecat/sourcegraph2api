@@ -122,6 +122,13 @@
 
                             editUsernameInput.value = username;
 
+                            // Kullanıcı 'admin' ise, kullanıcı adı alanını sadece okunabilir yap
+                            if (username === 'admin') {
+                                editUsernameInput.readOnly = true;
+                            } else {
+                                editUsernameInput.readOnly = false;
+                            }
+
                             document.getElementById('editPassword').value = '';
 
                             editForm.action = `/admin/users/edit/${userId}`;

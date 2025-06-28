@@ -78,6 +78,10 @@ export const updateUser = async (id: number, username: string, password?: string
     user.username = username;
     // Sadece yeni bir şifre girildiyse güncelle
     if (password && password.trim() !== '') {
+      // Şifre uzunluğunu kontrol et
+      if (password.length < 6) {
+        throw new Error('Yeni şifre en az 6 karakter olmalıdır.');
+      }
       user.password = password;
     }
 
@@ -90,6 +94,7 @@ export const updateUser = async (id: number, username: string, password?: string
     if (error.name === 'SequelizeUniqueConstraintError') {
       throw new Error('Bu kullanıcı adı zaten kullanılıyor.');
     }
-    throw new Error('Kullanıcı güncellenirken bir hata oluştu.');
+    // Orijinal hatayı fırlatarak daha detaylı bilgi sağla
+    throw error;
   }
 }; 
