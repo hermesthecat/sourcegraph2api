@@ -12,6 +12,7 @@ import * as statsService from '../services/statistics.service'; // İstatistik s
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { getAllUsers, addUser, deleteUser, findUserById, updateUser } from '../services/user.service'; // Kullanıcı servisini import et
+import { getEditableSettings, updateEnvFile } from '../services/settings.service'; // Ayarlar servisini import et
 import {
   getGeneralStats,
   getApiKeyUsageStats,
@@ -388,4 +389,50 @@ router.post('/users/edit/:id', async (req, res) => {
   res.redirect('/admin/users');
 });
 
-export { router as adminRouter }; 
+// ============================
+// Settings Route
+// ============================
+
+// Ayarlar sayfasını göster
+router.get('/settings', (req, res) => {
+  try {
+    const settings = getEditableSettings();
+    res.render('settings', {
+      title: 'Uygulama Ayarları',
+      settings,
+    });
+  } catch (error: any) {
+    req.flash('error', 'Ayarlar sayfası yüklenirken bir hata oluştu.');
+    res.redirect('/admin/dashboard');
+  }
+});
+
+// Ayarları güncelle
+router.post('/settings', async (req, res) => {
+    try {
+        // body'den sadece izin verilen alanları al, fazlasını değil.
+        const allowedKeys = [
+            'SESSION_SECRET',
+            'REQUEST_RATE_LIMIT',
+            'ROUTE_PREFIX',
+            'PROXY_URL',
+            'IP_BLACKLIST',
+            'LOG_LEVEL'
+        ];
+        const settingsToUpdate: Record<string, string> = {};
+        for (const key of allowedKeys) {
+            if (req.body[key] !== undefined) {
+                settingsToUpdate[key] = req.body[key];
+            }
+        }
+
+        await updateEnvFile(settingsToUpdate);
+        req.flash('success', 'Ayarlar başarıyla güncellendi. Değişikliklerin etkili olması için sunucuyu yeniden başlatmanız gerekmektedir.');
+    } catch (error: any) {
+        req.flash('error', `Ayarlar güncellenirken bir hata oluştu: ${error.message}`);
+    }
+    res.redirect('/admin/settings');
+});
+
+
+export { router as adminRouter };

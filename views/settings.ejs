@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayarlar - Yönetim Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <%- include('partials/nav') %>
+            <%- include('partials/messages') %>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Uygulama Ayarları</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Bu ayarlar doğrudan <code>.env</code> dosyasından okunur ve güncellenir.
+                            <strong>Dikkat:</strong> Burada yapılan herhangi bir değişiklik sonrası, değişikliklerin
+                            geçerli olması için sunucunun yeniden başlatılması gerekmektedir.
+                        </p>
+                        <form action="/admin/settings" method="POST">
+
+                            <div class="mb-3">
+                                <label for="SESSION_SECRET" class="form-label">Oturum Gizli Anahtarı (Session
+                                    Secret)</label>
+                                <input type="text" class="form-control" id="SESSION_SECRET" name="SESSION_SECRET"
+                                    value="<%= settings.SESSION_SECRET %>" required>
+                                <div class="form-text">Kullanıcı oturumlarının güvenliği için kullanılan karmaşık bir
+                                    anahtar.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="REQUEST_RATE_LIMIT" class="form-label">İstek Limiti (Dakikada)</label>
+                                <input type="number" class="form-control" id="REQUEST_RATE_LIMIT"
+                                    name="REQUEST_RATE_LIMIT" value="<%= settings.REQUEST_RATE_LIMIT %>" required>
+                                <div class="form-text">Bir IP adresinin bir dakika içinde yapabileceği maksimum istek
+                                    sayısı.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="ROUTE_PREFIX" class="form-label">API Rota Ön Eki (Route Prefix)</label>
+                                <input type="text" class="form-control" id="ROUTE_PREFIX" name="ROUTE_PREFIX"
+                                    value="<%= settings.ROUTE_PREFIX %>">
+                                <div class="form-text">Tüm API yollarının önüne eklenecek genel ön ek (örn: /api). Boş
+                                    bırakılabilir.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="PROXY_URL" class="form-label">Proxy Adresi</label>
+                                <input type="text" class="form-control" id="PROXY_URL" name="PROXY_URL"
+                                    value="<%= settings.PROXY_URL %>">
+                                <div class="form-text">Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy
+                                    adresi. (örn: http://user:pass@host:port)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="IP_BLACKLIST" class="form-label">IP Kara Listesi</label>
+                                <textarea class="form-control" id="IP_BLACKLIST" name="IP_BLACKLIST"
+                                    rows="3"><%= settings.IP_BLACKLIST %></textarea>
+                                <div class="form-text">Sunucuya erişimi engellenecek IP adresleri (virgülle ayırarak
+                                    yazınız).</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="LOG_LEVEL" class="form-label">Log Seviyesi</label>
+                                <select class="form-select" id="LOG_LEVEL" name="LOG_LEVEL">
+                                    <option value="error" <%=settings.LOG_LEVEL==='error' ? 'selected' : '' %>>Error
+                                    </option>
+                                    <option value="warn" <%=settings.LOG_LEVEL==='warn' ? 'selected' : '' %>>Warning
+                                    </option>
+                                    <option value="info" <%=settings.LOG_LEVEL==='info' ? 'selected' : '' %>>Info
+                                    </option>
+                                    <option value="debug" <%=settings.LOG_LEVEL==='debug' ? 'selected' : '' %>>Debug
+                                    </option>
+                                </select>
+                                <div class="form-text">Uygulamanın ne kadar detaylı log tutacağını belirler.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Ayarları Kaydet</button>
+                        </form>
+                    </div>
+                </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
