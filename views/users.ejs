@@ -55,7 +55,7 @@
                                                     <%= new Date(user.createdAt).toLocaleString() %>
                                                 </td>
                                                 <td class="actions">
-                                                    <button class="btn btn-primary open-edit-modal-btn"
+                                                    <button class="btn btn-secondary open-edit-modal-btn" style="background-color:#f39c12;"
                                                         data-userid="<%= user.id %>"
                                                         data-username="<%= user.username %>">Düzenle</button>
                                                     <form action="/admin/users/delete/<%= user.id %>" method="POST"
