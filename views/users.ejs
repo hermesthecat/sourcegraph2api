@@ -11,124 +11,138 @@
 <body>
     <div class="container">
         <%- include('partials/nav.ejs') %>
-        <%- include('partials/messages.ejs') %>
+            <%- include('partials/messages.ejs') %>
 
-        <h1>Kullanıcı Yönetimi</h1>
+                <h1>Kullanıcı Yönetimi</h1>
 
-        <div class="content-grid">
-            <div class="form-container">
-                <h2>Yeni Kullanıcı Ekle</h2>
-                <form action="/admin/users/add" method="POST">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="username">Kullanıcı Adı</label>
-                            <input type="text" id="username" name="username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Şifre</label>
-                            <input type="password" id="password" name="password" required>
+                <div class="content-grid">
+                    <div class="form-container">
+                        <h2>Yeni Kullanıcı Ekle</h2>
+                        <form action="/admin/users/add" method="POST">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="username">Kullanıcı Adı</label>
+                                    <input type="text" id="username" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Şifre</label>
+                                    <input type="password" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="button">Ekle</button>
+                        </form>
+                    </div>
+
+                    <div class="table-container-wrapper">
+                        <h2>Mevcut Kullanıcılar (<%= users.length %>)</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Kullanıcı Adı</th>
+                                        <th>Oluşturulma Tarihi</th>
+                                        <th>Eylemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (users && users.length> 0) { %>
+                                        <% users.forEach(user=> { %>
+                                            <tr>
+                                                <td>
+                                                    <%= user.username %>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(user.createdAt).toLocaleString() %>
+                                                </td>
+                                                <td class="actions">
+                                                    <button class="btn btn-primary open-edit-modal-btn"
+                                                        data-userid="<%= user.id %>"
+                                                        data-username="<%= user.username %>">Düzenle</button>
+                                                    <form action="/admin/users/delete/<%= user.id %>" method="POST"
+                                                        style="display:inline;">
+                                                        <button type="submit" class="btn btn-danger"
+                                                            onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">Sil</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                                <% } else { %>
+                                                    <tr>
+                                                        <td colspan="3">Gösterilecek veri yok.</td>
+                                                    </tr>
+                                                    <% } %>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <button type="submit" class="button">Ekle</button>
-                </form>
-            </div>
-            
-            <div class="table-container-wrapper">
-                <h2>Mevcut Kullanıcılar (<%= users.length %>)</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Kullanıcı Adı</th>
-                                <th>Oluşturulma Tarihi</th>
-                                <th>Eylemler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (users && users.length > 0) { %>
-                            <% users.forEach(user => { %>
-                            <tr>
-                                <td><%= user.username %></td>
-                                <td><%= new Date(user.createdAt).toLocaleString() %></td>
-                                <td class="actions">
-                                    <button class="button button-small open-edit-modal-btn" data-userid="<%= user.id %>" data-username="<%= user.username %>">Düzenle</button>
-                                    <% if (user.username !== 'admin') { %>
-                                    <form action="/admin/users/delete/<%= user.id %>" method="POST" style="display:inline;">
-                                        <button type="submit" class="button button-small button-danger" onclick="return confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?');">Sil</button>
-                                    </form>
-                                    <% } %>
-                                </td>
-                            </tr>
-                            <% }); %>
-                            <% } else { %>
-                            <tr>
-                                <td colspan="3">Gösterilecek veri yok.</td>
-                            </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-        </div>
 
-        <!-- Kullanıcı Düzenle Modal -->
-        <div id="editUserModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h3>Kullanıcıyı Düzenle</h3>
-                <form id="editUserForm" action="" method="POST" class="form-container">
-                    <div class="form-group">
-                        <label for="editUsername">Kullanıcı Adı</label>
-                        <input type="text" id="editUsername" name="username" required>
+                <!-- Kullanıcı Düzenle Modal -->
+                <div id="editUserModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Kullanıcıyı Düzenle</h3>
+                            <span class="close-btn">&times;</span>
+                        </div>
+                        <form id="editUserForm" action="" method="POST">
+                            <div class="modal-body">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editUsername">Kullanıcı Adı</label>
+                                        <input type="text" id="editUsername" name="username" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editPassword">Yeni Şifre</label>
+                                        <input type="password" id="editPassword" name="password"
+                                            placeholder="Değiştirmek istemiyorsanız boş bırakın">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="button button-secondary" id="cancelEditBtn">İptal</button>
+                                <button type="submit" class="button">Değişiklikleri Kaydet</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label for="editPassword">Yeni Şifre</label>
-                        <input type="password" id="editPassword" name="password" placeholder="Değiştirmek istemiyorsanız boş bırakın">
-                    </div>
-                    <button type="submit" class="button">Değişiklikleri Kaydet</button>
-                </form>
-            </div>
-        </div>
+                </div>
 
-        <script>
-            // === Edit User Modal Logic ===
-            const editUserModal = document.getElementById('editUserModal');
-            const openEditBtns = document.querySelectorAll('.open-edit-modal-btn');
-            const closeEditBtn = editUserModal.querySelector('.close-btn');
-            const editForm = document.getElementById('editUserForm');
-            const editUsernameInput = document.getElementById('editUsername');
+                <script>
+                    // === Edit User Modal Logic ===
+                    const editUserModal = document.getElementById('editUserModal');
+                    const openEditBtns = document.querySelectorAll('.open-edit-modal-btn');
+                    const closeEditBtn = editUserModal.querySelector('.close-btn');
+                    const cancelEditBtn = document.getElementById('cancelEditBtn');
+                    const editForm = document.getElementById('editUserForm');
+                    const editUsernameInput = document.getElementById('editUsername');
 
-            openEditBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const userId = btn.dataset.userid;
-                    const username = btn.dataset.username;
+                    openEditBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const userId = btn.dataset.userid;
+                            const username = btn.dataset.username;
 
-                    editUsernameInput.value = username;
+                            editUsernameInput.value = username;
 
-                    if (username === 'admin') {
-                        editUsernameInput.disabled = true;
-                    } else {
-                        editUsernameInput.disabled = false;
+                            document.getElementById('editPassword').value = '';
+
+                            editForm.action = `/admin/users/edit/${userId}`;
+                            editUserModal.style.display = 'block';
+                        });
+                    });
+
+                    function closeEditModal() {
+                        editUserModal.style.display = 'none';
                     }
 
-                    document.getElementById('editPassword').value = '';
+                    closeEditBtn.addEventListener('click', closeEditModal);
+                    cancelEditBtn.addEventListener('click', closeEditModal);
 
-                    editForm.action = `/admin/users/edit/${userId}`;
-                    editUserModal.style.display = 'block';
-                });
-            });
-
-            closeEditBtn.addEventListener('click', () => {
-                editUserModal.style.display = 'none';
-            });
-
-            // === Generic Modal Close Logic ===
-            window.addEventListener('click', (event) => {
-                if (event.target === editUserModal) {
-                    editUserModal.style.display = 'none';
-                }
-            });
-        </script>
+                    // === Generic Modal Close Logic ===
+                    window.addEventListener('click', (event) => {
+                        if (event.target === editUserModal) {
+                            closeEditModal();
+                        }
+                    });
+                </script>
     </div>
 </body>
 
