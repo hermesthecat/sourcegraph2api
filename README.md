@@ -2,7 +2,7 @@
 
 🚀 **A high-performance, production-ready proxy server to use Sourcegraph's AI API in the OpenAI API format, complete with a full-featured Admin Panel.**
 
-This project allows you to use Sourcegraph's powerful AI capabilities (including over 35 models like Claude, Gemini, and GPT series) through the standard OpenAI API format. It comes with a built-in admin panel to manage API keys, cookies, users, and monitor usage statistics.
+This project allows you to use Sourcegraph's powerful AI capabilities (including over 35 models like Claude, Gemini, and GPT series) through the standard OpenAI API format. It comes with a built-in admin panel to manage Proxy API keys, Sourcegraph API Keys, users, and monitor usage statistics.
 
 ## 📋 Table of Contents
 
@@ -21,7 +21,7 @@ This project allows you to use Sourcegraph's powerful AI capabilities (including
 
 - **Full OpenAI Compatibility**: Works seamlessly with existing OpenAI libraries and tools.
 - **Built-in Admin Panel**: A comprehensive web interface to manage the entire proxy.
-- **Dynamic Cookie & API Key Pools**: Manage multiple Sourcegraph cookies and generate API keys for your users, all from the UI.
+- **Dynamic Sourcegraph API Keys & Proxy API Keys**: Manage multiple Sourcegraph API Keys and generate Proxy API keys for your users, all from the UI.
 - **Usage Statistics & Metrics**: Detailed dashboard with charts for requests, errors, and model usage.
 - **Broad Model Support**: Access to over 35 of the latest AI models from Anthropic, Google, OpenAI, etc.
 - **Streaming Support**: Full `stream: true` support for real-time responses.
@@ -44,9 +44,9 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 **Panel Features:**
 
-- **Dashboard**: View real-time statistics, including total requests, error rates, and usage charts for models, cookies, and API keys.
-- **Cookie Management**: Add, delete, and toggle multiple Sourcegraph cookies to create a resilient request pool.
-- **API Key Management**: Create, delete, and manage API keys for your users.
+- **Dashboard**: View real-time statistics, including total requests, error rates, and usage charts for models, Sourcegraph API Keys, and Proxy API keys.
+- **Sourcegraph API Key Management**: Add, delete, and toggle multiple Sourcegraph API Keys to create a resilient request pool.
+- **Proxy API Key Management**: Create, delete, and manage Proxy API keys for your users.
 - **User Management**: Add or remove admin users who can access the panel.
 - **Usage Metrics**: Browse through a detailed, paginated log of all API requests.
 
