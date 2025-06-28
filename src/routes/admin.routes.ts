@@ -12,12 +12,12 @@ import * as statsService from '../services/statistics.service'; // İstatistik s
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { getAllUsers, addUser, deleteUser, findUserById, updateUser } from '../services/user.service'; // Kullanıcı servisini import et
-import { 
-    getGeneralStats,
-    getApiKeyUsageStats,
-    getCookieUsageStats,
-    getModelUsageStats,
-    getDailyUsageForChart
+import {
+  getGeneralStats,
+  getApiKeyUsageStats,
+  getCookieUsageStats,
+  getModelUsageStats,
+  getDailyUsageForChart
 } from '../services/statistics.service';
 import { logger } from '../utils/logger';
 
@@ -56,9 +56,9 @@ router.use((req, res, next) => {
 router.get('/dashboard', async (req: Request, res: Response) => {
   try {
     const [
-      generalStats, 
-      cookieUsage, 
-      apiKeyUsage, 
+      generalStats,
+      cookieUsage,
+      apiKeyUsage,
       dailyUsage,
       modelUsage
     ] = await Promise.all([
@@ -68,7 +68,7 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       getDailyUsageForChart(),
       getModelUsageStats()
     ]);
-    
+
     res.render('dashboard', {
       title: 'Dashboard',
       currentRoute: '/admin/dashboard',
@@ -360,32 +360,32 @@ router.post('/users/add', async (req: Request, res: Response) => {
 
 // Kullanıcı sil
 router.post('/users/delete/:id', async (req, res) => {
-    try {
-        const id = parseInt(req.params.id, 10);
-        // Kendi kendini silmeyi engelle
-        if (req.user && req.user.id === id) {
-            req.flash('error', 'Kendinizi silemezsiniz.');
-            return res.redirect('/admin/users');
-        }
-        await deleteUser(id);
-        req.flash('success', 'Kullanıcı başarıyla silindi.');
-    } catch (error: any) {
-        req.flash('error', error.message);
+  try {
+    const id = parseInt(req.params.id, 10);
+    // Kendi kendini silmeyi engelle
+    if (req.user && req.user.id === id) {
+      req.flash('error', 'Kendinizi silemezsiniz.');
+      return res.redirect('/admin/users');
     }
-    res.redirect('/admin/users');
+    await deleteUser(id);
+    req.flash('success', 'Kullanıcı başarıyla silindi.');
+  } catch (error: any) {
+    req.flash('error', error.message);
+  }
+  res.redirect('/admin/users');
 });
 
 // Kullanıcıyı güncelle (Modal'dan gelen POST isteği)
 router.post('/users/edit/:id', async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const { username, password } = req.body;
-    try {
-        await updateUser(id, username, password);
-        req.flash('success', 'Kullanıcı başarıyla güncellendi.');
-    } catch (error: any) {
-        req.flash('error', `Kullanıcı güncellenemedi: ${error.message}`);
-    }
-    res.redirect('/admin/users');
+  const id = parseInt(req.params.id, 10);
+  const { username, password } = req.body;
+  try {
+    await updateUser(id, username, password);
+    req.flash('success', 'Kullanıcı başarıyla güncellendi.');
+  } catch (error: any) {
+    req.flash('error', `Kullanıcı güncellenemedi: ${error.message}`);
+  }
+  res.redirect('/admin/users');
 });
 
 export { router as adminRouter }; 

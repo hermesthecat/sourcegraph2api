@@ -154,7 +154,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   if (req.isAuthenticated()) {
     return next(); // Kullanıcı giriş yapmış, devam et
   }
-  
+
   // Kullanıcı giriş yapmamış, login sayfasına yönlendir
   req.flash('error', 'Bu sayfayı görüntülemek için giriş yapmalısınız.');
   res.redirect('/login');

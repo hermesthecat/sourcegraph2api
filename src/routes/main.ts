@@ -79,8 +79,8 @@ export function createApiRouter(): Router {
   // Bu yöntem, session kaydının tamamlandığından emin olmak için en garantili yoldur.
   router.post('/login', (req, res, next) => {
     passport.authenticate('local', (err: any, user: Express.User | false, info: any) => {
-      if (err) { 
-        return next(err); 
+      if (err) {
+        return next(err);
       }
       if (!user) {
         // Hata mesajını flash'a ekle ve login'e yönlendir

@@ -114,7 +114,7 @@ export interface AppConfig {
 declare global {
   namespace Express {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface User extends AppUser {}
+    interface User extends AppUser { }
 
     interface Request {
       user?: User;

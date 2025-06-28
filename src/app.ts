@@ -54,12 +54,12 @@ export function createApp(): Application {
     resave: false,
     saveUninitialized: false, // Gerekli olmayana kadar session oluşturma
     store: sessionStore, // Oturumları veritabanında sakla
-    cookie: { 
+    cookie: {
       secure: process.env.NODE_ENV === 'production', // Sadece HTTPS üzerinden gönder
       maxAge: 1000 * 60 * 60 * 24 // 1 gün
     }
   }));
-  
+
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(flash());
