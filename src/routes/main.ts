@@ -75,12 +75,32 @@ export function createApiRouter(): Router {
     res.render('login', { message: req.flash('error') });
   });
 
-  // Login işlemini yap
-  router.post('/login', passport.authenticate('local', {
-    successRedirect: '/admin/dashboard', // Başarılı olursa admin paneline yönlendir
-    failureRedirect: '/login', // Başarısız olursa tekrar login sayfasına yönlendir
-    failureFlash: true // Hata mesajını connect-flash'a yaz
-  }));
+  // Login işlemini yap - MANUEL YÖNTEM
+  // Bu yöntem, session kaydının tamamlandığından emin olmak için en garantili yoldur.
+  router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err: any, user: Express.User | false, info: any) => {
+      if (err) { 
+        return next(err); 
+      }
+      if (!user) {
+        // Hata mesajını flash'a ekle ve login'e yönlendir
+        if (info && info.message) {
+          req.flash('error', info.message);
+        }
+        return res.redirect('/login');
+      }
+      // Kullanıcıyı manuel olarak oturuma ekle
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        // OTURUMU KAYDET ve sonra yönlendir
+        req.session.save(() => {
+          res.redirect('/admin/dashboard');
+        });
+      });
+    })(req, res, next);
+  });
 
   // Logout işlemi
   router.get('/logout', (req, res, next) => {

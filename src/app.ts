@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser'; // cookie-parser'ı import et
 import session from 'express-session'; // express-session'ı import et
 import passport from './services/auth.service'; // Passport yapılandırmamızı import et
 import flash from 'connect-flash'; // connect-flash'ı import et
+import { sessionStore } from './services/database';
 
 // Middleware imports
 import {
@@ -45,14 +46,16 @@ export function createApp(): Application {
 
   // ======================
   // Session & Auth Middleware
-  // Sıralama çok önemlidir: session -> passport.initialize -> passport.session -> flash
+  // Sıralama çok önemlidir: cookieParser -> session -> passport -> flash
   // ======================
+  app.use(cookieParser(config.sessionSecret || 'a-super-secret-key-that-is-long-enough'));
   app.use(session({
     secret: config.sessionSecret || 'a-super-secret-key-that-is-long-enough',
     resave: false,
-    saveUninitialized: false, // Oturum açılana kadar cookie oluşturma
+    saveUninitialized: false, // Gerekli olmayana kadar session oluşturma
+    store: sessionStore, // Oturumları veritabanında sakla
     cookie: { 
-      secure: config.nodeEnv === 'production',
+      secure: process.env.NODE_ENV === 'production', // Sadece HTTPS üzerinden gönder
       maxAge: 1000 * 60 * 60 * 24 // 1 gün
     }
   }));
