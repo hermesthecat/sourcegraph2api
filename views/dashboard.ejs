@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <%= title %>
-    </title>
+    <title>Gösterge Paneli | Sourcegraph Proxy</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -73,13 +71,13 @@
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Aktif Cookie</h3>
+                        <h3>Aktif Sourcegraph API Key</h3>
                         <p>
                             <%= generalStats.activeCookies %>
                         </p>
                     </div>
                     <div class="stat-card">
-                        <h3>Aktif API Anahtarı</h3>
+                        <h3>Aktif API Key</h3>
                         <p>
                             <%= generalStats.activeApiKeys %>
                         </p>
@@ -101,11 +99,11 @@
                 <div class="stats-grid">
                     <!-- Cookie İstatistikleri Tablosu -->
                     <div class="grid-col-span-2">
-                        <h2>Cookie Performansı</h2>
+                        <h2>Sourcegraph API Key Performansı</h2>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Cookie (Alias)</th>
+                                    <th>Sourcegraph API Key (Alias)</th>
                                     <th>Toplam İstek</th>
                                     <th>Başarısız İstek</th>
                                     <th>Hata Oranı</th>
@@ -136,11 +134,11 @@
 
                     <!-- API Anahtarı İstatistikleri Tablosu -->
                     <div>
-                        <h2>En Aktif API Anahtarları</h2>
+                        <h2>En Aktif API Key'leri</h2>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>API Anahtarı (Alias)</th>
+                                    <th>API Key (Alias)</th>
                                     <th>Toplam İstek</th>
                                 </tr>
                             </thead>

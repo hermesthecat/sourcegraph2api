@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cookie Düzenle | Sourcegraph Proxy</title>
+  <title>Sourcegraph API Key Düzenle | Sourcegraph Proxy</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -13,20 +13,20 @@
     <%- include('partials/nav') %>
       <%- include('partials/messages') %>
 
-        <h1>Cookie'yi Düzenle</h1>
+        <h1>Sourcegraph API Key'yi Düzenle</h1>
 
-        <div class="card">
-          <form action="/admin/cookies/edit/<%= cookie.id %>" method="POST" class="form-container">
+        <div class="form-container">
+          <form action="/admin/cookies/edit/<%= cookie.id %>" method="POST">
             <div class="form-group">
               <label for="alias">Takma Ad (Alias)</label>
               <input type="text" id="alias" name="alias" value="<%= cookie.alias %>" required>
             </div>
             <div class="form-group">
-              <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
+              <label for="cookieValue">Sourcegraph API Key Değeri</label>
               <textarea id="cookieValue" name="cookieValue" required rows="5"><%= cookie.cookieValue %></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Güncelle</button>
-            <a href="/admin/cookies" class="btn" style="background-color: #7f8c8d; color: white;">İptal</a>
+            <a href="/admin/cookies" class="btn btn-secondary">İptal</a>
           </form>
         </div>
   </div>

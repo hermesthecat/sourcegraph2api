@@ -17,7 +17,7 @@
 
                 <div class="content-grid">
                     <div class="form-container">
-                        <h2>Yeni Kullanıcı Ekle</h2>
+                        <h2>Kullanıcı Ekle</h2>
                         <form action="/admin/users/add" method="POST">
                             <div class="form-row">
                                 <div class="form-group">
@@ -29,7 +29,8 @@
                                     <input type="password" id="password" name="password" required>
                                 </div>
                             </div>
-                            <button type="submit" class="button">Ekle</button>
+                            <br>
+                            <button type="submit" class="btn btn-primary">Ekle</button>
                         </form>
                     </div>
 
@@ -55,8 +56,8 @@
                                                     <%= new Date(user.createdAt).toLocaleString() %>
                                                 </td>
                                                 <td class="actions">
-                                                    <button class="btn btn-secondary open-edit-modal-btn" style="background-color:#f39c12;"
-                                                        data-userid="<%= user.id %>"
+                                                    <button class="btn btn-secondary open-edit-modal-btn"
+                                                        style="background-color:#f39c12;" data-userid="<%= user.id %>"
                                                         data-username="<%= user.username %>">Düzenle</button>
                                                     <form action="/admin/users/delete/<%= user.id %>" method="POST"
                                                         style="display:inline;">
@@ -99,8 +100,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="button button-secondary" id="cancelEditBtn">İptal</button>
-                                <button type="submit" class="button">Değişiklikleri Kaydet</button>
+                                <button type="button" class="btn btn-secondary" id="cancelEditBtn">İptal</button>
+                                <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
                             </div>
                         </form>
                     </div>

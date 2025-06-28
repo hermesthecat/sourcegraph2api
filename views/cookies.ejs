@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cookie Yönetimi | Sourcegraph Proxy</title>
+  <title>Sourcegraph API Key Yönetimi | Sourcegraph Proxy</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 
@@ -13,26 +13,29 @@
     <%- include('partials/nav') %>
       <%- include('partials/messages') %>
 
-        <h1>Cookie Yönetimi</h1>
+        <h1>Sourcegraph API Key Yönetimi</h1>
 
         <div class="content-grid">
           <div class="form-container">
-            <h2>Yeni Cookie Ekle</h2>
+            <h2>Sourcegraph API Key Ekle</h2>
             <form action="/admin/cookies/add" method="POST">
-              <div class="form-group">
-                <label for="alias">Takma Ad (Alias)</label>
-                <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="alias">Takma Ad (Alias)</label>
+                  <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
+                </div>
+                <div class="form-group">
+                  <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
+                  <input type="text" id="cookieValue" name="cookieValue"
+                    placeholder="sg_user_id=... ile başlayan değeri yapıştırın" required>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
-                <input type="text" id="cookieValue" name="cookieValue"
-                  placeholder="sg_user_id=... ile başlayan değeri yapıştırın" required>
-              </div>
+              <br>
               <button type="submit" class="btn btn-primary">Ekle</button>
             </form>
           </div>
 
-          <h2>Mevcut Cookie'ler (<%= cookies.length %>)</h2>
+          <h2>Mevcut Sourcegraph API Key'leri (<%= cookies.length %>)</h2>
           <table>
             <thead>
               <tr>
@@ -68,7 +71,7 @@
                         </button>
                       </form>
                       <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
-                        onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
+                        onsubmit="return confirm('Bu Sourcegraph API Key\'yi silmek istediğinizden emin misiniz?');">
                         <button type="submit" class="btn btn-danger">Sil</button>
                       </form>
                     </td>
@@ -76,7 +79,7 @@
                   <% }) %>
                     <% } else { %>
                       <tr>
-                        <td colspan="4" style="text-align: center;">Henüz hiç cookie eklenmemiş.</td>
+                        <td colspan="4" style="text-align: center;">Henüz hiç Sourcegraph API Key eklenmemiş.</td>
                       </tr>
                       <% } %>
             </tbody>

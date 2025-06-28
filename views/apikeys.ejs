@@ -13,26 +13,26 @@
     <%- include('partials/nav.ejs') %>
       <%- include('partials/messages.ejs') %>
 
-        <h1>API Anahtar Yönetimi</h1>
+        <h1>API Key Yönetimi</h1>
 
         <div class="content-grid">
           <div class="form-container">
-            <h2>Yeni API Anahtarı Oluştur</h2>
+            <h2>API Key Oluştur</h2>
             <form action="/admin/apikeys/add" method="POST">
               <div class="form-group">
                 <label for="alias">Takma Ad (Alias)</label>
                 <input type="text" id="alias" name="alias" placeholder="Örn: Mobil Uygulama Anahtarı" required>
               </div>
-              <button type="submit" class="btn btn-primary">Oluştur ve Ekle</button>
+              <button type="submit" class="btn btn-primary">Ekle</button>
             </form>
           </div>
 
-          <h2>Mevcut API Anahtarları (<%= apiKeys.length %>)</h2>
+          <h2>Mevcut API Key'leri (<%= apiKeys.length %>)</h2>
           <table>
             <thead>
               <tr>
                 <th>Takma Ad</th>
-                <th>API Anahtarı</th>
+                <th>API Key</th>
                 <th>Durum</th>
                 <th>Oluşturulma Tarihi</th>
                 <th>Eylemler</th>
@@ -63,7 +63,7 @@
                         </button>
                       </form>
                       <form action="/admin/apikeys/delete/<%= apiKey.id %>" method="POST"
-                        onsubmit="return confirm('Bu API anahtarını silmek istediğinizden emin misiniz? Bu anahtarı kullanan tüm uygulamaların erişimi kesilecektir.');">
+                        onsubmit="return confirm('Bu API Key\'yi silmek istediğinizden emin misiniz? Bu Key\'i kullanan tüm uygulamaların erişimi kesilecektir.');">
                         <button type="submit" class="btn btn-danger">Sil</button>
                       </form>
                     </td>
@@ -71,7 +71,7 @@
                   <% }) %>
                     <% } else { %>
                       <tr>
-                        <td colspan="5" style="text-align: center;">Henüz hiç API anahtarı eklenmemiş.</td>
+                        <td colspan="5" style="text-align: center;">Henüz hiç API Key eklenmemiş.</td>
                       </tr>
                       <% } %>
             </tbody>
