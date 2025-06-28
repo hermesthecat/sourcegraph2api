@@ -9,82 +9,80 @@
 </head>
 
 <body>
-  <%- include('partials/nav.ejs') %>
-  <main class="container">
-    <div class="page-header">
-      <h1>Cookie Yönetimi</h1>
-      <p>Sourcegraph'a istek göndermek için kullanılacak cookieleri yönetin.</p>
-    </div>
-    <%- include('partials/messages.ejs') %>
+  <div class="container">
+    <%- include('partials/nav') %>
+      <%- include('partials/messages') %>
 
-    <div class="content-grid">
-      <div class="form-container">
-        <h2>Yeni Cookie Ekle</h2>
-        <form action="/admin/cookies/add" method="POST">
-          <div class="form-group">
-            <label for="alias">Takma Ad (Alias)</label>
-            <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
-          </div>
-          <div class="form-group">
-            <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
-            <input type="text" id="cookieValue" name="cookieValue" placeholder="sg_user_id=... ile başlayan değeri yapıştırın"
-              required>
-          </div>
-          <button type="submit" class="btn btn-primary">Ekle</button>
-        </form>
-      </div>
+        <h1>Cookie Yönetimi</h1>
 
-      <h2>Mevcut Cookie'ler (<%= cookies.length %>)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Takma Ad</th>
-            <th>Durum</th>
-            <th>Eklenme Tarihi</th>
-            <th>Eylemler</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (cookies.length> 0) { %>
-            <% cookies.forEach(cookie=> { %>
+        <div class="content-grid">
+          <div class="form-container">
+            <h2>Yeni Cookie Ekle</h2>
+            <form action="/admin/cookies/add" method="POST">
+              <div class="form-group">
+                <label for="alias">Takma Ad (Alias)</label>
+                <input type="text" id="alias" name="alias" placeholder="Örn: Kişisel Hesabım" required>
+              </div>
+              <div class="form-group">
+                <label for="cookieValue">Cookie Değeri (SG_COOKIE)</label>
+                <input type="text" id="cookieValue" name="cookieValue"
+                  placeholder="sg_user_id=... ile başlayan değeri yapıştırın" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Ekle</button>
+            </form>
+          </div>
+
+          <h2>Mevcut Cookie'ler (<%= cookies.length %>)</h2>
+          <table>
+            <thead>
               <tr>
-                <td>
-                  <%= cookie.alias %>
-                </td>
-                <td>
-                  <% if (cookie.isActive) { %>
-                    <span class="status status-active">Aktif</span>
-                    <% } else { %>
-                      <span class="status status-passive">Pasif</span>
-                      <% } %>
-                </td>
-                <td>
-                  <%= new Date(cookie.createdAt).toLocaleString('tr-TR') %>
-                </td>
-                <td class="actions">
-                  <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-primary"
-                    style="background-color:#f39c12;">Düzenle</a>
-                  <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST" style="display:inline;">
-                    <button type="submit" class="btn <%= cookie.isActive ? 'btn-secondary' : 'btn-success' %>">
-                      <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
-                    </button>
-                  </form>
-                  <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
-                    onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
-                    <button type="submit" class="btn btn-danger">Sil</button>
-                  </form>
-                </td>
+                <th>Takma Ad</th>
+                <th>Durum</th>
+                <th>Eklenme Tarihi</th>
+                <th>Eylemler</th>
               </tr>
-              <% }) %>
-                <% } else { %>
+            </thead>
+            <tbody>
+              <% if (cookies.length> 0) { %>
+                <% cookies.forEach(cookie=> { %>
                   <tr>
-                    <td colspan="4" style="text-align: center;">Henüz hiç cookie eklenmemiş.</td>
+                    <td>
+                      <%= cookie.alias %>
+                    </td>
+                    <td>
+                      <% if (cookie.isActive) { %>
+                        <span class="status status-active">Aktif</span>
+                        <% } else { %>
+                          <span class="status status-passive">Pasif</span>
+                          <% } %>
+                    </td>
+                    <td>
+                      <%= new Date(cookie.createdAt).toLocaleString('tr-TR') %>
+                    </td>
+                    <td class="actions">
+                      <a href="/admin/cookies/edit/<%= cookie.id %>" class="btn btn-primary"
+                        style="background-color:#f39c12;">Düzenle</a>
+                      <form action="/admin/cookies/toggle/<%= cookie.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn <%= cookie.isActive ? 'btn-secondary' : 'btn-success' %>">
+                          <%= cookie.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
+                        </button>
+                      </form>
+                      <form action="/admin/cookies/delete/<%= cookie.id %>" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Bu cookie\'yi silmek istediğinizden emin misiniz?');">
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                      </form>
+                    </td>
                   </tr>
-                  <% } %>
-        </tbody>
-      </table>
-    </div>
-  </main>
+                  <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="4" style="text-align: center;">Henüz hiç cookie eklenmemiş.</td>
+                      </tr>
+                      <% } %>
+            </tbody>
+          </table>
+        </div>
+  </div>
 </body>
 
 </html>

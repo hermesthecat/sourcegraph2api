@@ -73,21 +73,22 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       title: 'Dashboard',
       currentRoute: '/admin/dashboard',
       generalStats,
-      cookieUsage,
-      apiKeyUsage,
-      dailyUsage,
-      modelUsage
+      cookieStats: cookieUsage,
+      apiKeyStats: apiKeyUsage,
+      chartData: JSON.stringify(dailyUsage),
+      modelUsageData: JSON.stringify(modelUsage)
     });
   } catch (error) {
+    logger.error('Dashboard verileri alınırken hata:', error);
     req.flash('error', 'Dashboard verileri alınırken bir hata oluştu.');
-    res.render('dashboard', {
-      title: 'Dashboard',
+    res.status(500).render('dashboard', {
+      title: 'Hata',
       currentRoute: '/admin/dashboard',
-      generalStats: {},
-      cookieUsage: [],
-      apiKeyUsage: [],
-      dailyUsage: { labels: [], data: [] },
-      modelUsage: { labels: [], data: [] }
+      generalStats: { totalRequests: 0, totalErrors: 0, errorRate: 0, activeCookies: 0, activeApiKeys: 0 },
+      cookieStats: [],
+      apiKeyStats: [],
+      chartData: JSON.stringify({ labels: [], data: [] }),
+      modelUsageData: JSON.stringify({ labels: [], data: [] })
     });
   }
 });

@@ -9,77 +9,75 @@
 </head>
 
 <body>
-  <%- include('partials/nav.ejs') %>
-  <main class="container">
-    <div class="page-header">
-      <h1>API Anahtar Yönetimi</h1>
-      <p>Sisteme erişim için API anahtarları oluşturun ve yönetin.</p>
-    </div>
-    <%- include('partials/messages.ejs') %>
+  <div class="container">
+    <%- include('partials/nav.ejs') %>
+      <%- include('partials/messages.ejs') %>
 
-    <div class="content-grid">
-      <div class="form-container">
-        <h2>Yeni API Anahtarı Oluştur</h2>
-        <form action="/admin/apikeys/add" method="POST">
-          <div class="form-group">
-            <label for="alias">Takma Ad (Alias)</label>
-            <input type="text" id="alias" name="alias" placeholder="Örn: Mobil Uygulama Anahtarı" required>
+        <h1>API Anahtar Yönetimi</h1>
+
+        <div class="content-grid">
+          <div class="form-container">
+            <h2>Yeni API Anahtarı Oluştur</h2>
+            <form action="/admin/apikeys/add" method="POST">
+              <div class="form-group">
+                <label for="alias">Takma Ad (Alias)</label>
+                <input type="text" id="alias" name="alias" placeholder="Örn: Mobil Uygulama Anahtarı" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Oluştur ve Ekle</button>
+            </form>
           </div>
-          <button type="submit" class="btn btn-primary">Oluştur ve Ekle</button>
-        </form>
-      </div>
 
-      <h2>Mevcut API Anahtarları (<%= apiKeys.length %>)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Takma Ad</th>
-            <th>API Anahtarı</th>
-            <th>Durum</th>
-            <th>Oluşturulma Tarihi</th>
-            <th>Eylemler</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if (apiKeys.length> 0) { %>
-            <% apiKeys.forEach(apiKey=> { %>
+          <h2>Mevcut API Anahtarları (<%= apiKeys.length %>)</h2>
+          <table>
+            <thead>
               <tr>
-                <td>
-                  <%= apiKey.alias %>
-                </td>
-                <td><code><%= apiKey.key %></code></td>
-                <td>
-                  <% if (apiKey.isActive) { %>
-                    <span class="status status-active">Aktif</span>
-                    <% } else { %>
-                      <span class="status status-passive">Pasif</span>
-                      <% } %>
-                </td>
-                <td>
-                  <%= new Date(apiKey.createdAt).toLocaleString('tr-TR') %>
-                </td>
-                <td class="actions">
-                  <form action="/admin/apikeys/toggle/<%= apiKey.id %>" method="POST">
-                    <button type="submit" class="btn <%= apiKey.isActive ? 'btn-secondary' : 'btn-success' %>">
-                      <%= apiKey.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
-                    </button>
-                  </form>
-                  <form action="/admin/apikeys/delete/<%= apiKey.id %>" method="POST"
-                    onsubmit="return confirm('Bu API anahtarını silmek istediğinizden emin misiniz? Bu anahtarı kullanan tüm uygulamaların erişimi kesilecektir.');">
-                    <button type="submit" class="btn btn-danger">Sil</button>
-                  </form>
-                </td>
+                <th>Takma Ad</th>
+                <th>API Anahtarı</th>
+                <th>Durum</th>
+                <th>Oluşturulma Tarihi</th>
+                <th>Eylemler</th>
               </tr>
-              <% }) %>
-                <% } else { %>
+            </thead>
+            <tbody>
+              <% if (apiKeys.length> 0) { %>
+                <% apiKeys.forEach(apiKey=> { %>
                   <tr>
-                    <td colspan="5" style="text-align: center;">Henüz hiç API anahtarı eklenmemiş.</td>
+                    <td>
+                      <%= apiKey.alias %>
+                    </td>
+                    <td><code><%= apiKey.key %></code></td>
+                    <td>
+                      <% if (apiKey.isActive) { %>
+                        <span class="status status-active">Aktif</span>
+                        <% } else { %>
+                          <span class="status status-passive">Pasif</span>
+                          <% } %>
+                    </td>
+                    <td>
+                      <%= new Date(apiKey.createdAt).toLocaleString('tr-TR') %>
+                    </td>
+                    <td class="actions">
+                      <form action="/admin/apikeys/toggle/<%= apiKey.id %>" method="POST">
+                        <button type="submit" class="btn <%= apiKey.isActive ? 'btn-secondary' : 'btn-success' %>">
+                          <%= apiKey.isActive ? 'Pasif Yap' : 'Aktif Yap' %>
+                        </button>
+                      </form>
+                      <form action="/admin/apikeys/delete/<%= apiKey.id %>" method="POST"
+                        onsubmit="return confirm('Bu API anahtarını silmek istediğinizden emin misiniz? Bu anahtarı kullanan tüm uygulamaların erişimi kesilecektir.');">
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                      </form>
+                    </td>
                   </tr>
-                  <% } %>
-        </tbody>
-      </table>
-    </div>
-  </main>
+                  <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="5" style="text-align: center;">Henüz hiç API anahtarı eklenmemiş.</td>
+                      </tr>
+                      <% } %>
+            </tbody>
+          </table>
+        </div>
+  </div>
 </body>
 
 </html>
