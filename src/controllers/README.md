@@ -32,7 +32,7 @@ Uygulamanın sağlık durumunu kontrol etmek için kullanılan endpoint'leri yö
 
 OpenAI uyumlu `/v1/models` endpoint'lerini yönetir.
 
-* `getModels`: (`/v1/models`) `config` dosyasında tanımlı olan ve desteklenen tüm modellerin bir listesini OpenAI formatında döner.
+* `getModels`: (`/v1/models`) Uygulama yapılandırmasından (artık veritabanından dinamik olarak yüklenen) desteklenen tüm modellerin bir listesini OpenAI formatında döner.
 * `getModel`: (`/v1/models/{model}`) Belirli bir modelin detaylarını döner.
 
 ### `index.ts`

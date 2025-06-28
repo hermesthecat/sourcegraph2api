@@ -23,6 +23,12 @@ Bu klasör, uygulamanın "M" (Model) katmanını temsil eder ve veritabanı şem
 
 * **Alanlar:** `id`, `alias`, `cookieValue` (asıl cookie), `isActive`.
 
+### `setting.model.ts`
+
+`settings` tablosunu temsil eden `Setting` modelini tanımlar. Bu tablo, uygulamanın dinamik olarak yönetilen yapılandırma ayarlarını anahtar-değer çiftleri olarak saklar. `SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `USER_AGENT` gibi ayarlar artık burada saklanır.
+
+* **Alanlar:** `key` (ayarın adı), `value` (ayarın değeri).
+
 ### `usage.model.ts`
 
 `usage_metrics` tablosunu temsil eden `UsageMetric` modelini tanımlar. Bu tablo, yapılan her API isteğini loglayarak kullanım istatistikleri için veri sağlar.
@@ -42,7 +48,7 @@ Bu klasör, uygulamanın "M" (Model) katmanını temsil eder ve veritabanı şem
 
 Bu dosya, tüm modelleri merkezi bir yerden yönetir:
 
-* **Modelleri İçe Aktarır:** Diğer tüm model dosyalarını içe aktarır.
+* **Modelleri İçe Aktarır:** Diğer tüm model dosyalarını (artık `setting.model.ts` dahil) içe aktarır.
 * **İlişkileri Tanımlar:**
   * `ApiKey` ve `UsageMetric` arasında **One-to-Many** ilişki kurar (bir API anahtarının birden çok kullanım metriği olabilir).
   * `Cookie` ve `UsageMetric` arasında **One-to-Many** ilişki kurar (bir cookie'nin birden çok kullanım metriği olabilir).

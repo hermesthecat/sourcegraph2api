@@ -1,6 +1,13 @@
 # Config Klasörü
 
-Bu klasör, uygulamanın tüm yapılandırma ayarlarını yönetmekten sorumludur. Ortam değişkenlerini (`.env` dosyasından) okur, bunları işler ve uygulama genelinde kullanılabilir bir yapılandırma nesnesi olarak sunar.
+Bu klasör, uygulamanın tüm yapılandırma ayarlarını yönetmekten sorumludur. Ancak artık ayarların çoğu `.env` dosyasından değil, veritabanından dinamik olarak yönetilmektedir.
+
+## Sorumluluklar
+
+* **Temel Yapılandırma:** Sunucu başlatılırken ihtiyaç duyulan `PORT`, `HOST`, `NODE_ENV`, `DEBUG` gibi temel ayarları `.env` dosyasından okur. Bu ayarların güncellenmesi için sunucunun yeniden başlatılması gerekir.
+* **Dinamik Yapılandırma Yükleme:** Uygulama başlatıldığında, veritabanından `settings` tablosundaki dinamik ayarları (`SESSION_SECRET`, `REQUEST_RATE_LIMIT`, `ROUTE_PREFIX`, `PROXY_URL`, `IP_BLACKLIST`, `LOG_LEVEL`, `USER_AGENT`, `TZ`, `REASONING_HIDE`, `SOURCEGRAPH_BASE_URL`, `CHAT_ENDPOINT` gibi) yükler ve bellekte tutar.
+* **Anlık Güncelleme:** Yönetim panelinden yapılan ayar değişiklikleri, veritabanının yanı sıra bellekteki aktif yapılandırma nesnesini de anında günceller. Bu sayede sunucuyu yeniden başlatmaya gerek kalmaz.
+* **Model Kaydı:** Uygulamanın desteklediği tüm dil modellerini (`modelRegistry`) ve bu modellere ait Sourcegraph referanslarını ve maksimum token sayılarını içeren statik bir kayıt defterini barındırır.
 
 ## Dosyalar
 
@@ -8,18 +15,13 @@ Bu klasör, uygulamanın tüm yapılandırma ayarlarını yönetmekten sorumludu
 
 Bu dosya, yapılandırma yönetiminin merkezidir ve aşağıdaki ana sorumlulukları yerine getirir:
 
-* **Ortam Değişkenlerini Yükleme:** `dotenv` kütüphanesini kullanarak projenin kök dizinindeki `.env` dosyasından ortam değişkenlerini yükler.
-* **Yardımcı Fonksiyonlar:** `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvArray` gibi yardımcı fonksiyonlar aracılığıyla ortam değişkenlerine güvenli bir şekilde erişim sağlar. Bu fonksiyonlar, bir değişken tanımlanmamışsa varsayılan değerlerin kullanılmasına olanak tanır.
-* **`config` Nesnesi:** Uygulamanın tüm ayarlarını içeren ve dışa aktarılan bir `config` nesnesi oluşturur. Bu nesne aşağıdaki gibi gruplandırılmış ayarları içerir:
-  * **Temel Ayarlar:** `port`, `host`, `debug`, `nodeEnv`
-  * **Güvenlik:** `sessionSecret`, `ipBlacklist`
-  * **Ağ Ayarları:** `proxyUrl`, `userAgent`
-  * **Hız Sınırlama:** `requestRateLimit`
-* **`modelRegistry` Nesnesi:** Uygulamanın en kritik parçalarından biridir. Bu nesne, desteklenen tüm büyük dil modellerini (Claude, GPT, Gemini vb.) ve bu modellerin Sourcegraph API'sindeki referanslarını (`modelRef`) ve maksimum token sayılarını içeren statik bir kayıt defteridir. Bu, uygulamanın bir model proxy'si olarak çalışmasını sağlar.
-* **Yapılandırma Doğrulama ve Loglama:**
-  * `validateConfig`: Uygulama başlamadan önce temel yapılandırma ayarlarının (örneğin, geçerli bir `PORT` numarası) doğru olup olmadığını kontrol eder.
-  * `logConfig`: Hata ayıklama (`debug`) modu aktif olduğunda, mevcut yapılandırmayı konsola yazdırarak geliştiricilere kolaylık sağlar.
+* **`getBaseConfig()`**: `.env` dosyasından `PORT`, `HOST`, `DEBUG`, `NODE_ENV` gibi temel ayarları okur.
+* **`loadConfigFromDb()`**: `Setting` modelini kullanarak veritabanındaki ayarları yükler. Veritabanında eksik olan varsayılan ayarları oluşturur ve `liveConfig` nesnesini doldurur.
+* **`config` Nesnesi (Proxy):** Uygulama genelinde kullanılan ana yapılandırma nesnesidir. Bu bir proxy nesnesidir, bu sayede `config.sessionSecret` gibi bir değere erişildiğinde her zaman bellekteki en güncel değeri alır.
+* **`updateLiveConfig()`**: Bellekteki `liveConfig` nesnesini anında günceller. Bu fonksiyon, ayarlar panelinden bir ayar güncellendiğinde çağrılır.
+* **`modelRegistry` Nesnesi:** Uygulamanın desteklediği dil modellerinin statik listesini içerir.
+* **`getModelInfo()` ve `getModelList()`:** Model kayıt defterine erişim sağlayan yardımcı fonksiyonlar.
 
 ## Kullanım
 
-Burada tanımlanan `config` nesnesi, uygulama genelinde (servisler, ara katmanlar, uygulama başlangıç dosyası vb.) `import { config } from '../config'` ifadesiyle içe aktarılarak kullanılır. Bu merkezi yaklaşım, yapılandırma yönetimini basitleştirir ve tutarlılığı sağlar.
+`config` nesnesi, uygulama genelinde `import { config } from '../config'` ifadesiyle içe aktarılarak kullanılır. Bu merkezi ve dinamik yaklaşım, yapılandırma yönetimini basitleştirir ve sunucu yeniden başlatma ihtiyacını ortadan kaldırır.

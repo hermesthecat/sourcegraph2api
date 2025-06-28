@@ -22,7 +22,7 @@ Uygulamanın ana yönlendiricisini (`Router`) oluşturan ve yapılandıran dosya
   * **V1 API Rotaları (`/v1`):** `/v1` ön eki ile gelen ve OpenAI uyumlu olan ana API rotalarını (`/chat/completions`, `/models`) tanımlar. Bu rotalar `openaiAuth` ara katmanı ile korunur.
   * **Metrik Rotaları (`/metrics`):** Uygulama performansı ve istatistikleri hakkında bilgi veren endpoint'leri içerir.
 * `setupRoutes`: `createApiRouter` tarafından oluşturulan ana router'ı ana Express `app` nesnesine bağlar.
-* `processRoutePrefix`: Ortam değişkenlerinden gelen `ROUTE_PREFIX` değerini işleyerek API rotalarının özel bir ön ek altında sunulmasına olanak tanır.
+* `processRoutePrefix`: `config`'den (artık veritabanından dinamik olarak yüklenen) gelen `routePrefix` değerini işleyerek API rotalarının özel bir ön ek altında sunulmasına olanak tanır.
 
 ### `admin.routes.ts`
 
@@ -33,6 +33,7 @@ Yönetim paneli arayüzü için gerekli olan tüm rotaları içerir. Bu rotalar�
 * **API Anahtarı Yönetimi (`/apikeys`):** API anahtarlarını listelemek, oluşturmak, silmek ve durumunu değiştirmek için CRUD rotalarını içerir.
 * **Kullanıcı Yönetimi (`/users`):** Yönetim paneline erişebilen kullanıcıları listelemek, eklemek, güncellemek ve silmek için rotaları içerir.
 * **Kullanım Metrikleri (`/metrics`):** API kullanım loglarını sayfalama (pagination) yaparak gösteren bir sayfa sunar.
+* **Ayarlar (`/settings`):** Uygulamanın dinamik ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`) görüntülemek ve güncellemek için bir arayüz sağlar.
 * **Flash Mesajları:** Kullanıcı işlemlerinden sonra (örneğin, "Cookie başarıyla eklendi") bilgilendirme mesajları göstermek için `connect-flash` ve session tabanlı bir ara katman kullanır.
 
 ### `index.ts`

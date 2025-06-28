@@ -21,6 +21,7 @@ Bu klasör, uygulamanın "V" (View) katmanını temsil eder ve yönetim panelini
 * **`apikeys.ejs`**: Veritabanındaki tüm API anahtarlarını listeleyen, yeni anahtar oluşturma ve mevcut olanları silme/aktifleştirme seçenekleri sunan sayfa.
 * **`users.ejs`**: Yönetim paneline erişimi olan kullanıcıları listeleyen, yeni kullanıcı ekleme, düzenleme ve silme formlarını içeren sayfa.
 * **`metrics.ejs`**: API kullanım loglarını (`UsageMetric` kayıtlarını) sayfalama (pagination) yaparak detaylı bir şekilde gösteren sayfa.
+* **`settings.ejs`**: Uygulamanın dinamik olarak yönetilen ayarlarını (örneğin, `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`) görüntülemek ve güncellemek için form alanlarını içeren sayfa.
 
 ### `partials/` Klasörü
 

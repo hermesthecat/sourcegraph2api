@@ -22,7 +22,9 @@ Bu dosya, projedeki tüm özel tür tanımlamalarını içerir ve mantıksal gru
   * `OpenAIErrorResponse`: Hata durumlarında istemciye döndürülecek standart hata nesnesinin yapısını belirler.
 
 * **Uygulama ve Yapılandırma Tipleri:**
-  * `AppConfig`: `config/index.ts` dosyasında oluşturulan merkezi yapılandırma nesnesinin tüm alanlarını ve tiplerini tanımlar.
+  * `BaseConfig`: `.env` dosyasından okunan ve sunucu başlangıcında belirlenen temel yapılandırma ayarlarının (örn: `port`, `host`, `debug`) tipini tanımlar.
+  * `DynamicConfig`: Veritabanında saklanan ve yönetim panelinden dinamik olarak güncellenebilen ayarların (örn: `sessionSecret`, `requestRateLimit`, `userAgent`, `sourcegraphBaseUrl`) tipini tanımlar.
+  * `AppConfig`: `BaseConfig` ve `DynamicConfig`'i birleştirerek uygulamanın tam yapılandırma nesnesinin tipini tanımlar.
   * `AppUser`: Yönetim paneli kullanıcısının temel özelliklerini (`id`, `username`) içerir.
 
 * **Express & Passport.js Tip Genişletmeleri:**

@@ -24,11 +24,16 @@ Bu klasör, uygulamanın iş mantığının (business logic) merkezidir. Control
   * **İstek Dönüşümü:** Gelen OpenAI formatındaki istekleri Sourcegraph'ın beklediği formata (`convertToSourcegraphFormat`) dönüştürür.
   * **Cookie Havuzu:** Her istek için `cookie.service` üzerinden rastgele aktif bir cookie seçerek kimlik doğrulama başlıklarını (`Authorization`, `Cookie`) oluşturur.
   * **Streaming İstekleri:** `axios` ve Node.js `stream` modüllerini kullanarak Sourcegraph'tan gelen yanıtları parça parça (stream) işler ve istemciye iletir.
+  * **Dinamik Endpointler:** `SOURCEGRAPH_BASE_URL` ve `CHAT_ENDPOINT` gibi değerleri artık `config` nesnesinden dinamik olarak alır, bu da panelden güncellenebilmelerini sağlar.
   * **Metrik Kaydı:** Her başarılı veya başarısız isteğin sonucunu `metric.service`'i çağırarak veritabanına kaydeder.
 
 * **`auth.service.ts`**: Yönetim paneli kimlik doğrulamasını yönetir.
   * **Passport.js Kurulumu:** Kullanıcı adı ve parola ile girişi sağlayan `LocalStrategy`'yi yapılandırır.
   * **Session Yönetimi:** Kullanıcı bilgilerini session'a kaydetmek (`serializeUser`) ve session'dan geri okumak (`deserializeUser`) için gerekli fonksiyonları tanımlar.
+
+* **`settings.service.ts`**: Uygulamanın dinamik ayarlarını veritabanında yönetir.
+  * `getEditableSettings`: Yönetim panelindeki ayarlar sayfasında gösterilecek ayarları veritabanından getirir.
+  * `updateSettings`: Yönetim panelinden gelen güncellenmiş ayarları veritabanına kaydeder ve `config` nesnesini anında günceller.
 
 ### Veri Yönetim (CRUD) Servisleri
 

@@ -100,8 +100,8 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 The application's configuration is managed in two ways:
 
-1.  **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
-2.  **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
+1. **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
+2. **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
 
 ### `.env` File Settings
 
@@ -115,6 +115,7 @@ The application's configuration is managed in two ways:
 ### Admin Panel Settings
 
 The following settings can be configured from the UI:
+
 - **Session Secret**: A secret key for securing user sessions.
 - **Request Rate Limit**: Max requests per minute per IP.
 - **Route Prefix**: A global prefix for all API routes.
@@ -343,8 +344,8 @@ Bu proje, proxy sunucunuzu yönetmek ve izlemek için güçlü bir yönetim pane
 
 Uygulama konfigürasyonu iki şekilde yönetilir:
 
-1.  **`.env` Dosyası (Başlangıç Ayarları)**: Bunlar, sunucuyu başlatmak için gereken temel ayarlardır. Yalnızca sunucu başlarken bir kez okunurlar.
-2.  **Yönetim Paneli (Dinamik Ayarlar)**: Diğer tüm ayarlar, **Yönetim Paneli → Ayarlar** sayfasından dinamik olarak yönetilir. Bu ayarlar veritabanında saklanır ve sunucuyu yeniden başlatmadan anında değiştirilebilir.
+1. **`.env` Dosyası (Başlangıç Ayarları)**: Bunlar, sunucuyu başlatmak için gereken temel ayarlardır. Yalnızca sunucu başlarken bir kez okunurlar.
+2. **Yönetim Paneli (Dinamik Ayarlar)**: Diğer tüm ayarlar, **Yönetim Paneli → Ayarlar** sayfasından dinamik olarak yönetilir. Bu ayarlar veritabanında saklanır ve sunucuyu yeniden başlatmadan anında değiştirilebilir.
 
 ### `.env` Dosyası Ayarları
 
@@ -358,6 +359,7 @@ Uygulama konfigürasyonu iki şekilde yönetilir:
 ### Yönetim Paneli Ayarları
 
 Aşağıdaki ayarlar kullanıcı arayüzünden yapılandırılabilir:
+
 - **Oturum Gizli Anahtarı**: Kullanıcı oturumlarını güvence altına almak için gizli bir anahtar.
 - **İstek Limiti**: IP başına dakika başına maksimum istek sayısı.
 - **Rota Ön Eki**: Tüm API yolları için genel bir ön ek.

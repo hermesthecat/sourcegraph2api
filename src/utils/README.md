@@ -15,6 +15,7 @@
 Uygulamanın loglama (günlük kaydı) altyapısını kurar ve yönetir.
 
 * **Winston Kütüphanesi:** Güçlü ve esnek bir loglama kütüphanesi olan `winston`'ı temel alır.
+* **Dinamik Yapılandırma:** Log seviyesi ve renkli çıktı gibi ayarları `config` nesnesinden (artık veritabanından dinamik olarak yüklenen) alır.
 * **Çoklu "Transport":** Logları birden fazla hedefe aynı anda yazdırabilir:
   * **Console:** Geliştirme ortamında anlık takip için logları konsola yazdırır. `debug` modunda renklendirme yapar.
   * **Dosya:** Hataları (`error.log`), tüm logları (`combined.log`), yakalanamayan istisnaları (`exceptions.log`) ve reddedilen Promise'leri (`rejections.log`) ayrı dosyalara kaydeder.
