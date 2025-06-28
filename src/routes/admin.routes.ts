@@ -350,65 +350,33 @@ router.post('/users/add', async (req: Request, res: Response) => {
 });
 
 // Kullanıcı sil
-router.post('/users/delete/:id', async (req: Request, res: Response) => {
-  try {
-    const userId = Number(req.params.id);
-    // @ts-ignore
-    if (req.user.id === userId) {
-      throw new Error('Kendinizi silemezsiniz.');
+router.post('/users/delete/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        // Kendi kendini silmeyi engelle
+        if (req.user && req.user.id === id) {
+            req.flash('error', 'Kendinizi silemezsiniz.');
+            return res.redirect('/admin/users');
+        }
+        await deleteUser(id);
+        req.flash('success', 'Kullanıcı başarıyla silindi.');
+    } catch (error: any) {
+        req.flash('error', error.message);
     }
-    await deleteUser(userId);
-    // @ts-ignore
-    req.session.message = 'Kullanıcı başarıyla silindi.';
-  } catch (error: any) {
-    log.error('Kullanıcı silinirken hata:', error);
-    // @ts-ignore
-    req.session.error = error.message || 'Kullanıcı silinirken bir hata oluştu.';
-  }
-  res.redirect('/admin/users');
-});
-
-// Kullanıcı düzenleme sayfasını göster
-router.get('/users/edit/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const user = await findUserById(id);
-    if (!user) {
-      req.flash('error', 'Kullanıcı bulunamadı.');
-      return res.redirect('/admin/users');
-    }
-    res.render('edit-user', { 
-      title: 'Kullanıcıyı Düzenle',
-      user,
-      currentRoute: '/admin/users' 
-    });
-  } catch (error: any) {
-    req.flash('error', error.message);
     res.redirect('/admin/users');
-  }
 });
 
-// Kullanıcıyı güncelle
+// Kullanıcıyı güncelle (Modal'dan gelen POST isteği)
 router.post('/users/edit/:id', async (req, res) => {
-  try {
     const id = parseInt(req.params.id, 10);
     const { username, password } = req.body;
-    
-    await updateUser(id, username, password);
-    
-    req.flash('success', 'Kullanıcı başarıyla güncellendi.');
+    try {
+        await updateUser(id, username, password);
+        req.flash('success', 'Kullanıcı başarıyla güncellendi.');
+    } catch (error: any) {
+        req.flash('error', `Kullanıcı güncellenemedi: ${error.message}`);
+    }
     res.redirect('/admin/users');
-  } catch (error: any) {
-    req.flash('error', error.message);
-    // Hata durumunda düzenleme sayfasına geri dön, mevcut veriyi tekrar yolla
-    const id = parseInt(req.params.id, 10);
-    const user = await findUserById(id);
-    res.render('edit-user', {
-      title: 'Kullanıcıyı Düzenle',
-      user: { ...user?.get(), ...req.body }, // Formdaki veriyi koru
-      currentRoute: '/admin/users'
-    });
-  }
 });
 
-export { router as adminRouter }; 
+export default router; 
