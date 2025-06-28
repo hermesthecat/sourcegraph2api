@@ -80,8 +80,6 @@ The server is configured via environment variables in the `.env` file.
 | `PORT`               | The port the server will run on.                                                         | `7033`       | ❌       |
 | `NODE_ENV`           | The operating environment (`development` or `production`).                               | `production` | ❌       |
 | `DEBUG`              | Enables detailed debug logging.                                                          | `false`      | ❌       |
-| `SG_COOKIE`          | The credential (cookie) used to access the **Sourcegraph API**.                          | -            | ✅       |
-| `API_SECRET`         | The API key(s) used to protect access to this **proxy server** (can be comma-separated). | -            | ✅       |
 | `REQUEST_RATE_LIMIT` | The maximum number of requests allowed per minute.                                       | `60`         | ❌       |
 | `ROUTE_PREFIX`       | A global prefix to be added to all API routes (e.g., `/api`).                            | -            | ❌       |
 | `PROXY_URL`          | An HTTP/HTTPS proxy address to be used for requests to Sourcegraph.                      | -            | ❌       |
@@ -94,14 +92,6 @@ The server is configured via environment variables in the `.env` file.
 PORT=7033
 NODE_ENV=production
 DEBUG=false
-
-# ===== Required Settings =====
-# Your cookie from your Sourcegraph account
-SG_COOKIE=your_sourcegraph_cookie_here
-
-# Your password(s) to protect this proxy
-# For multiple passwords: API_SECRET=key1,key2,key3
-API_SECRET=a_super_secure_password
 
 # ===== Optional Settings =====
 # Request Limit (per minute)
@@ -318,8 +308,6 @@ Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
 | `PORT`               | Sunucunun çalışacağı port.                                                                                 | `7033`       | ❌      |
 | `NODE_ENV`           | Çalışma ortamı (`development` veya `production`).                                                          | `production` | ❌      |
 | `DEBUG`              | Detaylı hata ayıklama loglarını aktif eder.                                                                | `false`      | ❌      |
-| `SG_COOKIE`          | **Sourcegraph API**'sine erişim için kullanılacak kimlik bilgisi (cookie).                                 | -            | ✅      |
-| `API_SECRET`         | Bu **proxy sunucusuna** erişimi korumak için kullanılacak API anahtarı/anahtarları (virgülle ayrılabilir). | -            | ✅      |
 | `REQUEST_RATE_LIMIT` | Dakika başına izin verilen maksimum istek sayısı.                                                          | `60`         | ❌      |
 | `ROUTE_PREFIX`       | Tüm API yollarının önüne eklenecek genel önek (örn: `/api`).                                               | -            | ❌      |
 | `PROXY_URL`          | Sourcegraph'a yapılan istekler için kullanılacak HTTP/HTTPS proxy adresi.                                  | -            | ❌      |
@@ -332,14 +320,6 @@ Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
 PORT=7033
 NODE_ENV=production
 DEBUG=false
-
-# ===== Gerekli Ayarlar =====
-# Sourcegraph hesabınızdan alacağınız cookie
-SG_COOKIE=sg_cookie_degeriniz_buraya
-
-# Bu proxy'yi korumak için belirlediğiniz parola(lar)
-# Birden fazla parola için: API_SECRET=key1,key2,key3
-API_SECRET=super_guvenli_bir_parola
 
 # ===== Opsiyonel Ayarlar =====
 # İstek Limiti (dakikada)

@@ -248,19 +248,9 @@ export function getModelList(): string[] {
  * Konfigürasyonu doğrula / Validate configuration
  */
 export function validateConfig(): void {
-  // Check for SG_COOKIE environment variable
-  // Artık cookie'ler veritabanından yönetildiği için bu kontrol gereksiz.
-  // if (!config.sgCookie) {
-  //   throw new Error('SG_COOKIE environment variable is required / SG_COOKIE ortam değişkeni gereklidir');
-  // }
 
   if (config.port < 1 || config.port > 65535) {
     throw new Error('PORT must be between 1 and 65535 / PORT 1 ile 65535 arasında olmalıdır');
-  }
-
-  // Check for API secrets if provided
-  if (config.apiSecret && config.apiSecret.length < 10) {
-    throw new Error('API_SECRET must be at least 10 characters long / API_SECRET en az 10 karakter uzunluğunda olmalıdır');
   }
 }
 
