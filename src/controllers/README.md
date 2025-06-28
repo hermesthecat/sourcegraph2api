@@ -24,9 +24,9 @@ This controller provides endpoints to monitor the health and status of the appli
 * **`healthCheck` (`GET /health`)**: A simple endpoint that returns basic status information like `status: 'ok'`, uptime, and environment. Used for basic liveness checks.
 * **`detailedHealthCheck` (`GET /health/detailed`)**: Provides a more comprehensive status report, including:
   * Memory usage (RSS, heap).
-  * The number of active Sourcegraph cookies available.
+  * The number of active Sourcegraph API Keys available.
   * Key configuration statuses (e.g., if a proxy or rate limiting is enabled).
-  * It returns a `503` status code with a 'warning' message if no active cookies are available, which is critical for system monitoring.
+  * It returns a `503` status code with a 'warning' message if no active Sourcegraph API Keys are available, which is critical for system monitoring.
 * **`rootEndpoint` (`GET /`)**: Provides basic information about the API, including its name, version, and a list of available public endpoints.
 
 ### `models.ts`

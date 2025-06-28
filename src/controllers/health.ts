@@ -47,7 +47,7 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
   try {
     const startTime = Date.now();
 
-    // Check cookie status
+    // Check Sourcegraph API Key status
     const activeCookieCount = await countActiveCookies();
     const hasActiveCookie = activeCookieCount > 0;
 
@@ -55,7 +55,7 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
     const memoryUsage = process.memoryUsage();
 
     const health = {
-      status: hasActiveCookie ? 'ok' : 'warning', // Warning if no active cookies
+      status: hasActiveCookie ? 'ok' : 'warning', // Warning if no active Sourcegraph API Keys
       timestamp: new Date().toISOString(),
       version: '1.1.4',
       uptime: process.uptime(),
@@ -64,9 +64,9 @@ export async function detailedHealthCheck(req: Request, res: Response): Promise<
 
       // Details
       details: {
-        cookies: {
+        sourcegraphApiKeys: {
           available: activeCookieCount,
-          status: hasActiveCookie ? 'ok' : 'no_cookies_available'
+          status: hasActiveCookie ? 'ok' : 'no_sourcegraph_api_keys_available'
         },
 
         memory: {
@@ -114,7 +114,7 @@ export async function rootEndpoint(req: Request, res: Response): Promise<void> {
 
   try {
     const info = {
-      name: 'Sourcegraph2API - Node.js',
+      name: 'Sourcegraph2API',
       version: '1.1.4',
       description: 'Sourcegraph AI API to OpenAI API proxy server',
       status: 'running',
