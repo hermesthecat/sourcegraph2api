@@ -130,8 +130,16 @@
                             const username = btn.dataset.username;
 
                             editUsernameInput.value = username;
+                            
+                            // Kullanıcı 'admin' ise, kullanıcı adı alanını devre dışı bırak
+                            if (username === 'admin') {
+                                editUsernameInput.disabled = true;
+                            } else {
+                                editUsernameInput.disabled = false;
+                            }
+                            
                             document.getElementById('editPassword').value = '';
-
+                            
                             editForm.action = `/admin/users/edit/${userId}`;
                             editUserModal.style.display = 'block';
                         });

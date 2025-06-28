@@ -70,6 +70,11 @@ export const updateUser = async (id: number, username: string, password?: string
       throw new Error('Güncellenecek kullanıcı bulunamadı.');
     }
 
+    // Kritik Koruma: 'admin' kullanıcısının adının değiştirilmesini engelle
+    if (user.username === 'admin' && username !== 'admin') {
+      throw new Error('"admin" kullanıcısının adı değiştirilemez.');
+    }
+
     user.username = username;
     // Sadece yeni bir şifre girildiyse güncelle
     if (password && password.trim() !== '') {
