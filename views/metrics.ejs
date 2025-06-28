@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <link rel="stylesheet" href="/style.css">
   <style>
     .pagination {
       margin-top: 20px;
       text-align: center;
     }
-    .pagination a, .pagination span {
+
+    .pagination a,
+    .pagination span {
       display: inline-block;
       padding: 8px 12px;
       margin: 0 4px;
@@ -19,15 +24,18 @@
       text-decoration: none;
       color: #333;
     }
+
     .pagination .current {
       background-color: #3498db;
       color: white;
       border-color: #3498db;
       font-weight: bold;
     }
+
     .pagination a:hover {
       background-color: #f1f1f1;
     }
+
     td.error-message {
       max-width: 250px;
       white-space: pre-wrap;
@@ -38,64 +46,72 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <%- include('partials/nav') %>
-    <h1>Kullanım Metrikleri</h1>
+      <%- include('partials/messages') %>
+        <h1>Kullanım Metrikleri</h1>
 
-    <% if (message) { %>
-      <div class="alert alert-success"><%= message %></div>
-    <% } %>
-    <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
-    <% } %>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Tarih</th>
-          <th>IP Adresi</th>
-          <th>API Anahtarı</th>
-          <th>Kullanılan Cookie</th>
-          <th>Model</th>
-          <th>Durum</th>
-          <th>Hata Mesajı</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (metrics.length > 0) { %>
-          <% metrics.forEach(metric => { %>
+        <table>
+          <thead>
             <tr>
-              <td><%= new Date(metric.requestTimestamp).toLocaleString('tr-TR') %></td>
-              <td><%= metric.ipAddress %></td>
-              <td><%= metric.apiKey ? metric.apiKey.alias : 'Bilinmiyor' %></td>
-              <td><%= metric.cookie ? metric.cookie.alias : 'Bilinmiyor' %></td>
-              <td><code><%= metric.model || '-' %></code></td>
-              <td>
-                <% if (metric.wasSuccess) { %>
-                  <span class="status status-active">Başarılı</span>
-                <% } else { %>
-                  <span class="status status-passive">Başarısız</span>
-                <% } %>
-              </td>
-              <td class="<%= metric.errorMessage ? 'error-message' : '' %>"><%= metric.errorMessage || '-' %></td>
+              <th>Tarih</th>
+              <th>IP Adresi</th>
+              <th>API Anahtarı</th>
+              <th>Kullanılan Cookie</th>
+              <th>Model</th>
+              <th>Durum</th>
+              <th>Hata Mesajı</th>
             </tr>
-          <% }) %>
-        <% } else { %>
-          <tr>
-            <td colspan="7" style="text-align: center;">Görüntülenecek metrik kaydı bulunamadı.</td>
-          </tr>
-        <% } %>
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            <% if (metrics.length> 0) { %>
+              <% metrics.forEach(metric=> { %>
+                <tr>
+                  <td>
+                    <%= new Date(metric.requestTimestamp).toLocaleString('tr-TR') %>
+                  </td>
+                  <td>
+                    <%= metric.ipAddress %>
+                  </td>
+                  <td>
+                    <%= metric.apiKey ? metric.apiKey.alias : 'Bilinmiyor' %>
+                  </td>
+                  <td>
+                    <%= metric.cookie ? metric.cookie.alias : 'Bilinmiyor' %>
+                  </td>
+                  <td><code><%= metric.model || '-' %></code></td>
+                  <td>
+                    <% if (metric.wasSuccess) { %>
+                      <span class="status status-active">Başarılı</span>
+                      <% } else { %>
+                        <span class="status status-passive">Başarısız</span>
+                        <% } %>
+                  </td>
+                  <td class="<%= metric.errorMessage ? 'error-message' : '' %>">
+                    <%= metric.errorMessage || '-' %>
+                  </td>
+                </tr>
+                <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="7" style="text-align: center;">Görüntülenecek metrik kaydı bulunamadı.</td>
+                    </tr>
+                    <% } %>
+          </tbody>
+        </table>
 
-    <% if (totalPages > 1) { %>
-      <div class="pagination">
-        <% for(let i = 1; i <= totalPages; i++) { %>
-          <a href="/admin/metrics?page=<%= i %>" class="<%= currentPage == i ? 'current' : '' %>"><%= i %></a>
-        <% } %>
-      </div>
-    <% } %>
+        <% if (totalPages> 1) { %>
+          <div class="pagination">
+            <% for(let i=1; i <=totalPages; i++) { %>
+              <a href="/admin/metrics?page=<%= i %>" class="<%= currentPage == i ? 'current' : '' %>">
+                <%= i %>
+              </a>
+              <% } %>
+          </div>
+          <% } %>
   </div>
 </body>
-</html> 
+
+</html>
