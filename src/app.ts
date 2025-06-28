@@ -64,6 +64,13 @@ export function createApp(): Application {
   app.use(passport.session());
   app.use(flash());
 
+  // Flash mesajlarını tüm view'lara (EJS) göndermek için middleware
+  app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    res.locals.user = req.user; // Oturum açmış kullanıcı bilgisini de view'lara gönderelim
+    next();
+  });
+
   // ======================
   // Trust proxy (production için) / Proxy'e güven (üretim için)
   // ======================
