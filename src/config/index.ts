@@ -1,84 +1,144 @@
 /**
- * Konfigürasyon Yöneticisi / Configuration Manager
- * Environment variables'ları yönetir ve uygulama ayarlarını sağlar. / Manages environment variables and provides application settings.
+ * Dynamic Configuration Manager / Dinamik Konfigürasyon Yöneticisi
+ * Ayarları veritabanından yükler ve uygulama çalışırken güncellenmesine olanak tanır.
+ * Loads settings from the database and allows them to be updated while the application is running.
  */
 
 import dotenv from 'dotenv';
-import { AppConfig } from '../types';
+import { log } from '../utils/logger';
+import { Setting } from '../models/setting.model';
+import { AppConfig, BaseConfig, DynamicConfig } from '../types';
 
-// .env dosyasını yükle / Load .env file
+// .env dosyasını SADECE temel, yeniden başlatma gerektiren ayarlar için yükle
 dotenv.config();
 
+// Bellekte tutulacak olan, anlık ve güncel konfigürasyon nesnesi
+// Bu nesne, uygulama genelinde "gerçeğin kaynağı" (source of truth) olacak.
+let liveConfig: Partial<AppConfig> = {};
+
 /**
- * Environment variable'ı string olarak al / Get environment variable as a string
+ * .env dosyasından temel (yeniden başlatma gerektiren) ayarları okur.
  */
-function getEnvString(key: string, defaultValue: string = ''): string {
-  return process.env[key] || defaultValue;
+function getBaseConfig(): BaseConfig {
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7033;
+    const host = process.env.HOST || '0.0.0.0';
+    const debug = process.env.DEBUG?.toLowerCase() === 'true' || false;
+    const nodeEnv = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'production';
+
+    return { port, host, debug, nodeEnv };
 }
 
 /**
- * Environment variable'ı number olarak al / Get environment variable as a number
+ * Ayarları veritabanından yükler ve bellekteki `liveConfig` nesnesini doldurur.
+ * Ayrıca, veritabanında eksik olan varsayılan ayarları oluşturur.
  */
-function getEnvNumber(key: string, defaultValue: number): number {
-  const value = process.env[key];
-  return value ? parseInt(value, 10) : defaultValue;
+export async function loadConfigFromDb(): Promise<void> {
+    log.info('🔄 Ayarlar veritabanından yükleniyor...');
+    try {
+        const settingsFromDb = await Setting.findAll();
+        const dbSettingsMap = new Map(settingsFromDb.map(s => [s.key, s.value]));
+
+        const defaults: Record<keyof DynamicConfig, any> = {
+            sessionSecret: 's2a-super-secret-key-please-change-me-in-admin-panel',
+            requestRateLimit: '60',
+            routePrefix: '',
+            proxyUrl: '',
+            ipBlacklist: '',
+            logLevel: 'info',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            tz: 'Europe/Istanbul',
+            reasoningHide: 'false', // Veritabanında string olarak saklanacak
+            sourcegraphBaseUrl: 'https://sourcegraph.com',
+            chatEndpoint: '/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0',
+        };
+
+        const configToCreate: { key: string, value: string }[] = [];
+
+        // Veritabanındaki ayarları `liveConfig`'e yükle ve eksikleri bul
+        for (const key of Object.keys(defaults) as Array<keyof DynamicConfig>) {
+            if (dbSettingsMap.has(key)) {
+                liveConfig[key] = dbSettingsMap.get(key) as any;
+            } else {
+                log.warn(`Veritabanında eksik ayar: '${key}'. Varsayılan değer kullanılacak ve oluşturulacak.`);
+                liveConfig[key] = defaults[key] as any;
+                configToCreate.push({ key, value: defaults[key] });
+            }
+        }
+
+        // Eksik ayarları veritabanına toplu olarak ekle
+        if (configToCreate.length > 0) {
+            await Setting.bulkCreate(configToCreate);
+            log.info(`${configToCreate.length} adet eksik ayar veritabanına eklendi.`);
+        }
+
+        // String'den doğru tiplere dönüştürme
+        liveConfig.requestRateLimit = parseInt(String(liveConfig.requestRateLimit), 10);
+        liveConfig.ipBlacklist = String(liveConfig.ipBlacklist || '').split(',').map(ip => ip.trim()).filter(Boolean);
+        liveConfig.reasoningHide = String(liveConfig.reasoningHide).toLowerCase() === 'true';
+
+        log.info('✅ Ayarlar başarıyla yüklendi ve belleğe alındı.');
+
+    } catch (error) {
+        log.error('❌ Ayarlar veritabanından yüklenirken kritik bir hata oluştu:', error);
+        // Bu hata kritik olduğu için uygulamayı durdurmak daha güvenli olabilir.
+        process.exit(1);
+    }
 }
 
 /**
- * Environment variable'ı boolean olarak al / Get environment variable as a boolean
+ * Uygulama genelinde kullanılacak olan yapılandırma nesnesi.
+ * Bu bir proxy nesnesidir, böylece `config.PORT` gibi bir değere erişildiğinde
+ * her zaman en güncel değeri (bellekteki `liveConfig`'ten) alır.
  */
-function getEnvBoolean(key: string, defaultValue: boolean): boolean {
-  const value = process.env[key];
-  if (!value) return defaultValue;
-  return value.toLowerCase() === 'true' || value === '1';
+export const config = new Proxy({}, {
+    get(_target, prop: string) {
+        // Önce bellekteki dinamik ayarlara bak
+        // @ts-ignore
+        if (liveConfig.hasOwnProperty(prop)) {
+            // @ts-ignore
+            return liveConfig[prop];
+        }
+
+        // Sonra .env'den okunan temel ayarlara bak
+        const baseConfig = getBaseConfig();
+        // @ts-ignore
+        if (baseConfig.hasOwnProperty(prop)) {
+            // @ts-ignore
+            return baseConfig[prop];
+        }
+
+        // Hiçbir yerde bulunamazsa undefined dön
+        return undefined;
+    }
+}) as AppConfig;
+
+
+/**
+ * Bellekteki yapılandırmayı anında günceller.
+ * Bu fonksiyon, ayarlar panelinden bir ayar güncellendiğinde çağrılır.
+ * @param key Güncellenecek ayarın anahtarı
+ * @param value Yeni değer
+ */
+export function updateLiveConfig(key: keyof AppConfig, value: any) {
+    let processedValue = value;
+    // Tipe göre işlem yap
+    if (key === 'requestRateLimit') {
+        processedValue = parseInt(value, 10);
+    } else if (key === 'ipBlacklist') {
+        processedValue = String(value || '').split(',').map(ip => ip.trim()).filter(Boolean);
+    } else if (key === 'reasoningHide') {
+        processedValue = String(value).toLowerCase() === 'true';
+    }
+
+    // @ts-ignore
+    liveConfig[key] = processedValue;
+    log.info(`Bellekteki ayar güncellendi: ${key} = ${JSON.stringify(processedValue)}`);
 }
 
-/**
- * Environment variable'ı array olarak al (virgülle ayrılmış) / Get environment variable as an array (comma-separated)
- */
-function getEnvArray(key: string, defaultValue: string[] = []): string[] {
-  const value = getEnvString(key);
-  return value ? value.split(',').map(item => item.trim()).filter(Boolean) : defaultValue;
-}
+// ====================================================================
+// Model bilgileri statik kalabilir, çünkü bunlar kodla yönetiliyor.
+// ====================================================================
 
-/**
- * Uygulama konfigürasyonu / Application Configuration
- */
-export const config: AppConfig = {
-  // Temel ayarlar / Core settings
-  port: getEnvNumber('PORT', 7033),
-  host: getEnvString('HOST', '0.0.0.0'),
-  debug: getEnvBoolean('DEBUG', false),
-  nodeEnv: (getEnvString('NODE_ENV', 'production') as 'development' | 'production' | 'test'),
-  logLevel: getEnvString('LOG_LEVEL', 'info'),
-  logPath: getEnvString('LOG_PATH', 'logs'),
-
-  // Session
-  sessionSecret: getEnvString('SESSION_SECRET'),
-
-  apiKeys: getEnvArray('API_KEYS'),
-
-  // Network ayarları / Network settings
-  proxyUrl: getEnvString('PROXY_URL'),
-  userAgent: getEnvString(
-    'USER_AGENT',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome'
-  ),
-
-  // Rate limiting / Hız Sınırlaması
-  requestRateLimit: getEnvNumber('REQUEST_RATE_LIMIT', 60),
-  rateLimitCookieLockDuration: getEnvNumber('RATE_LIMIT_COOKIE_LOCK_DURATION', 60),
-
-  // Özellikler / Features
-  routePrefix: getEnvString('ROUTE_PREFIX'),
-
-  // Güvenlik / Security
-  ipBlacklist: getEnvArray('IP_BLACKLIST'),
-};
-
-/**
- * Sourcegraph model bilgileri / Sourcegraph model information
- */
 export const modelRegistry: Record<string, { modelRef: string; maxTokens: number }> = {
   'claude-sonnet-4-latest': {
     modelRef: 'anthropic::2024-10-22::claude-sonnet-4-latest',
@@ -230,44 +290,10 @@ export const modelRegistry: Record<string, { modelRef: string; maxTokens: number
   },
 };
 
-/**
- * Model bilgisini al / Get model information
- */
 export function getModelInfo(modelName: string) {
   return modelRegistry[modelName];
 }
 
-/**
- * Desteklenen modellerin listesini al / Get the list of supported models
- */
 export function getModelList(): string[] {
   return Object.keys(modelRegistry);
 }
-
-/**
- * Konfigürasyonu doğrula / Validate configuration
- */
-export function validateConfig(): void {
-
-  if (config.port < 1 || config.port > 65535) {
-    throw new Error('PORT must be between 1 and 65535 / PORT 1 ile 65535 arasında olmalıdır');
-  }
-}
-
-/**
- * Konfigürasyonu konsola yazdır (debug için) / Log configuration to console (for debugging)
- */
-export function logConfig(): void {
-  if (config.debug) {
-    console.log('📋 Configuration loaded: / Konfigürasyon yüklendi:');
-    console.log(`   Port / Bağlantı Noktası: ${config.port}`);
-    console.log(`   Host / Konak: ${config.host}`);
-    console.log(`   Debug / Hata Ayıklama: ${config.debug}`);
-    console.log(`   Node Environment / Ortam: ${config.nodeEnv}`);
-    console.log(`   Route Prefix / Rota Ön Eki: ${config.routePrefix || 'none / yok'}`);
-    console.log(`   Swagger Enabled / Swagger Aktif: ${config.swaggerEnable}`);
-    console.log(`   Rate Limit / Hız Limiti: ${config.requestRateLimit}/min`);
-    console.log(`   Proxy URL / Proxy Adresi: ${config.proxyUrl || 'none / yok'}`);
-    console.log(`   Models Available / Mevcut Modeller: ${getModelList().length}`);
-  }
-} 

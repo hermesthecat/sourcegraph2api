@@ -4,10 +4,9 @@
  */
 
 import { startServer } from './app';
-import { log } from './utils/logger';
-import { validateConfig, logConfig } from './config';
+import { log, initializeLogger } from './utils/logger';
+import { config, loadConfigFromDb } from './config';
 import { initializeDatabase } from './services/database';
-import './models'; // Tüm modelleri ve ilişkileri yükle / Load all models and relationships
 
 /**
  * Ana fonksiyon - server'ı başlat / Main function - start the server
@@ -30,18 +29,15 @@ async function main(): Promise<void> {
 ╚═══════════════════════════════════════════════════════╝
     `);
 
-    log.info('🔧 Konfigürasyon doğrulanıyor... / Validating configuration...');
-
-    // Konfigürasyonu doğrula / Validate configuration
-    validateConfig();
-
-    // Veritabanını başlat / Initialize the database
+    // Veritabanını başlat (bu, ayarları yüklemeden önce yapılmalı)
     await initializeDatabase();
 
-    // Konfigürasyonu logla (debug mode'da) / Log configuration (in debug mode)
-    logConfig();
+    // Ayarları veritabanından yükle
+    await loadConfigFromDb();
 
-    log.info('✅ Konfigürasyon geçerli / Configuration valid');
+    // Ayarlar yüklendikten sonra Logger'ı başlat
+    initializeLogger(config);
+
     log.info('🚀 Server başlatılıyor... / Starting server...');
 
     // Server'ı başlat / Start the server

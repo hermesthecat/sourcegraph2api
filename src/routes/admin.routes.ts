@@ -12,7 +12,7 @@ import * as statsService from '../services/statistics.service'; // İstatistik s
 import { log } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { getAllUsers, addUser, deleteUser, findUserById, updateUser } from '../services/user.service'; // Kullanıcı servisini import et
-import { getEditableSettings, updateEnvFile } from '../services/settings.service'; // Ayarlar servisini import et
+import { getEditableSettings, updateSettings } from '../services/settings.service'; // Ayarlar servisini import et
 import {
   getGeneralStats,
   getApiKeyUsageStats,
@@ -394,9 +394,9 @@ router.post('/users/edit/:id', async (req, res) => {
 // ============================
 
 // Ayarlar sayfasını göster
-router.get('/settings', (req, res) => {
+router.get('/settings', async (req, res) => {
   try {
-    const settings = getEditableSettings();
+    const settings = await getEditableSettings();
     res.render('settings', {
       title: 'Uygulama Ayarları',
       settings,
@@ -410,24 +410,36 @@ router.get('/settings', (req, res) => {
 // Ayarları güncelle
 router.post('/settings', async (req, res) => {
     try {
-        // body'den sadece izin verilen alanları al, fazlasını değil.
-        const allowedKeys = [
-            'SESSION_SECRET',
-            'REQUEST_RATE_LIMIT',
-            'ROUTE_PREFIX',
-            'PROXY_URL',
-            'IP_BLACKLIST',
-            'LOG_LEVEL'
-        ];
-        const settingsToUpdate: Record<string, string> = {};
-        for (const key of allowedKeys) {
-            if (req.body[key] !== undefined) {
-                settingsToUpdate[key] = req.body[key];
-            }
-        }
+        const {
+            sessionSecret,
+            requestRateLimit,
+            routePrefix,
+            proxyUrl,
+            ipBlacklist,
+            logLevel,
+            userAgent,
+            tz,
+            reasoningHide,
+            sourcegraphBaseUrl,
+            chatEndpoint
+        } = req.body;
 
-        await updateEnvFile(settingsToUpdate);
-        req.flash('success', 'Ayarlar başarıyla güncellendi. Değişikliklerin etkili olması için sunucuyu yeniden başlatmanız gerekmektedir.');
+        const settingsToUpdate = {
+            sessionSecret,
+            requestRateLimit,
+            routePrefix,
+            proxyUrl,
+            ipBlacklist,
+            logLevel,
+            userAgent,
+            tz,
+            reasoningHide,
+            sourcegraphBaseUrl,
+            chatEndpoint
+        };
+
+        await updateSettings(settingsToUpdate);
+        req.flash('success', 'Ayarlar başarıyla güncellendi ve anında devreye alındı. Sunucuyu yeniden başlatmaya gerek yoktur.');
     } catch (error: any) {
         req.flash('error', `Ayarlar güncellenirken bir hata oluştu: ${error.message}`);
     }

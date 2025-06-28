@@ -6,10 +6,8 @@
 import { Sequelize } from 'sequelize';
 import { log } from '../utils/logger';
 import path from 'path';
-import { ApiKey, Cookie, UsageMetric, User } from '../models'; // User modelini import et
 import session from 'express-session';
 import ConnectSessionSequelize from 'connect-session-sequelize';
-import { config } from '../config';
 
 // Veritabanı dosyasının yolu (proje kök dizininde) / Path to the database file (in project root)
 const storage = path.join(process.cwd(), 'database.sqlite');
@@ -36,13 +34,19 @@ export const sessionStore = new SequelizeStore({
  * Veritabanı bağlantısını test et ve senkronize et / Test and synchronize the database connection
  */
 export async function initializeDatabase(): Promise<void> {
+  // Döngüsel bağımlılığı kırmak için modelleri burada import et
+  const { User } = await import('../models/user.model');
+  const { config } = await import('../config');
+
   try {
     await sequelize.authenticate();
     log.info('Veritabanı bağlantısı başarıyla kuruldu. / Database connection has been established successfully.');
 
-    // alter: true -> Modellerde değişiklik olduğunda tabloyu günceller. SQLite'ta bu sorun yaratabilir.
     // force: true -> Tablo varsa siler, yeniden oluşturur. Geliştirme için kullanışlıdır ama verileri siler.
-    await sequelize.sync({ force: process.env.NODE_ENV !== 'production' }); // Üretim ortamı değilse force: true kullan
+    // Sadece geliştirme ortamında verileri sil.
+    const syncOptions = { force: process.env.NODE_ENV === 'development' };
+    await sequelize.sync(syncOptions);
+
     await sessionStore.sync();
     log.info('🔄 All models and session store were synchronized successfully.');
 
@@ -53,7 +57,7 @@ export async function initializeDatabase(): Promise<void> {
         username: 'admin',
         password: 'admin', // Parola modeldeki hook ile otomatik hash'lenecek
       });
-      log.info('👤 Varsayılan admin kullanıcısı oluşturuldu (admin/admin). / Default admin user created.');
+      log.info('👤 Varsayılan admin kullanıcısı oluşturuldu (admin/admin). Lütfen ilk girişte şifrenizi değiştirin.');
     }
 
   } catch (error) {

@@ -40,13 +40,6 @@ dist/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 # parcel-bundler cache
 .cache
 .parcel-cache

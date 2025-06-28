@@ -84,26 +84,32 @@ export interface SourcegraphRequest {
 }
 
 // Konfigürasyon tipleri / Configuration types
-export interface AppConfig {
+
+// .env dosyasından gelen ve yeniden başlatma gerektiren temel ayarlar
+export interface BaseConfig {
   port: number;
   host: string;
-  apiSecret?: string;
-  apiKeys: string[];
-  sgCookie?: string;
-  sgEndpoint?: string;
-  routePrefix?: string;
-  requestRateLimit: number;
-  ipBlacklist: string[];
-  proxyUrl?: string;
   debug: boolean;
   nodeEnv: 'development' | 'production' | 'test';
-  logLevel?: string;
-  logPath?: string;
-  sessionSecret: string;
-  swaggerEnable?: boolean;
-  userAgent?: string;
-  rateLimitCookieLockDuration?: number;
 }
+
+// Veritabanından gelen ve dinamik olarak güncellenebilen ayarlar
+export interface DynamicConfig {
+  sessionSecret: string;
+  requestRateLimit: number;
+  routePrefix: string;
+  proxyUrl: string;
+  ipBlacklist: string[];
+  logLevel: 'error' | 'warn' | 'info' | 'debug';
+  userAgent: string;
+  tz: string;
+  reasoningHide: boolean;
+  sourcegraphBaseUrl: string;
+  chatEndpoint: string;
+}
+
+// Uygulamanın tam yapılandırma tipi
+export type AppConfig = BaseConfig & DynamicConfig;
 
 // =================================================================
 // Express & PassportJS Tip Genişletmeleri

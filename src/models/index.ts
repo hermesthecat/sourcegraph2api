@@ -8,6 +8,7 @@ import { ApiKey } from './apikey.model';
 import { Cookie } from './cookie.model';
 import { UsageMetric } from './usage.model';
 import { User } from './user.model';
+import { Setting } from './setting.model';
 
 // ApiKey ve UsageMetric arasındaki ilişki (One-to-Many)
 // Bir ApiKey'in birden çok kullanım metriği olabilir
@@ -35,4 +36,5 @@ UsageMetric.belongsTo(Cookie, {
 export * from './apikey.model';
 export * from './cookie.model';
 export * from './usage.model';
-export * from './user.model'; 
+export * from './user.model';
+export * from './setting.model';

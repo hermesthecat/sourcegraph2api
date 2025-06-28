@@ -1,111 +1,57 @@
 /**
  * Settings Service / Ayarlar Servisi
- * .env dosyasındaki ayarları yönetmek için fonksiyonlar içerir
- * Contains functions for managing settings in the .env file
+ * Veritabanındaki ayarları yönetmek için fonksiyonlar içerir.
+ * Contains functions for managing settings in the database.
  */
 
-import fs from 'fs';
-import path from 'path';
-import { config } from '../config';
+import { Setting } from '../models';
 import { log } from '../utils/logger';
-
-// .env dosyasının tam yolu
-const envFilePath = path.join(process.cwd(), '.env');
+import { updateLiveConfig } from '../config';
+import { DynamicConfig } from '../types';
 
 /**
- * .env dosyasından SADECE düzenlenebilir ayarları okur.
- * Reads ONLY the editable settings from the .env file.
- * @returns {Record<string, string>} Düzenlenebilir ayarların bir nesnesi.
+ * Veritabanından DÜZENLENEBİLİR tüm ayarları okur.
+ * Reads all EDITABLE settings from the database.
+ * @returns {Promise<Record<string, string>>} Düzenlenebilir ayarların bir nesnesi.
  */
-export function getEditableSettings(): Record<string, string> {
+export async function getEditableSettings(): Promise<Record<string, string>> {
   try {
-    const editableKeys = [
-      'SESSION_SECRET',
-      'REQUEST_RATE_LIMIT',
-      'ROUTE_PREFIX',
-      'PROXY_URL',
-      'IP_BLACKLIST',
-      'LOG_LEVEL'
-    ];
-
-    const settings: Record<string, string> = {};
-    const fileContent = fs.readFileSync(envFilePath, { encoding: 'utf8' });
-    const lines = fileContent.split('\n');
-
-    for (const line of lines) {
-      if (line.trim() === '' || line.startsWith('#')) {
-        continue;
-      }
-      const [key, ...valueParts] = line.split('=');
-      const value = valueParts.join('=');
-      if (editableKeys.includes(key.trim())) {
-        settings[key.trim()] = value.trim();
-      }
+    const settings = await Setting.findAll();
+    const settingsMap: Record<string, string> = {};
+    for (const setting of settings) {
+      settingsMap[setting.key] = setting.value;
     }
-    
-    // Eğer .env dosyasında olmayan ama config'de olan ayar varsa onu da ekle
-    // (örn: dosya ilk oluşturulduğunda boş olabilir)
-    settings.SESSION_SECRET = settings.SESSION_SECRET || config.sessionSecret;
-    settings.REQUEST_RATE_LIMIT = settings.REQUEST_RATE_LIMIT || String(config.requestRateLimit);
-    settings.ROUTE_PREFIX = settings.ROUTE_PREFIX || config.routePrefix || '';
-    settings.PROXY_URL = settings.PROXY_URL || config.proxyUrl || '';
-    settings.IP_BLACKLIST = settings.IP_BLACKLIST || config.ipBlacklist.join(',');
-    settings.LOG_LEVEL = settings.LOG_LEVEL || config.logLevel || 'info';
-
-
-    return settings;
+    return settingsMap;
   } catch (error) {
-    log.error('.env dosyası okunurken hata:', error);
-    // Hata durumunda config'den varsayılanları dön
-    return {
-        SESSION_SECRET: config.sessionSecret,
-        REQUEST_RATE_LIMIT: String(config.requestRateLimit),
-        ROUTE_PREFIX: config.routePrefix || '',
-        PROXY_URL: config.proxyUrl || '',
-        IP_BLACKLIST: config.ipBlacklist.join(','),
-        LOG_LEVEL: config.logLevel || 'info',
-    };
+    log.error('Veritabanından ayarlar okunurken hata:', error);
+    throw new Error('Ayarlar okunurken bir veritabanı hatası oluştu.');
   }
 }
 
 /**
- * .env dosyasını yeni ayarlarla günceller.
- * Var olan değerleri günceller, olmayanları ekler, yorumları korur.
+ * Veritabanındaki ayarları toplu olarak günceller ve bellekteki
+ * anlık yapılandırmayı yeniler.
  * @param {Record<string, string>} newSettings - Güncellenecek ayarlar.
  * @returns {Promise<void>}
  */
-export async function updateEnvFile(newSettings: Record<string, string>): Promise<void> {
+export async function updateSettings(newSettings: Record<string, string>): Promise<void> {
+  const transaction = await Setting.sequelize!.transaction();
   try {
-    let fileContent = fs.readFileSync(envFilePath, { encoding: 'utf8' });
-    let lines = fileContent.split('\n');
-    const updatedKeys = new Set<string>();
-
-    // Var olan anahtarları güncelle
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.trim() === '' || line.startsWith('#')) {
-        continue;
-      }
-      const [key] = line.split('=');
-      if (newSettings.hasOwnProperty(key)) {
-        lines[i] = `${key}=${newSettings[key]}`;
-        updatedKeys.add(key);
-      }
-    }
-
-    // .env dosyasında olmayan yeni anahtarları sona ekle
     for (const key in newSettings) {
-      if (!updatedKeys.has(key)) {
-        lines.push(`${key}=${newSettings[key]}`);
-      }
+      const value = newSettings[key];
+
+      // 1. Veritabanını Güncelle
+      await Setting.upsert({ key, value }, { transaction });
+
+      // 2. Bellekteki Anlık Yapılandırmayı Güncelle
+      updateLiveConfig(key as keyof DynamicConfig, value);
     }
 
-    // Dosyayı yaz
-    fs.writeFileSync(envFilePath, lines.join('\n'), { encoding: 'utf8' });
-    log.info('.env dosyası başarıyla güncellendi. Değişikliklerin etkili olması için sunucunun yeniden başlatılması gerekiyor.');
-
+    await transaction.commit();
+    log.info('Ayarlar başarıyla veritabanında ve bellekte güncellendi.');
   } catch (error) {
-    log.error('.env dosyası güncellenirken hata:', error);
-    throw new Error('.env dosyası güncellenirken bir hata oluştu.');
+    await transaction.rollback();
+    log.error('Ayarlar güncellenirken hata:', error);
+    throw new Error('Ayarlar güncellenirken bir veritabanı hatası oluştu.');
   }
 }

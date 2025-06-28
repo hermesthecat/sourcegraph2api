@@ -4,64 +4,61 @@
  */
 
 import winston from 'winston';
-import { config } from '../config';
+import { AppConfig } from '../types';
 
-// Log formatı / Log format
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.errors({ stack: true }),
-  winston.format.colorize({ all: config.debug }),
-  winston.format.printf(({ timestamp, level, message, stack }) => {
-    return `${timestamp} [${level}]: ${stack || message}`;
-  })
-);
+// Henüz yapılandırılmamış bir logger nesnesi oluşturuyoruz.
+// Bu, diğer modüllerin hata almadan import edebilmesi için gereklidir.
+export const logger = winston.createLogger();
 
-// Logger oluştur / Create logger
-export const logger = winston.createLogger({
-  level: config.debug ? 'debug' : 'info',
-  format: logFormat,
-  transports: [
-    // Console output / Konsol çıktısı
+/**
+ * Logger'ı, yapılandırma yüklendikten sonra gelen ayarlarla başlatır.
+ * @param {AppConfig} config - Yüklenmiş uygulama yapılandırması.
+ */
+export function initializeLogger(config: AppConfig) {
+  const logFormat = winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    winston.format.errors({ stack: true }),
+    winston.format.colorize({ all: config.debug }),
+    winston.format.printf(({ timestamp, level, message, stack }) => {
+      return `${timestamp} [${level}]: ${stack || message}`;
+    })
+  );
+
+  const transports = [
+    // Console output
     new winston.transports.Console({
       format: logFormat
     }),
-
-    // Error dosyası / Error file
+    // Error file
     new winston.transports.File({
       filename: 'logs/error.log',
       level: 'error',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      )
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json())
     }),
-
-    // Combined dosyası / Combined file
+    // Combined file
     new winston.transports.File({
       filename: 'logs/combined.log',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      )
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json())
     })
-  ],
+  ];
 
-  // Handled exceptions / İşlenen istisnalar
-  exceptionHandlers: [
-    new winston.transports.File({ filename: 'logs/exceptions.log' })
-  ],
+  logger.configure({
+    level: config.debug ? 'debug' : config.logLevel,
+    format: logFormat,
+    transports: transports,
+    exceptionHandlers: [
+      new winston.transports.File({ filename: 'logs/exceptions.log' })
+    ],
+    rejectionHandlers: [
+      new winston.transports.File({ filename: 'logs/rejections.log' })
+    ]
+  });
 
-  // Unhandled rejections / İşlenmeyen reddetmeler
-  rejectionHandlers: [
-    new winston.transports.File({ filename: 'logs/rejections.log' })
-  ]
-});
-
-// Development mode'da console'a da yaz / Also log to console in development mode
-if (config.nodeEnv !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
+  if (config.nodeEnv !== 'production') {
+    logger.add(new winston.transports.Console({
+      format: winston.format.simple()
+    }));
+  }
 }
 
 /**
@@ -78,5 +75,3 @@ export const log = {
     logger.log(level, `[${requestId}] ${message}`, meta);
   }
 };
-
-export default logger; 

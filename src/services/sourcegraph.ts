@@ -18,8 +18,7 @@ import { getRandomActiveCookie } from './cookie.service'; // Cookie servisini im
 import { recordUsage } from './metric.service'; // Metrik servisini import et
 
 // Sourcegraph API sabitleri / Sourcegraph API constants
-const SOURCEGRAPH_BASE_URL = 'https://sourcegraph.com';
-const CHAT_ENDPOINT = `${SOURCEGRAPH_BASE_URL}/.api/completions/stream?api-version=9&client-name=vscode&client-version=1.82.0`;
+// Bu değerler artık config'den dinamik olarak alınacak
 
 // Modelleri OpenAI formatından Sourcegraph formatına çevir / Convert models from OpenAI format to Sourcegraph format
 const MODEL_MAP: Record<string, string> = {
@@ -80,7 +79,7 @@ class SourcegraphClient {
       'traceparent': traceParent,
       'x-sourcegraph-interaction-id': uuidv4(),
       'content-type': 'application/json',
-      'user-agent': config.userAgent,
+      'user-agent': config.userAgent, // Dinamik config'den al
     };
   }
 
@@ -108,7 +107,7 @@ class SourcegraphClient {
 
       axios({
         method: 'post',
-        url: CHAT_ENDPOINT,
+        url: `${config.sourcegraphBaseUrl}${config.chatEndpoint}`,
         data: requestBody,
         headers: headers,
         responseType: 'stream',

@@ -98,18 +98,29 @@ This project includes a powerful admin panel to manage and monitor your proxy se
 
 ## ⚙️ Configuration
 
-The server is configured via environment variables in the `.env` file.
+The application's configuration is managed in two ways:
 
-| Variable | Description | Default | Required |
-| :--- | :--- | :--- | :--- |
-| `PORT` | The port the server will run on. | `7033` | ❌ No |
-| `SESSION_SECRET` | A long, random string for securing user sessions. | - | ✅ **Yes** |
-| `NODE_ENV` | The operating environment (`development` or `production`). | `production` | ❌ No |
-| `DEBUG` | Enables detailed debug logging. | `false` | ❌ No |
-| `REQUEST_RATE_LIMIT` | The maximum number of requests allowed per minute per IP. | `60` | ❌ No |
-| `ROUTE_PREFIX` | A global prefix for all API routes (e.g., `/api`). | - | ❌ No |
-| `PROXY_URL` | An HTTP/HTTPS proxy address for requests to Sourcegraph. | - | ❌ No |
-| `IP_BLACK_LIST` | Comma-separated IP addresses to be blocked. | - | ❌ No |
+1.  **`.env` File (Startup Settings)**: These are core settings required to boot the server. They are only read once when the server starts.
+2.  **Admin Panel (Dynamic Settings)**: All other settings are managed dynamically from the **Admin Panel → Settings** page. These settings are stored in the database and can be changed on-the-fly without restarting the server.
+
+### `.env` File Settings
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `PORT` | The port the server will run on. | `7033` |
+| `HOST` | The host address the server will bind to. | `0.0.0.0` |
+| `NODE_ENV` | The operating environment (`development` or `production`). | `production` |
+| `DEBUG` | Enables detailed debug logging (`true` or `false`). | `false` |
+
+### Admin Panel Settings
+
+The following settings can be configured from the UI:
+- **Session Secret**: A secret key for securing user sessions.
+- **Request Rate Limit**: Max requests per minute per IP.
+- **Route Prefix**: A global prefix for all API routes.
+- **Proxy URL**: An HTTP/HTTPS proxy for outbound requests.
+- **IP Blacklist**: Comma-separated IPs to block.
+- **Log Level**: The verbosity of application logs (`info`, `debug`, etc.).
 
 ## 🎯 Usage
 
@@ -330,18 +341,29 @@ Bu proje, proxy sunucunuzu yönetmek ve izlemek için güçlü bir yönetim pane
 
 ## ⚙️ Konfigürasyon
 
-Sunucu, `.env` dosyasındaki ortam değişkenleri ile yapılandırılır.
+Uygulama konfigürasyonu iki şekilde yönetilir:
 
-| Değişken | Açıklama | Varsayılan | Gerekli |
-| :--- | :--- | :--- | :--- |
-| `PORT` | Sunucunun çalışacağı port. | `7033` | ❌ Hayır |
-| `SESSION_SECRET` | Kullanıcı oturumlarını güvence altına almak için uzun, rastgele bir dize. | - | ✅ **Evet** |
-| `NODE_ENV` | Çalışma ortamı (`development` veya `production`). | `production` | ❌ Hayır |
-| `DEBUG` | Detaylı hata ayıklama loglarını aktif eder. | `false` | ❌ Hayır |
-| `REQUEST_RATE_LIMIT` | IP başına dakika başına izin verilen maksimum istek sayısı. | `60` | ❌ Hayır |
-| `ROUTE_PREFIX` | Tüm API yollarına eklenecek genel önek (örn: `/api`). | - | ❌ Hayır |
-| `PROXY_URL` | Sourcegraph'a yapılan istekler için HTTP/HTTPS proxy adresi. | - | ❌ Hayır |
-| `IP_BLACK_LIST` | Erişimi engellenecek IP adresleri (virgülle ayrılmış). | - | ❌ Hayır |
+1.  **`.env` Dosyası (Başlangıç Ayarları)**: Bunlar, sunucuyu başlatmak için gereken temel ayarlardır. Yalnızca sunucu başlarken bir kez okunurlar.
+2.  **Yönetim Paneli (Dinamik Ayarlar)**: Diğer tüm ayarlar, **Yönetim Paneli → Ayarlar** sayfasından dinamik olarak yönetilir. Bu ayarlar veritabanında saklanır ve sunucuyu yeniden başlatmadan anında değiştirilebilir.
+
+### `.env` Dosyası Ayarları
+
+| Değişken | Açıklama | Varsayılan |
+| :--- | :--- | :--- |
+| `PORT` | Sunucunun çalışacağı port. | `7033` |
+| `HOST` | Sunucunun bağlanacağı IP adresi. | `0.0.0.0` |
+| `NODE_ENV` | Çalışma ortamı (`development` veya `production`). | `production` |
+| `DEBUG` | Detaylı hata ayıklama loglarını aktif eder (`true` veya `false`). | `false` |
+
+### Yönetim Paneli Ayarları
+
+Aşağıdaki ayarlar kullanıcı arayüzünden yapılandırılabilir:
+- **Oturum Gizli Anahtarı**: Kullanıcı oturumlarını güvence altına almak için gizli bir anahtar.
+- **İstek Limiti**: IP başına dakika başına maksimum istek sayısı.
+- **Rota Ön Eki**: Tüm API yolları için genel bir ön ek.
+- **Proxy Adresi**: Giden istekler için bir HTTP/HTTPS proxy'si.
+- **IP Kara Listesi**: Engellenecek, virgülle ayrılmış IP'ler.
+- **Log Seviyesi**: Uygulama loglarının ayrıntı düzeyi (`info`, `debug` vb.).
 
 ## 🎯 Kullanım
 
