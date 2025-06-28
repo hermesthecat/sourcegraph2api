@@ -110,9 +110,9 @@ export function createApiRouter(): Router {
   // GET /metrics/dashboard - Detaylı dashboard / GET /metrics/dashboard - Detaylı pano
   router.get('/metrics/dashboard', async (req, res) => {
     try {
-      const generalStats = await getGeneralStats();
       const cacheStats = getCacheStats();
       const servicesHealth = getServicesHealth();
+      const generalStats = await getGeneralStats();
 
       res.json({
         status: 'ok',
@@ -121,8 +121,6 @@ export function createApiRouter(): Router {
           total_requests: generalStats.totalRequests,
           total_errors: generalStats.totalErrors,
           success_rate: generalStats.errorRate,
-          active_cookies: generalStats.activeCookies,
-          active_api_keys: generalStats.activeApiKeys,
         },
         cache: cacheStats,
         services: servicesHealth,

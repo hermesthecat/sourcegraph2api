@@ -298,21 +298,4 @@ router.get('/metrics', async (req: Request, res: Response) => {
   }
 });
 
-// ============================
-// System Metrics (JSON Inspector)
-// ============================
-// /metrics/dashboard'dan gelen JSON verisini görselleştirir
-router.get('/system-metrics', (req: Request, res: Response) => {
-  try {
-    res.render('system-metrics', {
-      title: 'Sistem Metrikleri (JSON)',
-    });
-  } catch (error) {
-    log.error('Sistem metrikleri sayfası yüklenirken hata:', error);
-    // @ts-ignore
-    req.session.error = 'Sistem metrikleri sayfası yüklenirken bir hata oluştu.';
-    res.redirect('/admin/dashboard');
-  }
-});
-
 export { router as adminRouter }; 
