@@ -40,9 +40,9 @@ export async function initializeDatabase(): Promise<void> {
     await sequelize.authenticate();
     log.info('Veritabanı bağlantısı başarıyla kuruldu. / Database connection has been established successfully.');
 
-    // Modelleri ve session store'u veritabanı ile senkronize et
-    // alter: true -> Modellerde değişiklik olduğunda tabloyu günceller
-    await sequelize.sync({ alter: true });
+    // alter: true -> Modellerde değişiklik olduğunda tabloyu günceller. SQLite'ta bu sorun yaratabilir.
+    // force: true -> Tablo varsa siler, yeniden oluşturur. Geliştirme için kullanışlıdır ama verileri siler.
+    await sequelize.sync({ force: process.env.NODE_ENV !== 'production' }); // Üretim ortamı değilse force: true kullan
     await sessionStore.sync();
     log.info('🔄 All models and session store were synchronized successfully.');
 
